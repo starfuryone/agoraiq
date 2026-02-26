@@ -1,0 +1,21 @@
+{
+  "name": "@agoraiq/telegram",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@agoraiq/db": "workspace:*",
+    "@prisma/client": "^6.3.0",
+    "telegraf": "^4.16.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0"
+  }
+}

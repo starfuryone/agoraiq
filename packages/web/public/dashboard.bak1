@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgoraIQ — Dashboard</title>
+  <style>
+    :root { --bg:#0a0e17; --bg2:#111827; --card:#1a2332; --card-h:#1f2b3d; --border:#2a3548; --text:#e5e7eb; --muted:#9ca3af; --dim:#6b7280; --accent:#3b82f6; --accent2:#2563eb; --green:#22c55e; --red:#ef4444; --yellow:#eab308; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; --mono:'SF Mono','Fira Code',monospace; --r:8px; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:var(--font); background:var(--bg); color:var(--text); }
+    a { color:var(--accent); text-decoration:none; }
+
+    /* Layout */
+    .topbar { background:var(--bg2); border-bottom:1px solid var(--border); padding:12px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; }
+    .logo { font-size:15px; font-weight:800; letter-spacing:-0.02em; display:flex; align-items:center; gap:6px; } .logo .agora { color:#a78bfa; } .logo .iq { color:#e2e8f0; }
+    .nav { display:flex; gap:4px; }
+    .nav-item { padding:8px 16px; border-radius:var(--r); color:var(--muted); cursor:pointer; font-size:14px; font-weight:500; }
+    .nav-item.active, .nav-item:hover { background:var(--accent); color:#fff; }
+    .user-menu { display:flex; align-items:center; gap:12px; }
+    .user-email { font-size:13px; color:var(--muted); }
+    .btn-sm { padding:6px 14px; border-radius:var(--r); border:1px solid var(--border); background:transparent; color:var(--text); cursor:pointer; font-size:13px; }
+    .btn-sm:hover { background:var(--card); }
+    .main { max-width:1200px; margin:0 auto; padding:24px; }
+
+    /* Cards & Tables */
+    .card { background:var(--card); border:1px solid var(--border); border-radius:var(--r); padding:20px; margin-bottom:16px; }
+    table { width:100%; border-collapse:collapse; }
+    th { text-align:left; padding:10px 12px; font-size:12px; color:var(--dim); text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid var(--border); background:var(--bg2); }
+    td { padding:10px 12px; border-bottom:1px solid var(--border); font-size:14px; }
+    tr:hover { background:var(--card-h); }
+    .pos { color:var(--green); } .neg { color:var(--red); }
+    .badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; }
+    .badge-active { background:rgba(234,179,8,0.15); color:var(--yellow); }
+    .badge-tp { background:rgba(34,197,94,0.15); color:var(--green); }
+    .badge-sl { background:rgba(239,68,68,0.15); color:var(--red); }
+    .badge-exp { background:rgba(107,114,128,0.15); color:var(--dim); }
+
+    /* Filters */
+    .filters { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+    .filter-input { padding:8px 12px; border-radius:var(--r); border:1px solid var(--border); background:var(--bg2); color:var(--text); font-size:13px; outline:none; }
+    .filter-input:focus { border-color:var(--accent); }
+    select.filter-input { cursor:pointer; }
+
+    /* Pagination */
+    .pagination { display:flex; justify-content:center; gap:8px; margin-top:16px; }
+    .page-btn { padding:6px 14px; border-radius:var(--r); border:1px solid var(--border); background:var(--card); color:var(--text); cursor:pointer; font-size:13px; }
+    .page-btn.active { background:var(--accent); border-color:var(--accent); }
+    .page-btn:disabled { opacity:0.4; cursor:default; }
+
+    /* Watchlist */
+    .wl-item { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); }
+    .wl-remove { color:var(--red); cursor:pointer; font-size:13px; }
+    .wl-add { display:flex; gap:8px; margin-top:12px; }
+
+    .loading { text-align:center; padding:40px; color:var(--muted); }
+    .section-title { font-size:18px; font-weight:600; margin-bottom:16px; }
+    #page-content { min-height:60vh; }
+
+    
+  
+/* ── MEGA FOOTER ── */
+.site-footer{border-top:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.25)}
+.site-footer-inner{max-width:1200px;margin:0 auto;padding:40px 24px 48px}
+.footer-top{display:flex;flex-wrap:wrap;gap:40px 56px;margin-bottom:32px}
+.footer-brand{min-width:200px;max-width:260px}
+.footer-logo{display:flex;align-items:center;gap:6px;text-decoration:none;font-size:14px;font-weight:800;letter-spacing:-.02em;margin-bottom:12px}
+.footer-logo .agora{color:#a78bfa}
+.footer-logo .iq{color:#e2e8f0}
+.footer-logo svg{flex-shrink:0}
+.footer-brand p{font-size:12px;color:var(--text3);line-height:1.65}
+.footer-col h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:12px}
+.footer-col a{display:block;font-size:12.5px;color:var(--text3);text-decoration:none;padding:3px 0;transition:color .2s}
+.footer-col a:hover{color:var(--cyan)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.06);padding-top:20px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px}
+.footer-disclaimer{font-size:11px;line-height:1.6;color:var(--text3);max-width:640px}
+.footer-disclaimer strong{color:var(--red)}
+.footer-copy{font-size:11px;color:rgba(255,255,255,.2)}
+@media(max-width:600px){.footer-top{gap:28px}.footer-brand{max-width:100%}}
+
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logotext"><span class="agora">Agora</span><span class="iq">IQ</span></span></div>
+  <div class="nav">
+    <div class="nav-item active" data-page="signals">Signals</div>
+    <div class="nav-item" data-page="providers">Providers</div>
+    <div class="nav-item" data-page="watchlists">Watchlists</div>
+    <div class="nav-item" data-page="settings">Settings</div>
+  </div>
+  <div class="user-menu">
+    <span class="user-email" id="user-email"></span>
+    <button class="btn-sm" onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<div class="main" id="page-content">
+  <div class="loading">Loading…</div>
+</div>
+
+<script>
+const TOKEN = localStorage.getItem('agoraiq_token');
+if (!TOKEN) window.location.href = '/login';
+
+const API = '/api/v1/dashboard';
+const headers = () => ({ 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' });
+let currentPage = 'signals';
+
+function logout() { localStorage.removeItem('agoraiq_token'); window.location.href = '/login'; }
+
+// Load user info
+fetch('/api/v1/auth/me', { headers: headers() }).then(r => r.json()).then(d => {
+  if (d.error) { logout(); return; }
+  document.getElementById('user-email').textContent = d.user?.email || '';
+}).catch(() => logout());
+
+// Nav
+document.querySelectorAll('.nav-item').forEach(n => {
+  n.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+    n.classList.add('active');
+    currentPage = n.dataset.page;
+    loadPage();
+  });
+});
+
+function statusBadge(s) {
+  const cls = s === 'ACTIVE' ? 'badge-active' : s === 'HIT_TP' ? 'badge-tp' : s === 'HIT_SL' ? 'badge-sl' : 'badge-exp';
+  return `<span class="badge ${cls}">${s}</span>`;
+}
+
+// ── Signals Page ──────────────────────────────────────────────
+let sigPage = 1;
+async function loadSignals() {
+  const el = document.getElementById('page-content');
+  el.innerHTML = `
+    <div class="section-title">Signal Inbox</div>
+    <div class="filters">
+      <input class="filter-input" id="f-symbol" placeholder="Symbol (e.g. BTCUSDT)">
+      <select class="filter-input" id="f-action"><option value="">All Actions</option><option>BUY</option><option>SELL</option><option>HOLD</option></select>
+      <input class="filter-input" id="f-provider" placeholder="Provider key">
+      <button class="btn-sm" onclick="sigPage=1;fetchSignals()">Filter</button>
+      <a href="${API}/exports/csv" class="btn-sm" style="text-decoration:none;display:flex;align-items:center;">⬇ Export CSV</a>
+    </div>
+    <div id="signals-table"><div class="loading">Loading…</div></div>
+    <div class="pagination" id="sig-pagination"></div>`;
+  fetchSignals();
+}
+
+async function fetchSignals() {
+  const sym = document.getElementById('f-symbol')?.value || '';
+  const act = document.getElementById('f-action')?.value || '';
+  const prov = document.getElementById('f-provider')?.value || '';
+  let url = `${API}/signals?page=${sigPage}&limit=20`;
+  if (sym) url += `&symbol=${sym}`;
+  if (act) url += `&action=${act}`;
+  if (prov) url += `&provider=${prov}`;
+  try {
+    const r = await fetch(url, { headers: headers() });
+    const d = await r.json();
+    if (d.error) { document.getElementById('signals-table').innerHTML = `<div class="loading">${d.message || d.error}</div>`; return; }
+    const rows = (d.signals || []).map(s => {
+      const t = s.trade || {};
+      const rVal = t.rMultiple != null ? `<span class="${t.rMultiple >= 0 ? 'pos' : 'neg'}">${t.rMultiple >= 0 ? '+' : ''}${t.rMultiple.toFixed(2)}R</span>` : '—';
+      return `<tr onclick="window.location.hash='signal/${s.id}'" style="cursor:pointer">
+        <td>${new Date(s.signalTs).toLocaleString()}</td>
+        <td><strong>${s.symbol}</strong></td><td>${s.timeframe}</td>
+        <td>${s.action}</td><td>${(s.confidence*100||0).toFixed(0)}%</td>
+        <td>${s.providerKey}</td><td>${statusBadge(t.status || 'PENDING')}</td><td>${rVal}</td></tr>`;
+    });
+    document.getElementById('signals-table').innerHTML = rows.length
+      ? `<table><thead><tr><th>Time</th><th>Symbol</th><th>TF</th><th>Action</th><th>Conf</th><th>Provider</th><th>Status</th><th>R</th></tr></thead><tbody>${rows.join('')}</tbody></table>`
+      : '<div class="loading">No signals found</div>';
+    const p = d.pagination;
+    const btns = [];
+    for (let i = 1; i <= Math.min(p.totalPages, 10); i++) {
+      btns.push(`<button class="page-btn ${i===sigPage?'active':''}" onclick="sigPage=${i};fetchSignals()">${i}</button>`);
+    }
+    document.getElementById('sig-pagination').innerHTML = btns.join('');
+  } catch (e) { document.getElementById('signals-table').innerHTML = '<div class="loading">Error loading signals</div>'; }
+}
+
+// ── Providers Page ────────────────────────────────────────────
+async function loadProviders() {
+  const el = document.getElementById('page-content');
+  el.innerHTML = '<div class="section-title">Provider Leaderboard</div><div class="filters"><select class="filter-input" id="p-period" onchange="fetchProviders()"><option value="7d">7 Days</option><option value="30d" selected>30 Days</option><option value="90d">90 Days</option></select></div><div id="providers-table"><div class="loading">Loading…</div></div>';
+  fetchProviders();
+}
+async function fetchProviders() {
+  const period = document.getElementById('p-period')?.value || '30d';
+  try {
+    const r = await fetch(`${API}/providers?period=${period}`, { headers: headers() });
+    const d = await r.json();
+    const rows = (d.leaderboard || []).map((p, i) => `<tr>
+      <td>${i+1}</td><td><strong>${p.name}</strong></td><td>${p.category}</td>
+      <td>${p.totalTrades}</td><td class="pos">${p.winRate}%</td>
+      <td>${p.avgR.toFixed(2)}</td>
+      <td class="${p.totalReturn >= 0 ? 'pos' : 'neg'}">${p.totalReturn >= 0 ? '+' : ''}${p.totalReturn.toFixed(1)}%</td>
+    </tr>`);
+    document.getElementById('providers-table').innerHTML = rows.length
+      ? `<table><thead><tr><th>#</th><th>Provider</th><th>Category</th><th>Trades</th><th>Win Rate</th><th>Avg R</th><th>Return</th></tr></thead><tbody>${rows.join('')}</tbody></table>`
+      : '<div class="loading">No providers yet</div>';
+  } catch(e) { document.getElementById('providers-table').innerHTML = '<div class="loading">Error</div>'; }
+}
+
+// ── Watchlists Page ───────────────────────────────────────────
+async function loadWatchlists() {
+  const el = document.getElementById('page-content');
+  el.innerHTML = '<div class="section-title">Your Watchlists</div><div class="card" id="wl-list"><div class="loading">Loading…</div></div><div class="card"><div style="font-weight:600;margin-bottom:12px;">Add to Watchlist</div><div class="wl-add"><select class="filter-input" id="wl-type"><option value="symbol">Symbol</option><option value="provider">Provider</option></select><input class="filter-input" id="wl-value" placeholder="e.g. BTCUSDT or itb"><button class="btn-sm" onclick="addWatchlist()">Add</button></div></div>';
+  fetchWatchlists();
+}
+async function fetchWatchlists() {
+  try {
+    const r = await fetch(`${API}/watchlists`, { headers: headers() });
+    const d = await r.json();
+    const items = (d.watchlists || []).map(w => `<div class="wl-item"><div>${w.type === 'symbol' ? '📊' : '📡'} <strong>${w.value}</strong> <span style="color:var(--dim)">(${w.type})</span></div><span class="wl-remove" onclick="removeWatchlist('${w.id}')">✕ Remove</span></div>`);
+    document.getElementById('wl-list').innerHTML = items.length ? items.join('') : '<div style="color:var(--muted)">No watchlist items. Add one below.</div>';
+  } catch(e) { document.getElementById('wl-list').innerHTML = '<div class="loading">Error</div>'; }
+}
+async function addWatchlist() {
+  const type = document.getElementById('wl-type').value;
+  const value = document.getElementById('wl-value').value;
+  if (!value) return;
+  await fetch(`${API}/watchlists`, { method: 'POST', headers: headers(), body: JSON.stringify({ type, value }) });
+  document.getElementById('wl-value').value = '';
+  fetchWatchlists();
+}
+async function removeWatchlist(id) {
+  await fetch(`${API}/watchlists/${id}`, { method: 'DELETE', headers: headers() });
+  fetchWatchlists();
+}
+
+// ── Settings Page ─────────────────────────────────────────────
+async function loadSettings() {
+  document.getElementById('page-content').innerHTML = `
+    <div class="section-title">Account & Settings</div>
+    <div class="card" id="account-info"><div class="loading">Loading…</div></div>
+    <div class="card"><div style="font-weight:600;margin-bottom:12px;">Billing</div><p style="color:var(--muted)">Manage your subscription and payment method.</p><br><a href="#" class="btn-sm">Manage Billing →</a></div>
+    <div class="card"><div style="font-weight:600;margin-bottom:12px;">Danger Zone</div><button class="btn-sm" style="color:var(--red);border-color:var(--red);" onclick="logout()">Sign Out</button></div>`;
+  try {
+    const r = await fetch('/api/v1/auth/me', { headers: headers() });
+    const d = await r.json();
+    document.getElementById('account-info').innerHTML = `
+      <div style="font-weight:600;margin-bottom:12px;">Account</div>
+      <p>Email: <strong>${d.user?.email}</strong></p>
+      <p>Role: ${d.user?.role}</p>
+      <p>Plan: <strong>${d.subscription?.tier || 'None'}</strong> (${d.subscription?.status || 'inactive'})</p>
+      <p>Joined: ${new Date(d.user?.createdAt).toLocaleDateString()}</p>`;
+  } catch(e) {}
+}
+
+// ── Page Router ───────────────────────────────────────────────
+function loadPage() {
+  switch (currentPage) {
+    case 'signals': loadSignals(); break;
+    case 'providers': loadProviders(); break;
+    case 'watchlists': loadWatchlists(); break;
+    case 'settings': loadSettings(); break;
+  }
+}
+loadPage();
+</script>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="/" class="footer-logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logotext"><span class="agora">Agora</span><span class="iq">IQ</span></span></a>
+        <p>AI-powered signal intelligence. Track, score, and verify crypto trading signals with verifiable proof.</p>
+      </div>
+      <div class="footer-col">
+        <h4>About Us</h4>
+        <a href="/about">About</a>
+        <a href="/careers">Careers</a>
+        <a href="/announcements">Announcements</a>
+        <a href="/news">News</a>
+        <a href="/press">Press</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/cookies">Cookies</a>
+        <a href="/disclaimer">Disclaimer</a>
+        <a href="/trust">Building Trust</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="/blog">Blog</a>
+        <a href="/community">Community</a>
+        <a href="/risk-warning">Risk Warning</a>
+        <a href="/notices">Notices</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-disclaimer"><strong>⚠ Not for UK Persons.</strong> AgoraIQ is not authorised or regulated by the FCA. Not directed at UK persons. Nothing on this site constitutes financial advice. Past performance does not guarantee future results.</div>
+      <div class="footer-copy">© 2026 ChatLogic Insights LTD. All rights reserved.</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

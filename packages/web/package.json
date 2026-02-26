@@ -1,0 +1,21 @@
+{
+  "name": "@agoraiq/web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc && node build.js",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@agoraiq/db": "workspace:*",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0"
+  }
+}

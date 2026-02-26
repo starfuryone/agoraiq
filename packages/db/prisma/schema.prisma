@@ -1,0 +1,300 @@
+// ═══════════════════════════════════════════════════════════════
+// @agoraiq/db — Prisma Schema
+//
+// Core tables:
+//   Provider   — signal source config (webhook secret, proof_category)
+//   Signal     — immutable incoming events (normalized + raw + idempotency)
+//   Trade      — derived paper trades (entry/exit/TP/SL/status/R/P&L)
+//   User       — app users with auth
+//   Subscription — billing/entitlement
+//   TelegramUser — Telegram ↔ User linkage
+//   Watchlist  — user watchlists (pairs + providers)
+//   AuditLog   — ingestion + admin event log
+// ═══════════════════════════════════════════════════════════════
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Provider ──────────────────────────────────────────────────
+
+model Provider {
+  id            String   @id @default(cuid())
+  slug          String   @unique                // e.g. "itb", "ext-provider-1"
+  name          String                          // Display name
+  description   String?
+  proofCategory String   @default("all")        // spot | futures-low | futures-high | all
+  isActive      Boolean  @default(true)
+  config        Json     @default("{}")         // webhookSecret, rateLimits, ipAllowlist
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  signals       Signal[]
+  trades        Trade[]
+
+  @@map("providers")
+}
+
+// ── Signal ────────────────────────────────────────────────────
+
+model Signal {
+  id              String   @id @default(cuid())
+  idempotencyKey  String   @unique              // provider_key+symbol+timeframe+ts
+  schemaVersion   String   @default("1.0")
+  providerKey     String                        // raw provider_key from payload
+  providerId      String                        // FK to Provider
+  workspaceId     String
+  symbol          String                        // e.g. "BTCUSDT"
+  timeframe       String                        // e.g. "1m", "5m", "1h"
+  action          String                        // BUY | SELL | HOLD
+  score           Float?
+  confidence      Float?
+  signalTs        DateTime                      // timestamp from provider
+  price           Float?                        // price at signal time (optional)
+  meta            Json?                         // model_version, etc.
+  rawPayload      Json                          // full original payload (audit only)
+  createdAt       DateTime @default(now())
+
+  provider        Provider @relation(fields: [providerId], references: [id])
+  trade           Trade?                        // 1:1 optional derived trade
+
+  @@index([providerId, signalTs])
+  @@index([workspaceId, symbol, signalTs])
+  @@index([symbol, timeframe, signalTs])
+  @@map("signals")
+}
+
+// ── Trade ─────────────────────────────────────────────────────
+
+model Trade {
+  id            String    @id @default(cuid())
+  signalId      String    @unique              // 1:1 with Signal
+  providerId    String
+  workspaceId   String
+  symbol        String
+  timeframe     String
+  direction     String                         // LONG | SHORT
+  exchange      String    @default("BINANCE_FUTURES")
+  leverage      Float?
+
+  // Entry
+  entryPrice    Float?
+  enteredAt     DateTime?
+
+  // Targets
+  tpPrice       Float?
+  slPrice       Float?
+  tpPct         Float?                         // TP distance %
+  slPct         Float?                         // SL distance %
+  // Multi-TP targets
+  tp1Price      Float?
+  tp2Price      Float?
+  tp3Price      Float?
+  tp1HitAt      DateTime?
+  tp2HitAt      DateTime?
+  tp3HitAt      DateTime?
+  tpHitCount    Int       @default(0)
+
+  // Resolution
+  status        String    @default("ACTIVE")   // ACTIVE | HIT_TP | HIT_SL | EXPIRED
+  exitPrice     Float?
+  exitedAt      DateTime?
+  rMultiple     Float?                         // R-multiple
+  pnlPct        Float?                         // P&L percentage
+
+  // Timeout
+  timeoutAt     DateTime?                      // when trade expires if no TP/SL
+
+  // Metadata
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  signal        Signal    @relation(fields: [signalId], references: [id])
+  provider      Provider  @relation(fields: [providerId], references: [id])
+
+  @@index([workspaceId, status])
+  @@index([workspaceId, symbol])
+  @@index([workspaceId, providerId, status])
+  @@index([status, timeoutAt])
+  @@index([workspaceId, exitedAt])
+  @@index([exchange, leverage])
+  @@map("trades")
+}
+
+// ── User ──────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String?
+  workspaceId   String
+  role          String    @default("user")     // user | admin
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  subscription  Subscription?
+  telegramUser  TelegramUser?
+  watchlists    Watchlist[]
+  preferences   Json      @default("{}")       // notification prefs, display prefs
+
+  @@index([workspaceId])
+  @@map("users")
+}
+
+// ── Subscription ──────────────────────────────────────────────
+
+model Subscription {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  tier          String    @default("starter")  // starter | pro | elite
+  status        String    @default("active")   // active | cancelled | past_due | trialing
+  startsAt      DateTime  @default(now())
+  endsAt        DateTime?
+  stripeCustomerId   String?
+  stripeSubscriptionId String?
+  stripePriceId        String?
+  planTier             String    @default("FREE")
+  subscriptionStatus   String    @default("inactive")
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user          User      @relation(fields: [userId], references: [id])
+
+  @@map("subscriptions")
+}
+
+model WebhookEvent {
+  id                String    @id @default(cuid())
+  stripeEventId     String    @unique
+  eventType         String
+  payload           Json
+  customerId        String?
+  subscriptionId    String?
+  processed         Boolean   @default(false)
+  processingError   String?
+  receivedAt        DateTime  @default(now())
+  processedAt       DateTime?
+  @@index([customerId])
+  @@index([subscriptionId])
+  @@index([processed])
+  @@map("WebhookEvent")
+}
+
+// ── TelegramUser ──────────────────────────────────────────────
+
+model TelegramUser {
+  id            String    @id @default(cuid())
+  telegramId    String    @unique              // Telegram user ID (numeric string)
+  userId        String    @unique              // FK to User
+  chatId        String                         // Telegram chat ID for sending messages
+  username      String?                        // Telegram @username (optional, not exposed publicly)
+  isActive      Boolean   @default(true)
+  digestEnabled Boolean   @default(true)
+  muteAll       Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user          User      @relation(fields: [userId], references: [id])
+
+  @@map("telegram_users")
+}
+
+// ── Watchlist ─────────────────────────────────────────────────
+
+model Watchlist {
+  id            String    @id @default(cuid())
+  userId        String
+  type          String                         // symbol | provider
+  value         String                         // e.g. "BTCUSDT" or "itb"
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+
+  user          User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, type, value])
+  @@index([userId, type])
+  @@map("watchlists")
+}
+
+// ── AuditLog ──────────────────────────────────────────────────
+
+model AuditLog {
+  id            String    @id @default(cuid())
+  action        String                         // signal.ingested | signal.rejected | trade.resolved | admin.*
+  actorType     String    @default("system")   // system | provider | user | admin
+  actorId       String?                        // provider slug or user ID
+  resourceType  String?                        // signal | trade | provider | user
+  resourceId    String?
+  meta          Json?                          // additional context
+  createdAt     DateTime  @default(now())
+
+  @@index([action, createdAt])
+  @@index([actorId, createdAt])
+  @@map("audit_logs")
+}
+
+enum PublishStatus {
+  PENDING
+  VALIDATED
+  PUBLISHING
+  PUBLISHED
+  PARTIAL
+  FAILED
+
+  @@map("publish_status")
+}
+
+model SignalTemplate {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  name        String   @db.VarChar(100)
+  exchange    String   @db.VarChar(60)
+  leverage    String?  @db.VarChar(20)
+  footer      String?  @db.VarChar(120)
+  channels    Json     @db.JsonB
+  isDefault   Boolean  @default(false) @map("is_default")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  publishes   SignalPublish[]
+
+  @@index([userId], name: "idx_signal_template_user")
+  @@index([workspaceId], name: "idx_signal_template_workspace")
+  @@map("signal_templates")
+}
+
+model SignalPublish {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tradeId     String        @map("trade_id") @db.Uuid
+  templateId  String?       @map("template_id") @db.Uuid
+  userId      String        @map("user_id") @db.Uuid
+  workspaceId String        @map("workspace_id") @db.Uuid
+  channels    Json          @db.JsonB
+  format      String        @default("cornix") @db.VarChar(20)
+  content     String        @db.Text
+  status      PublishStatus @default(PENDING)
+  validatedAt DateTime?     @map("validated_at")
+  publishedAt DateTime?     @map("published_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  results     Json?         @db.JsonB
+  error       String?       @db.Text
+
+  template    SignalTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  @@index([tradeId], name: "idx_signal_publish_trade")
+  @@index([userId, createdAt(sort: Desc)], name: "idx_signal_publish_user")
+  @@index([workspaceId, createdAt(sort: Desc)], name: "idx_signal_publish_workspace")
+  @@map("signal_publishes")
+}

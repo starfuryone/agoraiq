@@ -1,0 +1,32 @@
+enum SourceType {
+  webhook
+  telegram
+  discord
+}
+
+enum ParserMode {
+  cornix
+  freeform
+  strict_json
+}
+
+model ProviderSource {
+  id                  String     @id @default(cuid())
+  providerId           String
+  name                String     @default("Default")
+  sourceType           SourceType @default(webhook)
+  parserMode           ParserMode @default(freeform)
+  isActive            Boolean    @default(true)
+
+  // Optional tuning knobs
+  llmPromptTemplate   String?
+  confidenceThreshold Int?       @default(70)
+
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+
+  provider            Provider   @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@unique([providerId, name])
+}

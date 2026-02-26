@@ -1,0 +1,28 @@
+FROM node:20-slim AS base
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
+WORKDIR /app
+
+FROM base AS deps
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/api/package.json packages/api/
+COPY packages/db/package.json packages/db/
+COPY packages/signal-engine/package.json packages/signal-engine/
+RUN pnpm install --frozen-lockfile --prod=false
+
+FROM deps AS prisma
+COPY packages/db/ packages/db/
+RUN pnpm --filter @agoraiq/db generate
+
+FROM prisma AS build
+COPY packages/signal-engine/ packages/signal-engine/
+COPY packages/api/ packages/api/
+COPY tsconfig.json ./
+RUN pnpm --filter @agoraiq/api build
+
+FROM node:20-bullseye-slim AS production
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=build /app ./
+EXPOSE 4000
+CMD ["node", "packages/api/dist/index.js"]

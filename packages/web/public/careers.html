@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#060a14"/>
+<title>Careers — AgoraIQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#060a14;--bg2:#0b1120;--bg3:#111827;--bg4:#1a2332;
+  --border:#1e293b;--border2:#334155;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --cyan:#38bdf8;--violet:#a78bfa;--green:#4ade80;--amber:#f59e0b;--red:#ff3b5c;
+  --mono:'JetBrains Mono',monospace;--sans:'DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+.nav{position:sticky;top:0;z-index:100;background:rgba(6,10,20,.82);backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid rgba(30,41,59,.5)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-weight:800;font-size:16px;letter-spacing:-.02em;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px}
+.nav-logo .agora{color:#a78bfa}
+.nav-logo .iq{color:#e2e8f0}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-links a{font-size:13px;font-weight:500;color:var(--text3);text-decoration:none;padding:6px 14px;border-radius:8px;transition:all .2s}
+.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.nav-cta{font-size:13px;font-weight:600;color:#fff;background:linear-gradient(135deg,var(--cyan),var(--violet));padding:7px 18px;border-radius:8px;text-decoration:none;transition:opacity .2s}
+.nav-cta:hover{opacity:.88}
+.page-wrap{max-width:800px;margin:0 auto;padding:64px 24px 96px}
+.page-header{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--border)}
+.page-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.15);border-radius:999px;padding:4px 14px;font-size:12px;font-weight:600;color:var(--violet);letter-spacing:.06em;text-transform:uppercase;margin-bottom:16px}
+.page-tag.cyan{background:rgba(56,189,248,.08);border-color:rgba(56,189,248,.15);color:var(--cyan)}
+.page-tag.green{background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.15);color:var(--green)}
+.page-tag.amber{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.15);color:var(--amber)}
+.page-header h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.03em;line-height:1.15;margin-bottom:12px}
+.page-header p{font-size:14px;color:var(--text3)}
+.doc-section{margin-bottom:40px}
+.doc-section h2{font-size:17px;font-weight:700;color:var(--text);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.doc-section h3{font-size:14px;font-weight:600;color:var(--cyan);margin:20px 0 8px}
+.doc-section p{font-size:14px;color:var(--text2);line-height:1.8;margin-bottom:12px}
+.doc-section p:last-child{margin-bottom:0}
+.doc-section ul{padding-left:20px;margin-bottom:12px}
+.doc-section ul li{font-size:14px;color:var(--text2);line-height:1.8;margin-bottom:4px}
+.doc-section a{color:var(--cyan);text-decoration:none}
+.doc-section a:hover{text-decoration:underline}
+.uk-banner{background:rgba(255,59,92,.06);border:1px solid rgba(255,59,92,.2);border-radius:12px;padding:16px 20px;margin-bottom:40px;font-size:13.5px;line-height:1.7;color:var(--text2)}
+.uk-banner strong{color:var(--red);display:block;margin-bottom:4px;font-size:14px}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:20px 0}
+.info-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:24px;transition:border-color .2s}
+.info-card:hover{border-color:var(--border2)}
+.info-card h3{font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px}
+.info-card p{font-size:13px;color:var(--text2);line-height:1.7;margin:0}
+.info-card .ic{font-size:24px;margin-bottom:12px}
+.timeline{border-left:2px solid var(--border);padding-left:24px;margin:20px 0}
+.timeline-item{margin-bottom:28px;position:relative}
+.timeline-item::before{content:"";position:absolute;left:-29px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--violet);border:2px solid var(--bg)}
+.timeline-item h3{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+.timeline-item .date{font-size:12px;color:var(--violet);font-weight:600;margin-bottom:6px;font-family:var(--mono)}
+.timeline-item p{font-size:13px;color:var(--text2);line-height:1.7}
+.cta-box{background:linear-gradient(135deg,rgba(56,189,248,.06),rgba(167,139,250,.06));border:1px solid rgba(167,139,250,.15);border-radius:12px;padding:32px;text-align:center;margin:40px 0}
+.cta-box h3{font-size:18px;font-weight:700;margin-bottom:8px}
+.cta-box p{font-size:14px;color:var(--text2);margin-bottom:16px}
+.cta-box a{display:inline-block;background:linear-gradient(135deg,var(--cyan),var(--violet));color:#fff;padding:10px 24px;border-radius:8px;font-weight:600;font-size:14px;text-decoration:none;transition:opacity .2s}
+.cta-box a:hover{opacity:.88}
+@media(max-width:768px){.nav-links a:not(.nav-cta){display:none}.page-wrap{padding:48px 20px 72px}}
+
+
+/* ── MEGA FOOTER ── */
+.site-footer{border-top:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.25)}
+.site-footer-inner{max-width:1200px;margin:0 auto;padding:40px 24px 48px}
+.footer-top{display:flex;flex-wrap:wrap;gap:40px 56px;margin-bottom:32px}
+.footer-brand{min-width:200px;max-width:260px}
+.footer-logo{display:flex;align-items:center;gap:6px;text-decoration:none;font-size:14px;font-weight:800;letter-spacing:-.02em;margin-bottom:12px}
+.footer-logo .agora{color:#a78bfa}
+.footer-logo .iq{color:#e2e8f0}
+.footer-logo svg{flex-shrink:0}
+.footer-brand p{font-size:12px;color:var(--text3);line-height:1.65}
+.footer-col h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:12px}
+.footer-col a{display:block;font-size:12.5px;color:var(--text3);text-decoration:none;padding:3px 0;transition:color .2s}
+.footer-col a:hover{color:var(--cyan)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.06);padding-top:20px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px}
+.footer-disclaimer{font-size:11px;line-height:1.6;color:var(--text3);max-width:640px}
+.footer-disclaimer strong{color:var(--red)}
+.footer-copy{font-size:11px;color:rgba(255,255,255,.2)}
+@media(max-width:600px){.footer-top{gap:28px}.footer-brand{max-width:100%}}
+
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logotext"><span class="agora">Agora</span><span class="iq">IQ</span></span></a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/proof">Proof</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/login">Log in</a>
+      <a href="/signup" class="nav-cta">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <div class="page-header">
+    <div class="page-tag ">About Us</div>
+    <h1>Careers</h1>
+    <p>Join a small, fast-moving team building the trust layer for signal trading.</p>
+  </div>
+
+
+  <div class="doc-section">
+    <h2>Why AgoraIQ</h2>
+    <p>We're building critical infrastructure for a market that desperately needs transparency. Our team is small by design — every person has direct impact on the product and the business. We value ownership, speed, and honest communication above all.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>How We Work</h2>
+    <ul>
+      <li><strong>Fully remote</strong> — work from anywhere with reliable internet</li>
+      <li><strong>Async-first</strong> — we write things down, not schedule meetings</li>
+      <li><strong>Ship weekly</strong> — small batches, fast feedback loops</li>
+      <li><strong>Own your domain</strong> — no micro-management, high autonomy</li>
+    </ul>
+  </div>
+
+  <div class="doc-section">
+    <h2>Open Positions</h2>
+    <p>We don't currently have open positions listed, but we're always interested in hearing from exceptional people — especially those with experience in:</p>
+    <ul>
+      <li>Full-stack TypeScript (React, Node, Fastify/Express)</li>
+      <li>Real-time data pipelines and event-driven architecture</li>
+      <li>Crypto/DeFi trading infrastructure</li>
+      <li>DevOps, observability, and platform engineering</li>
+      <li>Product design and UX for data-heavy applications</li>
+    </ul>
+  </div>
+
+  <div class="cta-box">
+    <h3>Interested?</h3>
+    <p>Send us a note about what you'd build if you joined.</p>
+    <a href="mailto:careers@agoraiq.net">careers@agoraiq.net</a>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="/" class="footer-logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logotext"><span class="agora">Agora</span><span class="iq">IQ</span></span></a>
+        <p>AI-powered signal intelligence. Track, score, and verify crypto trading signals with verifiable proof.</p>
+      </div>
+      <div class="footer-col">
+        <h4>About Us</h4>
+        <a href="/about">About</a>
+        <a href="/careers">Careers</a>
+        <a href="/announcements">Announcements</a>
+        <a href="/news">News</a>
+        <a href="/press">Press</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/cookies">Cookies</a>
+        <a href="/disclaimer">Disclaimer</a>
+        <a href="/trust">Building Trust</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="/blog">Blog</a>
+        <a href="/community">Community</a>
+        <a href="/risk-warning">Risk Warning</a>
+        <a href="/notices">Notices</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-disclaimer"><strong>⚠ Not for UK Persons.</strong> AgoraIQ is not authorised or regulated by the FCA. Not directed at UK persons. Nothing on this site constitutes financial advice. Past performance does not guarantee future results.</div>
+      <div class="footer-copy">© 2026 ChatLogic Insights LTD. All rights reserved.</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
