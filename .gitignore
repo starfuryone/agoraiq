@@ -10,3 +10,10 @@ coverage/
 .DS_Store
 tmp/
 .cache/
+
+# Secrets
+.env
+.env.*
+*.env
+*.env.*
+/etc/agoraiq.env

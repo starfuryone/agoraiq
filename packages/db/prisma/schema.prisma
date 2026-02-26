@@ -169,7 +169,6 @@ model Subscription {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  user          User      @relation(fields: [userId], references: [id])
 
   @@map("subscriptions")
 }
@@ -205,7 +204,6 @@ model TelegramUser {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  user          User      @relation(fields: [userId], references: [id])
 
   @@map("telegram_users")
 }
@@ -220,7 +218,6 @@ model Watchlist {
   isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
 
-  user          User      @relation(fields: [userId], references: [id])
 
   @@unique([userId, type, value])
   @@index([userId, type])
@@ -297,4 +294,23 @@ model SignalPublish {
   @@index([userId, createdAt(sort: Desc)], name: "idx_signal_publish_user")
   @@index([workspaceId, createdAt(sort: Desc)], name: "idx_signal_publish_workspace")
   @@map("signal_publishes")
+}
+
+model SignalLog {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  symbol      String
+  direction   String?
+  entryMin    Float?
+  entryMax    Float?
+  stopLoss    Float?
+  takeProfits Json?
+  leverage    Float?
+  marketType  String?
+  confidence  Float?
+  rawMessage  String?
+  note        String?
+  createdAt   DateTime @default(now())
+
 }

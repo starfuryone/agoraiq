@@ -527,5 +527,64 @@ export function createDashboardRoutes(db: PrismaClient): Router {
     }
   });
 
+
+  // ── POST /signal-log ──────────────────────────────────────
+  router.post('/signal-log', async (req: Request, res: Response) => {
+    try {
+      const { symbol, direction, entryMin, entryMax, stopLoss, takeProfits,
+              leverage, marketType, confidence, rawMessage, note } = req.body;
+      if (!symbol) { res.status(400).json({ error: 'SYMBOL_REQUIRED' }); return; }
+      const { randomBytes } = require('crypto');
+      const id = randomBytes(16).toString('hex');
+      await db.$executeRawUnsafe(
+        `INSERT INTO "SignalLog" ("id","workspaceId","userId","symbol","direction","entryMin","entryMax","stopLoss","takeProfits","leverage","marketType","confidence","rawMessage","note","createdAt")
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12,$13,$14,NOW())`,
+        id, req.user!.workspaceId, req.user!.userId,
+        symbol, direction||null, entryMin||null, entryMax||null, stopLoss||null,
+        JSON.stringify(takeProfits||[]),
+        leverage||null, marketType||null, confidence||null, rawMessage||null, note||null
+      );
+      res.json({ ok: true, id });
+    } catch (err) {
+      log.error({ err }, 'Signal log create failed');
+      res.status(500).json({ error: 'LOG_CREATE_FAILED' });
+    }
+  });
+
+  // ── GET /signal-log ────────────────────────────────────────
+  router.get('/signal-log', async (req: Request, res: Response) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const skip = (page - 1) * limit;
+      const [entries, total] = await Promise.all([
+        db.$queryRawUnsafe<any[]>(
+          `SELECT * FROM "SignalLog" WHERE "workspaceId"=$1 ORDER BY "createdAt" DESC LIMIT $2 OFFSET $3`,
+          req.user!.workspaceId, limit, skip
+        ),
+        db.$queryRawUnsafe<any[]>(
+          `SELECT COUNT(*)::int as count FROM "SignalLog" WHERE "workspaceId"=$1`,
+          req.user!.workspaceId
+        ).then((r: any[]) => r[0].count),
+      ]);
+      res.json({ entries, pagination: { total, page, totalPages: Math.ceil(total / limit) } });
+    } catch (err) {
+      res.status(500).json({ error: 'LOG_FETCH_FAILED' });
+    }
+  });
+
+  // ── DELETE /signal-log/:id ─────────────────────────────────
+  router.delete('/signal-log/:id', async (req: Request, res: Response) => {
+    try {
+      await db.$executeRawUnsafe(
+        `DELETE FROM "SignalLog" WHERE "id"=$1 AND "workspaceId"=$2`,
+        req.params.id, req.user!.workspaceId
+      );
+      res.json({ ok: true });
+    } catch (err) {
+      res.status(500).json({ error: 'LOG_DELETE_FAILED' });
+    }
+  });
+
   return router;
 }
