@@ -17,3 +17,6 @@ tmp/
 *.env
 *.env.*
 /etc/agoraiq.env
+agoraiq_listener.session
+*.zip
+*.session
