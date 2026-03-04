@@ -172,7 +172,7 @@ async def send_agoraiq_signal(
         "action": action,
         "score": _clamp01(confidence),
         "confidence": _clamp01(confidence),
-        "ts": close_time.isoformat() if hasattr(close_time, "isoformat") else str(close_time),
+        "ts": close_time.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z" if hasattr(close_time, "strftime") else str(close_time),
         "price": close_price if close_price > 0 else None,
         "meta": meta,
     }

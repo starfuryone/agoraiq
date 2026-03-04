@@ -9,11 +9,21 @@ from typing import Optional
 from telethon import TelegramClient, events
 from telethon.tl.types import Channel, Message
 import aiohttp
+import asyncpg
+from signal_hasher import compute_signal_hash
 
 API_ID = int(os.environ.get("TG_API_ID", "32452303"))
 API_HASH = os.environ.get("TG_API_HASH", "9cf53f422de73e3d9307163739bf6eff")
 SESSION_NAME = os.environ.get("TG_SESSION_NAME", "agoraiq_listener")
 API_URL = os.environ.get("AGORAIQ_API_URL", "http://127.0.0.1:4000/api/v1/providers")
+DATABASE_URL = os.environ.get("DATABASE_URL", "").split("?")[0]
+
+_pg_pool = None
+async def get_pg_pool():
+    global _pg_pool
+    if _pg_pool is None and DATABASE_URL:
+        _pg_pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=2)
+    return _pg_pool
 LOG_LEVEL = os.environ.get("LISTENER_LOG_LEVEL", "INFO")
 
 logging.basicConfig(level=getattr(logging, LOG_LEVEL), format="%(asctime)s [%(levelname)s] %(name)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
@@ -209,7 +219,7 @@ async def post_signal(session, slug, token, signal, raw_text):
         "schema_version": "1.0", "provider_key": slug,
         "symbol": signal["symbol"], "timeframe": signal["timeframe"],
         "action": signal["action"], "confidence": signal["confidence"],
-        "ts": datetime.now(timezone.utc).isoformat(),
+        "ts": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "price": signal.get("entry_price"),
         "meta": {
             "source": "telegram", "raw_text": raw_text[:2000],
@@ -251,7 +261,19 @@ async def handle_message(event, http_session):
         log.debug(f"⏭ [{username}] No signal detected")
         return
     log.info(f"🔍 [{username}] Parsed: {signal['symbol']} {signal['action']} entry={signal.get('entry_price')} tp={signal.get('tp_prices')} sl={signal.get('sl_price')} lev={signal.get('leverage')}")
+    sig_hash = compute_signal_hash(text, str(getattr(chat, "id", "")), str(msg.id), str(msg.date))
     await post_signal(http_session, cfg["slug"], cfg["token"], signal, text)
+    # Write hash to DB
+    try:
+        pool = await get_pg_pool()
+        if pool:
+            idem_key = f'{cfg["slug"]}_{signal["symbol"]}_{signal["timeframe"]}_{datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}'
+            await pool.execute(
+                'UPDATE signals SET original_hash = $1 WHERE "idempotencyKey" LIKE $2 AND original_hash IS NULL',
+                sig_hash, f'{cfg["slug"]}_{signal["symbol"]}%',
+            )
+    except Exception as he:
+        log.debug(f"Hash update: {he}")
 
 async def main():
     log.info("🚀 AgoraIQ Telegram Listener v2 starting...")
@@ -276,6 +298,60 @@ async def main():
             await handle_message(event, http_session)
         except Exception as e:
             log.error(f"❌ Handler error: {e}", exc_info=True)
+    @client.on(events.MessageEdited(chats=resolved_ids))
+    async def on_edit(event):
+        try:
+            chat = await event.get_chat()
+            username = getattr(chat, "username", None)
+            if not username or username not in CHANNELS:
+                return
+            pool = await get_pg_pool()
+            if not pool:
+                return
+            async with pool.acquire() as conn:
+                row = await conn.fetchrow(
+                    'SELECT id, "providerId" FROM signals WHERE "rawPayload"::text LIKE $1 LIMIT 1',
+                    f'%{event.message.id}%',
+                )
+                if row:
+                    await conn.execute(
+                        "INSERT INTO signal_audit_events (id, provider_id, signal_id, event_type, event_data, detected_at) VALUES (gen_random_uuid()::text, $1, $2, 'EDIT', $3, now())",
+                        row["providerId"], row["id"],
+                        json.dumps({"new_text": (event.message.text or "")[:500]}),
+                    )
+                    await conn.execute(
+                        'UPDATE signals SET was_edited = true, edit_count = edit_count + 1 WHERE id = $1',
+                        row["id"],
+                    )
+                    log.info(f"EDIT logged for signal {row['id']} from @{username}")
+        except Exception as e:
+            log.error(f"Edit handler error: {e}")
+
+    @client.on(events.MessageDeleted())
+    async def on_delete(event):
+        try:
+            pool = await get_pg_pool()
+            if not pool:
+                return
+            for msg_id in event.deleted_ids:
+                async with pool.acquire() as conn:
+                    row = await conn.fetchrow(
+                        'SELECT id, "providerId" FROM signals WHERE "rawPayload"::text LIKE $1 LIMIT 1',
+                        f'%{msg_id}%',
+                    )
+                    if row:
+                        await conn.execute(
+                            "INSERT INTO signal_audit_events (id, provider_id, signal_id, event_type, detected_at) VALUES (gen_random_uuid()::text, $1, $2, 'DELETE', now())",
+                            row["providerId"], row["id"],
+                        )
+                        await conn.execute(
+                            'UPDATE signals SET was_deleted = true WHERE id = $1',
+                            row["id"],
+                        )
+                        log.info(f"DELETE logged for signal {row['id']}")
+        except Exception as e:
+            log.error(f"Delete handler error: {e}")
+
     log.info("🟢 Listener v2 running — waiting for signals...")
     try:
         await client.run_until_disconnected()

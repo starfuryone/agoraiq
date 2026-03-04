@@ -22,6 +22,10 @@ import { createDashboardRoutes } from './routes/dashboard';
 import { createBillingRoutes } from './routes/billing';
 import { createSignalPublishRoutes } from './routes/signal-publish';
 import { createParserRoutes } from './routes/parser';
+import { createMarketsRoutes } from './routes/markets';
+import { createMarketplaceRoutes } from './routes/marketplace';
+import { createSSEFeedRoutes } from './routes/sse-feed';
+import { createTelegramRoutes, createTelegramWorkerRoutes } from './routes/telegram';
 
 const log = createLogger('server');
 
@@ -54,6 +58,11 @@ app.use('/api/v1/dashboard',  createDashboardRoutes(db));
 app.use('/api/v1/billing',    createBillingRoutes(db));
 app.use('/api/v1/signal-publish', createSignalPublishRoutes(db));
 app.use('/api/v1/parser',       createParserRoutes());
+app.use('/api/v1/markets',     createMarketsRoutes(db));
+app.use('/api/v1/marketplace', createMarketplaceRoutes(db));
+app.use('/api/v1/feed', createSSEFeedRoutes());
+app.use('/api/v1/telegram', createTelegramRoutes(db));
+app.use('/internal/telegram', createTelegramWorkerRoutes(db));
 
 // ── 404 Handler ───────────────────────────────────────────────
 app.use((_req, res) => {

@@ -166,24 +166,32 @@ export function createDashboardRoutes(db: PrismaClient): Router {
       const days = daysMap[period] || 30;
       const since = new Date(Date.now() - days * 24 * 3600_000);
 
-      const providers = await db.provider.findMany({
-        where: { isActive: true },
-        select: { id: true, slug: true, name: true, proofCategory: true },
-      });
+      // Single query — fetch all trades for all active providers at once
+      const [providers, allTrades] = await Promise.all([
+        db.provider.findMany({
+          where: { isActive: true },
+          select: { id: true, slug: true, name: true, proofCategory: true },
+        }),
+        db.trade.findMany({
+          where: {
+            workspaceId: req.user!.workspaceId,
+            status: { in: ['HIT_TP', 'HIT_SL', 'EXPIRED'] },
+            exitedAt: { gte: since },
+            rMultiple: { not: null },
+          },
+          select: { providerId: true, rMultiple: true, pnlPct: true },
+        }),
+      ]);
 
-      const leaderboard = await Promise.all(
-        providers.map(async (p) => {
-          const trades = await db.trade.findMany({
-            where: {
-              providerId: p.id,
-              workspaceId: req.user!.workspaceId,
-              status: { in: ['HIT_TP', 'HIT_SL', 'EXPIRED'] },
-              exitedAt: { gte: since },
-              rMultiple: { not: null },
-            },
-            select: { rMultiple: true, pnlPct: true, status: true },
-          });
+      // Group trades by providerId in memory
+      const tradesByProvider = new Map<string, typeof allTrades>();
+      for (const t of allTrades) {
+        if (!tradesByProvider.has(t.providerId)) tradesByProvider.set(t.providerId, []);
+        tradesByProvider.get(t.providerId)!.push(t);
+      }
 
+      const leaderboard = providers.map((p) => {
+          const trades = tradesByProvider.get(p.id) || [];
           const total = trades.length;
           const wins = trades.filter(t => (t.rMultiple || 0) > 0).length;
           const winRate = total > 0 ? parseFloat(((wins / total) * 100).toFixed(1)) : 0;
@@ -191,14 +199,12 @@ export function createDashboardRoutes(db: PrismaClient): Router {
             ? parseFloat((trades.reduce((s, t) => s + (t.rMultiple || 0), 0) / total).toFixed(2))
             : 0;
           const totalPnl = trades.reduce((s, t) => s + (t.pnlPct || 0), 0);
-
           return {
             slug: p.slug, name: p.name, category: p.proofCategory,
             totalTrades: total, wins, winRate, avgR,
             totalReturn: parseFloat(totalPnl.toFixed(2)),
           };
-        }),
-      );
+      });
 
       leaderboard.sort((a, b) => b.avgR - a.avgR);
 

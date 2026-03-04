@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta name="theme-color" content="#060a14"/>
@@ -135,7 +137,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:
 .faq-a p{font-size:13px;color:var(--text2);line-height:1.7}
 
 /* ── BOTTOM CTA ── */
-.bottom-cta{text-align:center;padding:64px 24px 0;max-width:560px;margin:0 auto}
+.bottom-cta{text-align:center;padding:64px 24px 80px;max-width:560px;margin:0 auto}
 .bottom-cta h2{font-size:24px;font-weight:700;letter-spacing:-.02em;margin-bottom:12px}
 .bottom-cta p{font-size:14px;color:var(--text2);margin-bottom:24px}
 .bottom-cta a{display:inline-block;background:linear-gradient(135deg,var(--cyan),var(--violet));color:#fff;padding:12px 32px;border-radius:10px;font-weight:600;font-size:15px;text-decoration:none;transition:opacity .2s}
@@ -465,6 +467,7 @@ function toggleFaq(el) {
   document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
   if (!wasOpen) item.classList.add('open');
 }
+document.addEventListener("DOMContentLoaded", function(){ toggleBilling(); });
 </script>
 
 <footer class="site-footer">

@@ -13,6 +13,34 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { db, createLogger } from '@agoraiq/db';
+
+const API_PORT = process.env.API_PORT || '4000';
+const JWT_SECRET = process.env.JWT_SECRET || '';
+
+async function emitToFeed(trade: any, status: string, rMultiple?: number) {
+  try {
+    const provider = await db.provider.findUnique({
+      where: { id: trade.providerId },
+      select: { name: true, slug: true, isVerified: true },
+    });
+    if (!provider) return;
+    await fetch(`http://127.0.0.1:${API_PORT}/api/v1/feed/emit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        secret: JWT_SECRET,
+        type: status,
+        providerId: trade.providerId,
+        providerName: provider.name,
+        providerSlug: provider.slug,
+        pair: trade.symbol,
+        rMultiple: rMultiple ?? 0,
+        isVerified: provider.isVerified ?? false,
+        timestamp: new Date().toISOString(),
+      }),
+    });
+  } catch {}
+}
 import { checkPriceHit } from './price-service';
 
 const log = createLogger('tracker-worker');
@@ -225,6 +253,16 @@ async function auditTradeResolution(tradeId: string, status: string, providerId:
         meta: { status, providerId },
       },
     });
+    // Emit to marketplace SSE feed
+    if (status === 'HIT_TP' || status === 'HIT_SL') {
+      const trade = await db.trade.findUnique({
+        where: { id: tradeId },
+        select: { providerId: true, symbol: true, rMultiple: true },
+      });
+      if (trade) {
+        await emitToFeed(trade, status, trade.rMultiple ?? undefined);
+      }
+    }
   } catch (err) {
     log.error({ err }, 'Audit log write failed');
   }

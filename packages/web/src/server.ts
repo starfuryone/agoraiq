@@ -52,6 +52,10 @@ app.get('/signup', (_req, res) => {
 });
 
 // ── Pricing Page ─────────────────────────────────────────────
+app.get('/markets', (_req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, 'markets.html'));
+});
+
 app.get('/pricing', (_req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, 'pricing.html'));
 });

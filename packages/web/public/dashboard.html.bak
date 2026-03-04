@@ -1,0 +1,2783 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AgoraIQ — Signal Intelligence Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --font: 'IBM Plex Sans', sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+  --bg: #060a14;
+  --bg2: #0b0f1a;
+  --bg3: #111827;
+  --card: #0d1220;
+  --card-hover: #111828;
+  --border: #1a2236;
+  --border2: #243049;
+  --accent: #a78bfa;
+  --accent-dim: rgba(167,139,250,.10);
+  --accent-border: rgba(167,139,250,.20);
+  --accent-glow: rgba(167,139,250,.06);
+  --green: #34d399;
+  --green-dim: rgba(52,211,153,.10);
+  --red: #f87171;
+  --red-dim: rgba(248,113,113,.10);
+  --blue: #38bdf8;
+  --blue-dim: rgba(56,189,248,.10);
+  --amber: #fbbf24;
+  --amber-dim: rgba(251,191,36,.10);
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --dim: #475569;
+  --sidebar-w: 220px;
+  --topbar-h: 52px;
+  --r: 8px;
+  --r-lg: 12px;
+}
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+body {
+  font-family: var(--font); font-size: 14px; line-height: 1.5;
+  background: var(--bg); color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden; height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+button { font-family: var(--font); cursor: pointer; border: none; background: none; color: inherit; }
+
+/* ── App Shell ─────────────────────────────────────── */
+.app { display: grid; grid-template-columns: var(--sidebar-w) 1fr; grid-template-rows: var(--topbar-h) 1fr; height: 100vh; }
+
+/* ── Sidebar ───────────────────────────────────────── */
+.sidebar {
+  grid-row: 1 / -1; background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  padding: 0; overflow-y: auto;
+}
+.sidebar-logo {
+  display: flex; align-items: center; gap: 10px;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  text-decoration: none;
+}
+.sidebar-logo svg { flex-shrink: 0; }
+.sidebar-logo .mark { font-size: 14px; font-weight: 700; letter-spacing: -.02em; }
+.sidebar-logo .mark .a { color: var(--accent); }
+.sidebar-logo .mark .b { color: var(--text); }
+.sidebar-label {
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--text3); padding: 20px 20px 8px;
+}
+.sidebar-nav { display: flex; flex-direction: column; gap: 2px; padding: 0 8px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: var(--r);
+  font-size: 13px; font-weight: 500; color: var(--text2);
+  cursor: pointer; transition: all .15s; position: relative;
+}
+.nav-item:hover { background: var(--accent-glow); color: var(--text); }
+.nav-item.active {
+  background: var(--accent-dim); color: var(--accent);
+  font-weight: 600;
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 20px; border-radius: 0 3px 3px 0;
+  background: var(--accent);
+}
+.nav-icon { width: 18px; text-align: center; font-size: 14px; flex-shrink: 0; opacity: .7; }
+.nav-item.active .nav-icon { opacity: 1; }
+.nav-badge {
+  margin-left: auto; font-family: var(--mono); font-size: 10px;
+  font-weight: 600; padding: 2px 7px; border-radius: 10px;
+  background: var(--accent-dim); color: var(--accent);
+}
+.sidebar-spacer { flex: 1; }
+.sidebar-plan {
+  margin: 8px; padding: 14px; border-radius: var(--r);
+  background: var(--bg3); border: 1px solid var(--border);
+}
+.sidebar-plan .plan-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin-bottom: 6px; }
+.sidebar-plan .plan-name { font-size: 14px; font-weight: 700; color: var(--accent); }
+.sidebar-plan .plan-btn {
+  display: block; width: 100%; margin-top: 10px; padding: 7px 0;
+  text-align: center; border-radius: 6px; font-size: 12px; font-weight: 600;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed); color: #fff;
+  transition: opacity .15s;
+}
+.sidebar-plan .plan-btn:hover { opacity: .85; }
+.nav-item.sub {
+  padding-left: 32px;
+  font-size: 12px;
+  color: var(--text3);
+}
+.nav-item.sub::before { display: none !important; }
+.nav-item.sub .nav-icon { font-size: 11px; opacity: 0.5; }
+.nav-item.sub.active { color: var(--text); background: var(--accent-dim); }
+
+
+/* ── Topbar ────────────────────────────────────────── */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+}
+.topbar-left { display: flex; align-items: center; gap: 16px; }
+.topbar-title { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -.01em; }
+.topbar-breadcrumb { font-size: 12px; color: var(--text3); }
+
+.topbar-stats { display: flex; align-items: center; gap: 20px; }
+.topbar-stat { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); }
+.topbar-stat .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+}
+.dot-green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.dot-amber { background: var(--amber); }
+.dot-red { background: var(--red); }
+.topbar-stat .val { font-family: var(--mono); font-weight: 600; color: var(--text); }
+
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.topbar-email { font-size: 12px; color: var(--text3); }
+.btn-logout {
+  font-size: 12px; font-weight: 500; color: var(--text3);
+  padding: 5px 12px; border-radius: 6px; border: 1px solid var(--border);
+  transition: all .15s;
+}
+.btn-logout:hover { color: var(--red); border-color: rgba(248,113,113,.3); }
+
+/* ── Main Content ──────────────────────────────────── */
+.main {
+  overflow-y: auto; padding: 24px;
+  background: var(--bg);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* ── Page Header ───────────────────────────────────── */
+.page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px;
+}
+.page-header h2 { font-size: 20px; font-weight: 700; letter-spacing: -.02em; }
+.page-header .subtitle { font-size: 13px; color: var(--text3); margin-top: 2px; }
+
+/* ── KPI Cards ─────────────────────────────────────── */
+.kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
+.kpi {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg);
+  padding: 18px 20px; position: relative; overflow: hidden;
+  transition: border-color .2s;
+}
+.kpi:hover { border-color: var(--border2); }
+.kpi::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  border-radius: var(--r-lg) var(--r-lg) 0 0; opacity: .6;
+}
+.kpi.kpi-accent::after { background: var(--accent); }
+.kpi.kpi-green::after { background: var(--green); }
+.kpi.kpi-red::after { background: var(--red); }
+.kpi.kpi-blue::after { background: var(--blue); }
+.kpi.kpi-amber::after { background: var(--amber); }
+.kpi-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin-bottom: 8px; }
+.kpi-value { font-family: var(--mono); font-size: 28px; font-weight: 700; letter-spacing: -.03em; line-height: 1; }
+.kpi-sub { font-family: var(--mono); font-size: 11px; color: var(--dim); margin-top: 6px; }
+
+/* ── Cards ─────────────────────────────────────────── */
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg);
+  padding: 20px; margin-bottom: 16px;
+}
+.card-title {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+}
+.card-title .icon { font-size: 15px; opacity: .6; }
+
+/* ── Tables ────────────────────────────────────────── */
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--text3);
+  padding: 10px 14px; text-align: left;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+  position: sticky; top: 0;
+}
+thead th:first-child { border-radius: var(--r) 0 0 0; }
+thead th:last-child { border-radius: 0 var(--r) 0 0; }
+tbody td {
+  padding: 11px 14px; font-size: 13px;
+  border-bottom: 1px solid rgba(26,34,54,.6);
+  transition: background .1s;
+}
+tbody tr { cursor: pointer; }
+tbody tr:hover td { background: var(--accent-glow); }
+tbody tr:last-child td { border-bottom: none; }
+
+/* ── Badges ────────────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  padding: 3px 10px; border-radius: 6px;
+}
+.badge-active { background: var(--blue-dim); color: var(--blue); }
+.badge-tp { background: var(--green-dim); color: var(--green); }
+.badge-sl { background: var(--red-dim); color: var(--red); }
+.badge-exp { background: rgba(100,116,139,.15); color: var(--text3); }
+.badge-pending { background: var(--amber-dim); color: var(--amber); }
+
+.pos { color: var(--green); }
+.neg { color: var(--red); }
+
+/* ── Filters ───────────────────────────────────────── */
+.filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.filter-input {
+  height: 34px; padding: 0 12px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--bg3);
+  color: var(--text); font-size: 12px; font-family: var(--font);
+  outline: none; transition: border-color .15s;
+}
+.filter-input:focus { border-color: var(--accent-border); }
+select.filter-input { cursor: pointer; }
+
+/* ── Buttons ───────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 34px; padding: 0 14px; border-radius: 6px;
+  font-size: 12px; font-weight: 600; transition: all .15s;
+}
+.btn-accent { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
+.btn-accent:hover { background: rgba(167,139,250,.16); }
+.btn-ghost { color: var(--text2); border: 1px solid var(--border); }
+.btn-ghost:hover { border-color: var(--border2); color: var(--text); }
+.btn-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(52,211,153,.2); }
+.btn-green:hover { background: rgba(52,211,153,.16); }
+.btn-danger { color: var(--red); border: 1px solid rgba(248,113,113,.2); }
+.btn-danger:hover { background: var(--red-dim); }
+
+/* ── Pagination ────────────────────────────────────── */
+.pagination { display: flex; justify-content: center; gap: 4px; margin-top: 16px; }
+.page-btn {
+  width: 32px; height: 32px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--card);
+  color: var(--text2); font-size: 12px; font-weight: 500;
+  display: grid; place-items: center; transition: all .15s;
+}
+.page-btn.active { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent); font-weight: 700; }
+.page-btn:hover:not(.active) { border-color: var(--border2); }
+.page-btn:disabled { opacity: .3; cursor: default; }
+
+/* ── Watchlist ─────────────────────────────────────── */
+.wl-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.wl-item:last-child { border-bottom: none; }
+.wl-remove { color: var(--red); cursor: pointer; font-size: 12px; font-weight: 500; padding: 4px 8px; border-radius: 4px; transition: background .15s; }
+.wl-remove:hover { background: var(--red-dim); }
+.wl-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--accent); margin-right:2px; animation:wlPulse 1.4s ease-in-out infinite; }
+.wl-dot:nth-child(2) { animation-delay:.2s; }
+.wl-dot:nth-child(3) { animation-delay:.4s; }
+@keyframes wlPulse { 0%,80%,100%{opacity:.25;transform:scale(.8)} 40%{opacity:1;transform:scale(1)} }
+.wl-add { display: flex; gap: 8px; margin-top: 12px; }
+
+/* ── Overview Grid ─────────────────────────────────── */
+.overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.overview-full { grid-column: 1 / -1; }
+
+/* ── Settings Form ─────────────────────────────────── */
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.setting-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.setting-row:last-child { border-bottom: none; }
+.setting-label { font-size: 13px; font-weight: 500; }
+.setting-desc { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.setting-value { font-family: var(--mono); font-size: 13px; color: var(--text2); }
+
+/* ── Proof Hash ────────────────────────────────────── */
+.proof-hash {
+  font-family: var(--mono); font-size: 11px; color: var(--text3);
+  background: var(--bg3); padding: 4px 8px; border-radius: 4px;
+  max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ── Loading / Empty ───────────────────────────────── */
+.loading-state { text-align: center; padding: 48px 20px; color: var(--text3); }
+.loading-state .spinner {
+  width: 24px; height: 24px; border: 2px solid var(--border);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin .7s linear infinite; margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-state { text-align: center; padding: 48px 20px; color: var(--text3); font-size: 13px; }
+
+/* ── Responsive ────────────────────────────────────── */
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .overview-grid { grid-template-columns: 1fr; }
+  .settings-grid { grid-template-columns: 1fr; }
+  .topbar-stats { display: none; }
+}
+@media (max-width: 600px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .main { padding: 16px; }
+}
+
+/* ── Fade In Animation ─────────────────────────────── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in { animation: fadeUp .3s ease both; }
+.fade-in-1 { animation-delay: .05s; }
+.fade-in-2 { animation-delay: .10s; }
+.fade-in-3 { animation-delay: .15s; }
+.fade-in-4 { animation-delay: .20s; }
+.fade-in-5 { animation-delay: .25s; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ═══ Sidebar ═══ -->
+  <aside class="sidebar">
+    <a class="sidebar-logo" href="/">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="mark"><span class="a">Agora</span><span class="b">IQ</span></span>
+    </a>
+
+    <div class="sidebar-label">Intelligence</div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-page="overview">
+        <span class="nav-icon">◈</span> Overview
+      </div>
+      <div class="nav-item" data-page="signals">
+        <span class="nav-icon">◆</span> Live Signals
+        <span class="nav-badge" id="signal-count">—</span>
+      </div>
+      <div class="nav-item" data-page="providers">
+        <span class="nav-icon">◇</span> Providers
+      </div>
+      <div class="nav-item" data-page="parser">
+        <span class="nav-icon">⟁</span> Signal Parser
+      </div>
+      <div class="nav-item" data-page="signal-log">
+        <span class="nav-icon">📋</span> Signal Log
+      </div>
+      <div class="nav-item" data-page="performance">
+        <span class="nav-icon">📈</span> Performance
+      </div>
+      <div class="nav-item sub" data-page="duration">
+        <span class="nav-icon">⏱</span> Duration Analytics
+      </div>
+      <div class="nav-item sub" data-page="monthly">
+        <span class="nav-icon">📅</span> Monthly Breakdown
+      </div>
+      <div class="nav-item" data-page="proof">
+        <span class="nav-icon">⬡</span> Proof
+      </div>
+    </nav>
+
+    <div class="sidebar-label">Account</div>
+    <nav class="sidebar-nav">
+      <div class="nav-item" data-page="watchlists">
+        <span class="nav-icon">☆</span> Watchlists
+      </div>
+      <div class="nav-item" data-page="subscription">
+        <span class="nav-icon">⚙</span> Subscription
+      </div>
+      <div class="nav-item" data-page="settings">
+        <span class="nav-icon">⚙</span> Settings
+      </div>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-plan" id="sidebar-plan">
+      <div class="plan-label">Current Plan</div>
+      <div class="plan-name" id="plan-name">Loading…</div>
+      <a class="plan-btn" id="plan-btn" href="#" onclick="navigate('subscription')">Manage Plan</a>
+    </div>
+  </aside>
+
+  <!-- ═══ Topbar ═══ -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div>
+        <div class="topbar-title">Signal Intelligence Console</div>
+        <div class="topbar-breadcrumb" id="breadcrumb">Overview</div>
+      </div>
+    </div>
+    <div class="topbar-stats" id="topbar-stats">
+      <div class="topbar-stat"><span class="dot dot-green"></span> API <span class="val">Online</span></div>
+      <div class="topbar-stat" id="stat-signals">Signals today: <span class="val">—</span></div>
+      <div class="topbar-stat" id="stat-telegram"><span class="dot dot-amber"></span> Telegram <span class="val">—</span></div>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-email" id="user-email">—</span>
+      <button class="btn-logout" onclick="logout()">Sign Out</button>
+    </div>
+  </header>
+
+  <!-- ═══ Main Content ═══ -->
+  <main class="main" id="page-content">
+    <div class="loading-state"><div class="spinner"></div>Loading console…</div>
+  </main>
+
+</div>
+
+<script>
+// ── Auth ──────────────────────────────────────────────────────
+const TOKEN = localStorage.getItem('agoraiq_token');
+if (!TOKEN) window.location.href = '/login';
+const API = '/api/v1/dashboard';
+const BILLING_API = '/api/v1/billing';
+const headers = () => ({ 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' });
+function logout() { localStorage.removeItem('agoraiq_token'); window.location.href = '/login'; }
+
+// ── State ─────────────────────────────────────────────────────
+let currentPage = 'overview';
+let userInfo = null;
+let planInfo = { planTier: 'FREE', subscriptionStatus: 'inactive' };
+let sigPage = 1;
+
+// ── Init ──────────────────────────────────────────────────────
+async function init() {
+  try {
+    const r = await fetch('/api/v1/auth/me', { headers: headers() });
+    const d = await r.json();
+    if (d.error) { logout(); return; }
+    userInfo = d.user;
+    document.getElementById('user-email').textContent = d.user?.email || '';
+
+    // Plan info from /me response
+    if (d.subscription) {
+      planInfo.planTier = d.subscription.planTier || d.subscription.tier?.toUpperCase() || 'FREE';
+      planInfo.subscriptionStatus = d.subscription.subscriptionStatus || d.subscription.status || 'inactive';
+    }
+
+    // Try billing status for more accurate data
+    try {
+      const br = await fetch(`${BILLING_API}/status`, { headers: headers() });
+      if (br.ok) {
+        const bd = await br.json();
+        planInfo = { ...planInfo, ...bd };
+      }
+    } catch(e) {}
+
+    updatePlanUI();
+    loadPage();
+  } catch (e) { logout(); }
+}
+
+function updatePlanUI() {
+  const name = planInfo.planTier || 'FREE';
+  const el = document.getElementById('plan-name');
+  el.textContent = name === 'FREE' ? 'Free Plan' : `${name} Plan`;
+  el.style.color = name === 'FREE' ? '#64748b' : name === 'ELITE' ? '#38bdf8' : '#a78bfa';
+
+  const btn = document.getElementById('plan-btn');
+  if (name === 'FREE') {
+    btn.textContent = 'Upgrade';
+    btn.href = '#';
+    btn.onclick = () => navigate('subscription');
+  } else {
+    btn.textContent = 'Manage Plan';
+    btn.href = '#';
+    btn.onclick = async () => {
+      try {
+        const r = await fetch(`${BILLING_API}/portal`, { headers: headers() });
+        const d = await r.json();
+        if (d.url) window.location.href = d.url;
+      } catch(e) { navigate('subscription'); }
+    };
+  }
+}
+
+// ── Navigation ────────────────────────────────────────────────
+const pageNames = {
+  overview: 'Overview', signals: 'Live Signals', providers: 'Provider Leaderboard',
+  performance: 'Performance Analytics', duration: 'Duration Analytics', monthly: 'Monthly Breakdown', proof: 'Proof Verification', watchlists: 'Watchlists',
+  subscription: 'Subscription', settings: 'Settings',
+  'signal-log': 'My Signal Log'
+};
+
+function navigate(page) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.page === page);
+  });
+  document.getElementById('breadcrumb').textContent = pageNames[page] || page;
+  loadPage();
+}
+
+document.querySelectorAll('.nav-item').forEach(n => {
+  n.addEventListener('click', () => navigate(n.dataset.page));
+});
+
+// ── Status Badge Helper ───────────────────────────────────────
+function statusBadge(s) {
+  const map = {
+    ACTIVE: 'badge-active', HIT_TP: 'badge-tp', HIT_SL: 'badge-sl',
+    EXPIRED: 'badge-exp', PENDING: 'badge-pending', CLOSED: 'badge-exp'
+  };
+  return `<span class="badge ${map[s] || 'badge-exp'}">${s}</span>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// OVERVIEW PAGE
+// ═══════════════════════════════════════════════════════════════
+async function loadOverview() {
+  const el = document.getElementById('page-content');
+  el.innerHTML = `
+    <div class="page-header fade-in">
+      <div>
+        <h2>Signal Intelligence Overview</h2>
+        <div class="subtitle">Real-time performance metrics across all tracked providers</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <a href="/proof" class="btn btn-accent" target="_blank">⬡ Public Proof Page</a>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi kpi-accent fade-in fade-in-1" id="kpi-total">
+        <div class="kpi-label">Total Signals</div>
+        <div class="kpi-value" style="color:var(--accent)">—</div>
+        <div class="kpi-sub">all time tracked</div>
+      </div>
+      <div class="kpi kpi-green fade-in fade-in-2" id="kpi-winrate">
+        <div class="kpi-label">Win Rate</div>
+        <div class="kpi-value" style="color:var(--green)">—</div>
+        <div class="kpi-sub">across all providers</div>
+      </div>
+      <div class="kpi kpi-blue fade-in fade-in-3" id="kpi-active">
+        <div class="kpi-label">Active Now</div>
+        <div class="kpi-value" style="color:var(--blue)">—</div>
+        <div class="kpi-sub">signals tracking</div>
+      </div>
+      <div class="kpi kpi-amber fade-in fade-in-4" id="kpi-providers">
+        <div class="kpi-label">Providers</div>
+        <div class="kpi-value" style="color:var(--amber)">—</div>
+        <div class="kpi-sub">sources tracked</div>
+      </div>
+      <div class="kpi kpi-red fade-in fade-in-5" id="kpi-avgr">
+        <div class="kpi-label">Avg R-Multiple</div>
+        <div class="kpi-value" style="color:var(--text)">—</div>
+        <div class="kpi-sub">risk-adjusted return</div>
+      </div>
+    </div>
+
+    <div class="overview-grid">
+      <div class="card fade-in fade-in-3">
+        <div class="card-title"><span class="icon">◆</span> Recent Signals</div>
+        <div id="overview-signals"><div class="loading-state"><div class="spinner"></div></div></div>
+      </div>
+      <div class="card fade-in fade-in-4">
+        <div class="card-title"><span class="icon">◇</span> Top Providers (30d)</div>
+        <div id="overview-providers"><div class="loading-state"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+  `;
+
+  // Fetch signals for KPIs and recent list
+  try {
+    const [sigR, provR, perfR] = await Promise.all([
+      fetch(`${API}/signals?page=1&limit=10`, { headers: headers() }),
+      fetch(`${API}/providers?period=30d`, { headers: headers() }),
+      fetch(`${API}/performance?period=all`, { headers: headers() })
+    ]);
+    const sigD = await sigR.json();
+    const provD = await provR.json();
+    const perfD = await perfR.json();
+    const signals = sigD.signals || [];
+    const pagination = sigD.pagination || {};
+    const providers = provD.leaderboard || [];
+    const perf = perfD.summary || {};
+    const total = pagination.total || signals.length;
+    const active = signals.filter(s => (s.trade?.status || '') === 'ACTIVE').length;
+    const winRate = perf.winRate != null ? perf.winRate.toFixed(1) : '—';
+    const avgR = perf.avgR != null ? perf.avgR.toFixed(2) : '—';
+    document.querySelector('#kpi-total .kpi-value').textContent = (perf.totalTrades || total).toLocaleString();
+    document.querySelector('#kpi-winrate .kpi-value').textContent = winRate !== '—' ? winRate + '%' : '—';
+    document.querySelector('#kpi-active .kpi-value').textContent = active;
+    document.querySelector('#kpi-providers .kpi-value').textContent = providers.length;
+    document.querySelector('#kpi-avgr .kpi-value').textContent = avgR !== '—' ? avgR + 'R' : '—';
+
+    // Signal count in sidebar
+    document.getElementById('signal-count').textContent = total;
+
+    // Recent signals table
+    if (signals.length) {
+      const rows = signals.slice(0, 8).map(s => {
+        const t = s.trade || {};
+        const rVal = t.rMultiple != null ? `<span class="${t.rMultiple >= 0 ? 'pos' : 'neg'}">${t.rMultiple >= 0 ? '+' : ''}${t.rMultiple.toFixed(2)}R</span>` : '<span style="color:var(--dim)">—</span>';
+        return `<tr onclick="navigate('signals')">
+          <td style="font-family:var(--mono);font-size:12px;color:var(--text3)">${new Date(s.signalTs).toLocaleDateString()}</td>
+          <td><strong>${s.symbol}</strong></td>
+          <td>${s.action}</td>
+          <td>${statusBadge(t.status || 'PENDING')}</td>
+          <td>${rVal}</td></tr>`;
+      }).join('');
+      document.getElementById('overview-signals').innerHTML = `
+        <table><thead><tr><th>Date</th><th>Symbol</th><th>Action</th><th>Status</th><th>R</th></tr></thead>
+        <tbody>${rows}</tbody></table>
+        <div style="text-align:center;margin-top:12px">
+          <button class="btn btn-ghost" onclick="navigate('signals')">View All Signals →</button>
+        </div>`;
+    } else {
+      document.getElementById('overview-signals').innerHTML = '<div class="empty-state">No signals tracked yet</div>';
+    }
+
+    // Top providers
+    if (providers.length) {
+      const rows = providers.slice(0, 6).map((p, i) => `<tr onclick="navigate('providers')">
+        <td style="font-family:var(--mono);font-weight:700;color:${i < 3 ? 'var(--amber)' : 'var(--text3)'}">#${i+1}</td>
+        <td><strong>${p.name}</strong></td>
+        <td class="pos">${p.winRate}%</td>
+        <td style="font-family:var(--mono)">${p.avgR.toFixed(2)}</td>
+        <td class="${p.totalReturn >= 0 ? 'pos' : 'neg'}">${p.totalReturn >= 0 ? '+' : ''}${p.totalReturn.toFixed(1)}%</td>
+      </tr>`).join('');
+      document.getElementById('overview-providers').innerHTML = `
+        <table><thead><tr><th>#</th><th>Provider</th><th>Win%</th><th>Avg R</th><th>Return</th></tr></thead>
+        <tbody>${rows}</tbody></table>
+        <div style="text-align:center;margin-top:12px">
+          <button class="btn btn-ghost" onclick="navigate('providers')">Full Leaderboard →</button>
+        </div>`;
+    } else {
+      document.getElementById('overview-providers').innerHTML = '<div class="empty-state">No provider data yet</div>';
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SIGNALS PAGE
+// ═══════════════════════════════════════════════════════════════
+async function loadSignals() {
+  const el = document.getElementById('page-content');
+  el.innerHTML = `
+    <div class="page-header fade-in">
+      <div>
+        <h2>Live Signals</h2>
+        <div class="subtitle">Real-time signal feed with outcome tracking</div>
+      </div>
+      <a href="${API}/exports/csv" class="btn btn-green">⬇ Export CSV</a>
+    </div>
+    <div class="filters fade-in fade-in-1">
+      <input class="filter-input" id="f-symbol" placeholder="Symbol (e.g. BTCUSDT)" style="width:160px">
+      <select class="filter-input" id="f-action"><option value="">All Actions</option><option>BUY</option><option>SELL</option><option>HOLD</option></select>
+      <input class="filter-input" id="f-provider" placeholder="Provider key" style="width:140px">
+      <button class="btn btn-accent" onclick="sigPage=1;fetchSignals()">Filter</button>
+    </div>
+    <div class="card fade-in fade-in-2" style="padding:0;overflow:hidden">
+      <div id="signals-table"><div class="loading-state"><div class="spinner"></div></div></div>
+    </div>
+    <div class="pagination" id="sig-pagination"></div>`;
+  fetchSignals();
+}
+
+async function fetchSignals() {
+  const sym = document.getElementById('f-symbol')?.value || '';
+  const act = document.getElementById('f-action')?.value || '';
+  const prov = document.getElementById('f-provider')?.value || '';
+  let url = `${API}/signals?page=${sigPage}&limit=20`;
+  if (sym) url += `&symbol=${encodeURIComponent(sym)}`;
+  if (act) url += `&action=${encodeURIComponent(act)}`;
+  if (prov) url += `&provider=${encodeURIComponent(prov)}`;
+  try {
+    const r = await fetch(url, { headers: headers() });
+    const d = await r.json();
+    if (d.error) { document.getElementById('signals-table').innerHTML = `<div class="empty-state">${d.message || d.error}</div>`; return; }
+    const rows = (d.signals || []).map(s => {
+      const t = s.trade || {};
+      const rVal = t.rMultiple != null ? `<span class="${t.rMultiple >= 0 ? 'pos' : 'neg'}">${t.rMultiple >= 0 ? '+' : ''}${t.rMultiple.toFixed(2)}R</span>` : '<span style="color:var(--dim)">—</span>';
+      return `<tr>
+        <td style="font-family:var(--mono);font-size:12px;color:var(--text3)">${new Date(s.signalTs).toLocaleString()}</td>
+        <td><strong>${s.symbol}</strong></td>
+        <td>${s.timeframe}</td>
+        <td>${s.action}</td>
+        <td style="font-family:var(--mono)">${(s.confidence*100||0).toFixed(0)}%</td>
+        <td>${s.providerKey}</td>
+        <td>${statusBadge(t.status || 'PENDING')}</td>
+        <td>${rVal}</td></tr>`;
+    });
+    document.getElementById('signals-table').innerHTML = rows.length
+      ? `<table><thead><tr><th>Time</th><th>Symbol</th><th>TF</th><th>Action</th><th>Conf</th><th>Provider</th><th>Status</th><th>R</th></tr></thead><tbody>${rows.join('')}</tbody></table>`
+      : '<div class="empty-state">No signals match your filters</div>';
+    const p = d.pagination || {};
+    const btns = [];
+    const totalPages = Math.min(p.totalPages || 1, 10);
+    for (let i = 1; i <= totalPages; i++) {
+      btns.push(`<button class="page-btn ${i===sigPage?'active':''}" onclick="sigPage=${i};fetchSignals()">${i}</button>`);
+    }
+    document.getElementById('sig-pagination').innerHTML = btns.join('');
+  } catch (e) { document.getElementById('signals-table').innerHTML = '<div class="empty-state">Error loading signals</div>'; }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PROVIDERS PAGE
+// ═══════════════════════════════════════════════════════════════
+async function loadProviders() {
+  const el = document.getElementById('page-content');
+  el.innerHTML = `
+    <div class="page-header fade-in">
+      <div>
+        <h2>Provider Leaderboard</h2>
+        <div class="subtitle">Ranked by verified performance — not hype</div>
+      </div>
+    </div>
+    <div class="filters fade-in fade-in-1">
+      <select class="filter-input" id="p-period" onchange="fetchProviders()">
+        <option value="7d">7 Days</option>
+        <option value="30d" selected>30 Days</option>
+        <option value="90d">90 Days</option>
+      </select>
+    </div>
+    <div class="card fade-in fade-in-2" style="padding:0;overflow:hidden">
+      <div id="providers-table"><div class="loading-state"><div class="spinner"></div></div></div>
+    </div>`;
+  fetchProviders();
+}
+
+async function fetchProviders() {
+  const period = document.getElementById('p-period')?.value || '30d';
+  try {
+    const r = await fetch(API + '/providers?period=' + period, { headers: headers() });
+    const d = await r.json();
+    const all = d.leaderboard || [];
+
+    const active = all.filter(p => p.totalTrades > 0);
+    const monitoring = all.filter(p => p.totalTrades === 0);
+
+    // ── Leaderboard table ──────────────────────────────────────
+    let html = '';
+    if (active.length) {
+      const rows = active.map((p, i) => {
+        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '<span style="color:var(--text3);font-size:13px">' + (i+1) + '</span>';
+        const wr = p.winRate;
+        const wrColor = wr >= 65 ? 'var(--green)' : wr >= 45 ? 'var(--text2)' : '#e05';
+        const rColor = p.avgR >= 1 ? 'var(--green)' : p.avgR > 0 ? 'var(--text2)' : '#e05';
+        const retColor = p.totalReturn >= 0 ? 'var(--green)' : '#e05';
+        return '<tr style="cursor:pointer" data-slug="' + p.slug + '" data-name="' + p.name.replace(/"/g,'&quot;') + '">'
+          + '<td style="text-align:center;font-size:15px;width:48px">' + medal + '</td>'
+          + '<td><div style="font-weight:600">' + p.name + '</div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">' + p.category + '</div></td>'
+          + '<td style="font-family:var(--mono);text-align:right">' + p.totalTrades + '</td>'
+          + '<td style="font-family:var(--mono);text-align:right;color:' + wrColor + '">' + wr + '%</td>'
+          + '<td style="font-family:var(--mono);text-align:right;color:' + rColor + '">' + p.avgR.toFixed(2) + 'R</td>'
+          + '<td style="font-family:var(--mono);text-align:right;color:' + retColor + '">' + (p.totalReturn >= 0 ? '+' : '') + p.totalReturn.toFixed(1) + '%</td>'
+          + '</tr>';
+      });
+      html += '<table style="width:100%">'
+        + '<thead><tr>'
+        + '<th style="width:48px">#</th>'
+        + '<th>Provider</th>'
+        + '<th style="text-align:right">Signals</th>'
+        + '<th style="text-align:right">Win Rate</th>'
+        + '<th style="text-align:right">Avg R</th>'
+        + '<th style="text-align:right">Return</th>'
+        + '</tr></thead>'
+        + '<tbody>' + rows.join('') + '</tbody></table>';
+    } else {
+      html += '<div class="empty-state" style="padding:40px">No completed trades in this period yet</div>';
+    }
+
+    // ── Monitoring grid ────────────────────────────────────────
+    if (monitoring.length) {
+      html += '<div style="border-top:1px solid var(--border);padding:16px 20px 8px">'
+        + '<div style="color:var(--text3);font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px">📡 Monitoring — Awaiting First Signals (' + monitoring.length + ')</div>'
+        + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">'
+        + monitoring.map(p =>
+            '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px">'
+            + '<span style="display:flex;align-items:center;gap:1px"><span class="wl-dot"></span><span class="wl-dot"></span><span class="wl-dot"></span></span>'
+            + '<div style="min-width:0"><div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.name + '</div>'
+            + '<div style="font-size:10px;color:var(--text3)">' + p.category + '</div></div>'
+            + '</div>'
+          ).join('')
+        + '</div></div>';
+    }
+
+    document.getElementById('providers-table').innerHTML = html;
+  } catch(e) {
+    document.getElementById('providers-table').innerHTML = '<div class="empty-state">Error loading providers</div>';
+    console.error(e);
+  }
+}
+
+async function openProviderModal(slug, name) {
+  let modal = document.getElementById('provider-modal');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'provider-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px)';
+  modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+  document.body.appendChild(modal);
+
+  modal.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;width:min(700px,95vw)">'
+    + '<div style="align-items:center;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;padding:16px 20px">'
+    + '<div><div style="font-size:16px;font-weight:700">' + name + '</div><div style="color:var(--text3);font-size:12px">Recent signals from this provider</div></div>'
+    + '<button onclick="document.getElementById(&quot;provider-modal&quot;).remove()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;padding:4px 8px">✕</button>'
+    + '</div>'
+    + '<div id="provider-modal-body" style="overflow-y:auto;padding:16px"><div class="loading-state"><div class="spinner"></div></div></div>'
+    + '</div>';
+
+  try {
+    const r = await fetch(API + '/signals?provider=' + encodeURIComponent(slug) + '&limit=20', { headers: headers() });
+    const d = await r.json();
+    const signals = d.signals || [];
+    if (!signals.length) {
+      document.getElementById('provider-modal-body').innerHTML = '<div class="empty-state">No signals from this provider yet</div>';
+      return;
+    }
+    const header = '<div style="display:grid;grid-template-columns:120px 1fr 70px 70px 60px 60px;gap:8px;padding:0 4px 8px;border-bottom:1px solid var(--border);margin-bottom:4px">'
+      + ['Time','Symbol','Action','Entry','Status','R'].map(h => '<span style="color:var(--text3);font-size:10px;font-weight:600;text-transform:uppercase">' + h + '</span>').join('')
+      + '</div>';
+    const rows = signals.map(function(s) {
+      const t = s.trade || {};
+      const dir = s.action || '—';
+      const dirColor = (dir==='BUY'||dir==='LONG') ? 'var(--green)' : (dir==='SELL'||dir==='SHORT') ? '#e05' : 'var(--text3)';
+      const status = t.status || '—';
+      const statusColor = status==='WIN' ? 'var(--green)' : status==='LOSS' ? '#e05' : 'var(--text3)';
+      const rVal = t.rMultiple != null ? '<span style="color:' + (t.rMultiple>=0?'var(--green)':'#e05') + '">' + (t.rMultiple>=0?'+':'') + t.rMultiple.toFixed(2) + 'R</span>' : '<span style="color:var(--text3)">—</span>';
+      const entry = s.entryMin ? (s.entryMin === s.entryMax ? s.entryMin : s.entryMin + '–' + s.entryMax) : '—';
+      return '<div style="display:grid;grid-template-columns:120px 1fr 70px 70px 60px 60px;gap:8px;align-items:center;padding:8px 4px;border-bottom:1px solid var(--border)">'
+        + '<div style="font-size:10px;color:var(--text3)">' + new Date(s.signalTs).toLocaleString() + '</div>'
+        + '<div style="font-size:12px;font-weight:600">' + s.symbol + '</div>'
+        + '<span style="color:' + dirColor + ';font-size:12px;font-weight:700">' + dir + '</span>'
+        + '<span style="font-size:11px;font-family:var(--mono)">' + entry + '</span>'
+        + '<span style="color:' + statusColor + ';font-size:12px">' + status + '</span>'
+        + rVal
+        + '</div>';
+    });
+    document.getElementById('provider-modal-body').innerHTML = header + rows.join('');
+  } catch(e) {
+    document.getElementById('provider-modal-body').innerHTML = '<div style="color:#e05;padding:20px">Error: ' + e.message + '</div>';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PROOF PAGE
+// ═══════════════════════════════════════════════════════════════
+async function loadProof() {
+  document.getElementById('page-content').innerHTML = `
+    <div class="page-header fade-in">
+      <div>
+        <h2>Proof Verification</h2>
+        <div class="subtitle">Every signal is hashed, timestamped, and verifiable</div>
+      </div>
+      <a href="/proof" target="_blank" class="btn btn-accent">⬡ Open Public Proof Page</a>
+    </div>
+    <div class="card fade-in fade-in-1">
+      <div class="card-title"><span class="icon">⬡</span> How Proof Works</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+        <div>
+          <div style="font-size:24px;margin-bottom:8px">📡</div>
+          <div style="font-weight:600;margin-bottom:4px">1. Signal Ingested</div>
+          <div style="font-size:12px;color:var(--text3)">Raw signal captured from Telegram with original timestamp. Cannot be modified after ingestion.</div>
+        </div>
+        <div>
+          <div style="font-size:24px;margin-bottom:8px">🔐</div>
+          <div style="font-weight:600;margin-bottom:4px">2. Hash Generated</div>
+          <div style="font-size:12px;color:var(--text3)">SHA-256 hash of signal content + timestamp creates an immutable proof record.</div>
+        </div>
+        <div>
+          <div style="font-size:24px;margin-bottom:8px">📊</div>
+          <div style="font-weight:600;margin-bottom:4px">3. Outcome Tracked</div>
+          <div style="font-size:12px;color:var(--text3)">Live price feeds verify TP/SL hits. Results published publicly on the proof page.</div>
+        </div>
+      </div>
+    </div>
+    <div class="card fade-in fade-in-2">
+      <div class="card-title"><span class="icon">◆</span> Recent Verified Signals</div>
+      <div id="proof-signals"><div class="loading-state"><div class="spinner"></div></div></div>
+    </div>`;
+
+  try {
+    const r = await fetch(`${API}/signals?page=1&limit=10`, { headers: headers() });
+    const d = await r.json();
+    const signals = d.signals || [];
+    if (signals.length) {
+      const rows = signals.map(s => {
+        const t = s.trade || {};
+        const hash = s.id ? s.id.slice(0, 12) + '…' : '—';
+        return `<tr>
+          <td><span class="proof-hash" title="${s.id}">${hash}</span></td>
+          <td><strong>${s.symbol}</strong></td>
+          <td>${s.action}</td>
+          <td style="font-family:var(--mono);font-size:12px;color:var(--text3)">${new Date(s.signalTs).toLocaleString()}</td>
+          <td>${statusBadge(t.status || 'PENDING')}</td>
+          <td>${s.providerKey}</td></tr>`;
+      }).join('');
+      document.getElementById('proof-signals').innerHTML = `
+        <table><thead><tr><th>Proof Hash</th><th>Symbol</th><th>Action</th><th>Timestamp</th><th>Outcome</th><th>Provider</th></tr></thead>
+        <tbody>${rows}</tbody></table>`;
+    } else {
+      document.getElementById('proof-signals').innerHTML = '<div class="empty-state">No verified signals yet</div>';
+    }
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════════════
+// WATCHLISTS PAGE
+// ═══════════════════════════════════════════════════════════════
+async function loadWatchlists() {
+  document.getElementById('page-content').innerHTML = `
+    <div class="page-header fade-in">
+      <div>
+        <h2>Watchlists</h2>
+        <div class="subtitle">Track specific symbols and providers</div>
+      </div>
+    </div>
+    <div class="overview-grid">
+      <div class="card fade-in fade-in-1">
+        <div class="card-title"><span class="icon">☆</span> Your Watchlist</div>
+        <div id="wl-list"><div class="loading-state"><div class="spinner"></div></div></div>
+      </div>
+      <div class="card fade-in fade-in-2">
+        <div class="card-title"><span class="icon">+</span> Add Item</div>
+        <div style="margin-bottom:12px;font-size:13px;color:var(--text3)">Track a symbol or provider to get filtered views and alerts.</div>
+        <div class="wl-add">
+          <select class="filter-input" id="wl-type"><option value="symbol">Symbol</option><option value="provider">Provider</option></select>
+          <input class="filter-input" id="wl-value" placeholder="e.g. BTCUSDT" style="flex:1">
+          <button class="btn btn-accent" onclick="addWatchlist()">Add</button>
+        </div>
+      </div>
+    </div>`;
+  fetchWatchlists();
+}
+
+async function openSymbolModal(symbol) {
+  let modal = document.getElementById('symbol-modal');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'symbol-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px)';
+  modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+  document.body.appendChild(modal);
+
+  modal.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;width:min(680px,95vw)">'
+    + '<div style="align-items:center;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;padding:16px 20px">'
+    + '<div><div style="font-size:16px;font-weight:700">' + symbol + ' Signals</div>'
+    + '<div style="color:var(--text3);font-size:12px">Recent signals tracked for this symbol</div></div>'
+    + '<button onclick="document.getElementById(&quot;symbol-modal&quot;).remove()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;line-height:1;padding:4px 8px">✕</button>'
+    + '</div>'
+    + '<div id="symbol-modal-body" style="overflow-y:auto;padding:16px"><div class="loading-state"><div class="spinner"></div></div></div>'
+    + '</div>';
+
+  try {
+    const r = await fetch(API + '/signals?symbol=' + encodeURIComponent(symbol) + '&limit=20', { headers: headers() });
+    const d = await r.json();
+    const signals = d.signals || [];
+    if (!signals.length) {
+      document.getElementById('symbol-modal-body').innerHTML = '<div class="empty-state">No signals found for ' + symbol + '</div>';
+      return;
+    }
+    const header = '<div style="display:grid;grid-template-columns:1fr 80px 70px 60px 60px;gap:8px;padding:0 4px 8px;border-bottom:1px solid var(--border);margin-bottom:4px">'
+      + '<span style="color:var(--text3);font-size:10px;font-weight:600;text-transform:uppercase">Provider / Time</span>'
+      + '<span style="color:var(--text3);font-size:10px;font-weight:600;text-transform:uppercase">Action</span>'
+      + '<span style="color:var(--text3);font-size:10px;font-weight:600;text-transform:uppercase">Entry</span>'
+      + '<span style="color:var(--text3);font-size:10px;font-weight:600;text-transform:uppercase">Status</span>'
+      + '<span style="color:var(--text3);font-size:10px;font-weight:600;text-transform:uppercase">R</span>'
+      + '</div>';
+    const rows = signals.map(function(s) {
+      const t = s.trade || {};
+      const dir = s.action || '—';
+      const dirColor = (dir==='BUY'||dir==='LONG') ? 'var(--green)' : (dir==='SELL'||dir==='SHORT') ? '#e05' : 'var(--text3)';
+      const status = t.status || '—';
+      const statusColor = status==='WIN' ? 'var(--green)' : status==='LOSS' ? '#e05' : 'var(--text3)';
+      const rVal = t.rMultiple != null ? '<span style="color:' + (t.rMultiple>=0?'var(--green)':'#e05') + '">' + (t.rMultiple>=0?'+':'') + t.rMultiple.toFixed(2) + 'R</span>' : '<span style="color:var(--text3)">—</span>';
+      const entry = s.entryMin ? (s.entryMin === s.entryMax ? s.entryMin : s.entryMin + '–' + s.entryMax) : '—';
+      return '<div style="display:grid;grid-template-columns:1fr 80px 70px 60px 60px;gap:8px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--border)">'
+        + '<div><div style="font-size:12px;font-weight:600">' + (s.provider||'—') + '</div>'
+        + '<div style="color:var(--text3);font-size:10px">' + new Date(s.signalTs).toLocaleString() + '</div></div>'
+        + '<span style="color:' + dirColor + ';font-size:12px;font-weight:700">' + dir + '</span>'
+        + '<span style="font-size:11px;font-family:var(--mono)">' + entry + '</span>'
+        + '<span style="color:' + statusColor + ';font-size:12px">' + status + '</span>'
+        + rVal
+        + '</div>';
+    });
+    document.getElementById('symbol-modal-body').innerHTML = header + rows.join('');
+  } catch(e) {
+    document.getElementById('symbol-modal-body').innerHTML = '<div style="color:#e05;padding:20px">Error: ' + e.message + '</div>';
+  }
+}
+
+async function fetchWatchlists() {
+  try {
+    const r = await fetch(`${API}/watchlists`, { headers: headers() });
+    const d = await r.json();
+    const items = (d.watchlists || []).map(w => `
+      <div class="wl-item">
+        <div style="display:flex;align-items:center;gap:8px;${w.type==='symbol'?'cursor:pointer':''}" onclick="${w.type==='symbol'?'openSymbolModal(`'+w.value+'`)':''}">
+          ${w.type === 'symbol' ? '<span style="display:flex;align-items:center;gap:1px;width:24px"><span class="wl-dot"></span><span class="wl-dot"></span><span class="wl-dot"></span></span>' : '<span style="font-size:16px">📡</span>'}
+          <div>
+            <div style="font-weight:600;${w.type==='symbol'?'color:var(--accent)':''}">${w.value}</div>
+            <div style="font-size:11px;color:var(--text3)">${w.type}</div>
+          </div>
+        </div>
+        <button class="wl-remove" onclick="event.stopPropagation();removeWatchlist('${w.id}')">✕ Remove</button>
+      </div>`);
+    document.getElementById('wl-list').innerHTML = items.length ? items.join('') : '<div class="empty-state">No watchlist items yet</div>';
+  } catch(e) { document.getElementById('wl-list').innerHTML = '<div class="empty-state">Error loading watchlists</div>'; }
+}
+
+async function addWatchlist() {
+  const type = document.getElementById('wl-type').value;
+  const value = document.getElementById('wl-value').value;
+  if (!value) return;
+  await fetch(`${API}/watchlists`, { method: 'POST', headers: headers(), body: JSON.stringify({ type, value }) });
+  document.getElementById('wl-value').value = '';
+  fetchWatchlists();
+}
+
+async function removeWatchlist(id) {
+  await fetch(`${API}/watchlists/${id}`, { method: 'DELETE', headers: headers() });
+  fetchWatchlists();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SUBSCRIPTION PAGE
+// ═══════════════════════════════════════════════════════════════
+async function loadSubscription() {
+  const tier = planInfo.planTier || 'FREE';
+  const status = planInfo.subscriptionStatus || 'inactive';
+  const periodEnd = planInfo.currentPeriodEnd ? new Date(planInfo.currentPeriodEnd).toLocaleDateString() : '—';
+  const canceling = planInfo.cancelAtPeriodEnd;
+
+  document.getElementById('page-content').innerHTML = `
+    <div class="page-header fade-in">
+      <div>
+        <h2>Subscription</h2>
+        <div class="subtitle">Manage your AgoraIQ plan and billing</div>
+      </div>
+    </div>
+
+    <div class="card fade-in fade-in-1" style="border-color:${tier !== 'FREE' ? 'var(--accent-border)' : 'var(--border)'}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:4px">Current Plan</div>
+          <div style="font-size:24px;font-weight:700;color:${tier === 'ELITE' ? 'var(--blue)' : tier === 'PRO' ? 'var(--accent)' : 'var(--text3)'}">${tier === 'FREE' ? 'Free' : tier}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--text3)">Status</div>
+          <span class="badge ${status === 'active' ? 'badge-active' : status === 'past_due' ? 'badge-sl' : 'badge-exp'}">${status.toUpperCase()}</span>
+          ${canceling ? '<div style="font-size:11px;color:var(--amber);margin-top:4px">Cancels at period end</div>' : ''}
+        </div>
+      </div>
+      ${tier !== 'FREE' ? `
+        <div class="setting-row">
+          <div><div class="setting-label">Billing Period Ends</div></div>
+          <div class="setting-value">${periodEnd}</div>
+        </div>
+      ` : ''}
+      <div style="margin-top:16px;display:flex;gap:8px">
+        ${tier !== 'FREE' ? `<button class="btn btn-accent" onclick="openPortal()">Manage Billing →</button>` : ''}
+        ${tier === 'FREE' ? `<a class="btn btn-accent" href="https://buy.stripe.com/test_6oU28sfnC9CYbXe1wAbAs00">Upgrade to Pro — $99/mo</a>` : ''}
+        ${tier === 'FREE' ? `<a class="btn btn-ghost" href="https://buy.stripe.com/test_dRmdRa5N202o1iA7UYbAs01">Upgrade to Elite — $299/mo</a>` : ''}
+      </div>
+    </div>
+
+    <div class="overview-grid fade-in fade-in-2">
+      <div class="card">
+        <div class="card-title"><span class="icon" style="color:var(--accent)">◆</span> Pro — $99/mo</div>
+        <div style="font-size:13px;color:var(--text3);line-height:1.7">
+          ✓ Full signal history<br>
+          ✓ Advanced analytics<br>
+          ✓ Real-time Telegram alerts<br>
+          ✓ CSV exports (5,000 signals)<br>
+          ✓ Provider scorecards<br>
+          ✓ Email support
+        </div>
+        ${tier === 'FREE' ? `<a class="btn btn-accent" href="https://buy.stripe.com/test_6oU28sfnC9CYbXe1wAbAs00" style="width:100%;margin-top:16px">Upgrade to Pro →</a>` : ''}
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon" style="color:var(--blue)">⬡</span> Elite — $299/mo</div>
+        <div style="font-size:13px;color:var(--text3);line-height:1.7">
+          ✓ Everything in Pro<br>
+          ✓ Discord integration<br>
+          ✓ API access<br>
+          ✓ Priority support (4h response)<br>
+          ✓ Custom integrations<br>
+          ✓ Full platform access
+        </div>
+        ${tier !== 'ELITE' ? `<a class="btn btn-ghost" href="https://buy.stripe.com/test_dRmdRa5N202o1iA7UYbAs01" style="width:100%;margin-top:16px;border-color:rgba(56,189,248,.2);color:var(--blue)">Upgrade to Elite →</a>` : ''}
+      </div>
+    </div>`;
+}
+
+async function openPortal() {
+  try {
+    const r = await fetch(`${BILLING_API}/portal`, { headers: headers() });
+    const d = await r.json();
+    if (d.url) window.location.href = d.url;
+  } catch(e) { alert('Could not open billing portal. Please try again.'); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SETTINGS PAGE
+// ═══════════════════════════════════════════════════════════════
+async function loadSettings() {
+  document.getElementById('page-content').innerHTML = `
+    <div class="page-header fade-in">
+      <div>
+        <h2>Settings</h2>
+        <div class="subtitle">Account configuration and preferences</div>
+      </div>
+    </div>
+    <div class="settings-grid">
+      <div class="card fade-in fade-in-1">
+        <div class="card-title"><span class="icon">⚙</span> Account</div>
+        <div id="account-info"><div class="loading-state"><div class="spinner"></div></div></div>
+      </div>
+      <div class="card fade-in fade-in-2">
+        <div class="card-title"><span class="icon">🔔</span> Notifications</div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Telegram Alerts</div>
+            <div class="setting-desc">Receive signal notifications via Telegram bot</div>
+          </div>
+          <span class="badge badge-pending">Coming Soon</span>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Email Digest</div>
+            <div class="setting-desc">Daily summary of signal outcomes</div>
+          </div>
+          <span class="badge badge-pending">Coming Soon</span>
+        </div>
+      </div>
+      <div class="card overview-full fade-in fade-in-3">
+        <div class="card-title" style="color:var(--red)"><span class="icon">⚠</span> Danger Zone</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div class="setting-label">Sign Out</div>
+            <div class="setting-desc">End your current session</div>
+          </div>
+          <button class="btn btn-danger" onclick="logout()">Sign Out</button>
+        </div>
+      </div>
+    </div>`;
+
+  try {
+    const r = await fetch('/api/v1/auth/me', { headers: headers() });
+    const d = await r.json();
+    const u = d.user || {};
+    const s = d.subscription || {};
+    document.getElementById('account-info').innerHTML = `
+      <div class="setting-row">
+        <div class="setting-label">Email</div>
+        <div class="setting-value">${u.email || '—'}</div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Role</div>
+        <div class="setting-value">${u.role || 'user'}</div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Plan</div>
+        <div class="setting-value" style="color:var(--accent)">${s.planTier || s.tier?.toUpperCase() || 'FREE'}</div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Joined</div>
+        <div class="setting-value">${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}</div>
+      </div>`;
+  } catch(e) {}
+}
+
+// ── Page Router ───────────────────────────────────────────────
+  async function addPairToWatchlist(pair) {
+  const btn = document.getElementById('wl-btn-' + pair);
+  if (btn) { btn.disabled = true; btn.textContent = '⟳ Adding...'; }
+  try {
+    const r = await fetch(API + '/watchlists', {
+      method: 'POST',
+      headers: { ...headers(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'symbol', value: pair })
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.message || d.error);
+    if (btn) {
+      btn.textContent = '✓ Added to Watchlist';
+      btn.style.background = 'rgba(0,180,100,0.15)';
+      btn.style.borderColor = 'var(--green)';
+      btn.style.color = 'var(--green)';
+    }
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = '＋ Add ' + pair + ' to Watchlist'; }
+    alert('Failed: ' + e.message);
+  }
+}
+
+async function loadParser() {
+    const el = document.getElementById('page-content');
+    el.innerHTML = `
+      <div class="page-header">
+        <h2>Signal Parser</h2>
+        <div class="subtitle">Test raw Telegram/Discord messages against the parser engine</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+        <div class="card" style="display:flex;flex-direction:column;gap:12px">
+          <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Raw Message</div>
+          <textarea id="parser-input" placeholder="#BTCUSDT LONG&#10;Exchange: Binance Futures&#10;Entry: 65000 - 65500&#10;Targets:&#10;1) 66500&#10;2) 68000&#10;3) 70000&#10;Stop: 63000&#10;Leverage: Cross 10x" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:monospace;font-size:12px;min-height:200px;padding:12px;resize:vertical;width:100%;box-sizing:border-box;outline:none"></textarea>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Parser Mode</div>
+              <select id="parser-mode" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:8px;width:100%">
+                <option value="CORNIX">Cornix (regex + LLM fallback)</option>
+                <option value="FREEFORM">Freeform (LLM only)</option>
+                <option value="STRICT_JSON">Strict JSON</option>
+                <option value="RAW_PASSTHROUGH">Raw Passthrough</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Confidence Threshold</div>
+              <input id="parser-threshold" type="number" min="0" max="1" step="0.05" value="0.75" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:8px;width:100%;box-sizing:border-box">
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Custom Prompt <span style="opacity:.5">(optional)</span></div>
+            <textarea id="parser-prompt" placeholder="Leave blank for default prompt..." style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:monospace;font-size:11px;height:70px;padding:8px;resize:vertical;width:100%;box-sizing:border-box;outline:none"></textarea>
+          </div>
+          <button onclick="runParser()" id="parser-btn" style="background:var(--accent);border:none;border-radius:6px;color:#000;cursor:pointer;font-size:13px;font-weight:700;padding:10px;transition:opacity .15s">⟁ Parse Signal</button>
+        </div>
+        <div class="card" id="parser-result" style="display:flex;flex-direction:column;gap:12px">
+          <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Parse Result</div>
+          <div style="color:var(--text3);font-size:13px;text-align:center;padding:40px 0">Paste a message and click Parse</div>
+        </div>
+      </div>
+    `;
+  }
+
+  async function runParser() {
+    const raw = document.getElementById('parser-input').value.trim();
+    const mode = document.getElementById('parser-mode').value;
+    const threshold = parseFloat(document.getElementById('parser-threshold').value);
+    const prompt = document.getElementById('parser-prompt').value.trim();
+    const btn = document.getElementById('parser-btn');
+    const result = document.getElementById('parser-result');
+    if (!raw) { result.innerHTML = '<div style="color:var(--text3);font-size:13px;text-align:center;padding:40px 0">Enter a message first</div>'; return; }
+    btn.textContent = '⟳ Parsing...'; btn.disabled = true;
+    result.innerHTML = '<div style="color:var(--text3);font-size:13px;text-align:center;padding:40px 0">Parsing...</div>';
+    try {
+      const res = await fetch('/api/v1/parser/test', { method: 'POST', headers: { ...headers(), 'Content-Type': 'application/json' }, body: JSON.stringify({ raw, parserMode: mode, confidenceThreshold: threshold, promptTemplate: prompt || null }) });
+      const d = await res.json();
+      const confColor = d.confidence >= 0.75 ? 'var(--green)' : d.confidence >= 0.5 ? '#f5a623' : '#e05';
+      const badge = d.success ? '<span style="background:#0a2;border-radius:4px;color:#fff;font-size:10px;font-weight:700;padding:2px 6px">PASS</span>' : '<span style="background:#a02;border-radius:4px;color:#fff;font-size:10px;font-weight:700;padding:2px 6px">FAIL</span>';
+      const llmBadge = d.usedLLM ? '<span style="background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:4px;color:var(--accent);font-size:10px;font-weight:600;padding:2px 6px">LLM</span>' : '<span style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text3);font-size:10px;font-weight:600;padding:2px 6px">REGEX</span>';
+      const sig = d.data;
+      const sigHtml = sig ? '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px"><div class="kpi-card"><div class="kpi-label">Pair</div><div class="kpi-value" style="font-size:16px">' + (sig.pair||'—') + '</div></div><div class="kpi-card"><div class="kpi-label">Direction</div><div class="kpi-value" style="font-size:16px;color:' + (sig.direction==='LONG'?'var(--green)':'#e05') + '">' + (sig.direction||'—') + '</div></div><div class="kpi-card"><div class="kpi-label">Entry</div><div class="kpi-value" style="font-size:13px">' + (sig.entryMin===sig.entryMax?sig.entryMin||'—':(sig.entryMin||'—')+' – '+(sig.entryMax||'—')) + '</div></div><div class="kpi-card"><div class="kpi-label">Stop Loss</div><div class="kpi-value" style="font-size:13px;color:#e05">' + (sig.stopLoss||'—') + '</div></div><div class="kpi-card" style="grid-column:span 2"><div class="kpi-label">Take Profits</div><div class="kpi-value" style="font-size:13px">' + (sig.takeProfits&&sig.takeProfits.length?sig.takeProfits.map(function(tp,i){return 'TP'+(i+1)+': '+tp}).join(' · '):'—') + '</div></div><div class="kpi-card"><div class="kpi-label">Leverage</div><div class="kpi-value" style="font-size:13px">' + (sig.leverage?sig.leverage+'x '+(sig.leverageType||''):'—') + '</div></div><div class="kpi-card"><div class="kpi-label">Market</div><div class="kpi-value" style="font-size:13px">' + (sig.marketType||'—') + '</div></div></div>' : '<div style="color:var(--text3);font-size:12px;margin-top:8px">No signal data extracted</div>';
+      const errHtml = d.errors&&d.errors.length ? d.errors.map(function(e){return '<div style="color:#e05;font-size:12px;margin-top:4px">⚠ '+e+'</div>'}).join('') : '';
+      result.innerHTML = '<div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Parse Result</div><div style="display:flex;align-items:center;gap:8px">' + badge + '<span style="color:' + confColor + ';font-size:18px;font-weight:700">' + Math.round((d.confidence||0)*100) + '%</span><span style="color:var(--text3);font-size:12px">confidence</span>' + llmBadge + (d.provider?'<span style="color:var(--text3);font-size:11px">via '+d.provider+'</span>':'') + '</div>' + sigHtml + errHtml + '<div style="background:var(--bg3);border-radius:6px;margin-top:8px;padding:10px"><div style="color:var(--text3);font-size:10px;font-weight:600;letter-spacing:.06em;margin-bottom:4px;text-transform:uppercase">Explanation</div><div style="color:var(--text2);font-size:12px;line-height:1.5">' + (d.explanation||'—') + '</div></div>';
+      if (d.success && sig && sig.pair) {
+        const wlWrap = document.createElement('div');
+        wlWrap.style.cssText = 'margin-top:10px;padding-top:10px;border-top:1px solid var(--border)';
+        const wlBtn = document.createElement('button');
+        wlBtn.id = 'wl-btn-' + sig.pair;
+        wlBtn.textContent = '＋ Add ' + sig.pair + ' to Watchlist';
+        wlBtn.style.cssText = 'background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:6px;color:var(--accent);cursor:pointer;font-size:12px;font-weight:600;padding:8px 16px;width:100%';
+        wlBtn.onclick = function() { addPairToWatchlist(sig.pair); };
+        wlWrap.appendChild(wlBtn);
+        result.appendChild(wlWrap);
+      const saveWrap = document.createElement('div');
+      saveWrap.style.cssText = 'margin-top:8px';
+      const saveBtn = document.createElement('button');
+      saveBtn.id = 'save-log-btn';
+      saveBtn.textContent = '\u{1F4CB} Save to Personal Log';
+      saveBtn.style.cssText = 'background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;font-size:12px;font-weight:600;padding:8px 16px;width:100%;transition:all .15s';
+      saveBtn.onmouseenter = function() { saveBtn.style.borderColor='var(--accent-border)'; saveBtn.style.color='var(--accent)'; };
+      saveBtn.onmouseleave = function() { saveBtn.style.borderColor='var(--border)'; saveBtn.style.color='var(--text2)'; };
+      saveBtn.onclick = function() { saveToSignalLog(d, raw); };
+      saveWrap.appendChild(saveBtn);
+      result.appendChild(saveWrap);
+      }
+    } catch(e) {
+      result.innerHTML = '<div style="color:#e05;font-size:13px">Error: '+e.message+'</div>';
+    } finally {
+      btn.textContent = '⟁ Parse Signal'; btn.disabled = false;
+    }
+  }
+
+
+
+async function saveToSignalLog(parsed, rawMessage) {
+  const btn = document.getElementById('save-log-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+  const sig = parsed.data || {};
+  const note = window.prompt('Add a note (optional):', '') || '';
+  try {
+    const r = await fetch(API + '/signal-log', {
+      method: 'POST', headers: headers(),
+      body: JSON.stringify({
+        symbol: sig.pair, direction: sig.direction,
+        entryMin: sig.entryMin || null, entryMax: sig.entryMax || null,
+        stopLoss: sig.stopLoss || null, takeProfits: sig.takeProfits || [],
+        leverage: sig.leverage || null, marketType: sig.marketType || null,
+        confidence: parsed.confidence || null, rawMessage, note: note || null,
+      })
+    });
+    const d2 = await r.json();
+    if (!d2.ok) throw new Error(d2.error);
+    if (btn) {
+      btn.textContent = '\u2713 Saved to Log!';
+      btn.style.cssText = 'background:var(--green-dim);border:1px solid rgba(52,211,153,.3);border-radius:6px;color:var(--green);font-size:12px;font-weight:600;padding:8px 16px;width:100%';
+    }
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Save to Personal Log'; }
+    alert('Failed: ' + e.message);
+  }
+}
+
+async function loadSignalLog() {
+  openSignalLogModal();
+}
+
+function openSignalLogModal() {
+  let modal = document.getElementById('signal-log-modal');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'signal-log-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px)';
+  modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+  document.body.appendChild(modal);
+
+  modal.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;max-height:85vh;width:min(900px,96vw)">'
+    + '<div style="align-items:center;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;padding:16px 20px;flex-shrink:0">'
+    + '<div><div style="font-size:16px;font-weight:700">📋 My Signal Log</div>'
+    + '<div style="color:var(--text3);font-size:12px;margin-top:2px">Signals saved from the parser</div></div>'
+    + '<button onclick="document.getElementById(&quot;signal-log-modal&quot;).remove()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;line-height:1;padding:4px 8px">✕</button>'
+    + '</div>'
+    + '<div style="overflow-y:auto;flex:1">'
+    + '<div id="log-table"><div class="loading-state"><div class="spinner"></div></div></div>'
+    + '</div>'
+    + '<div class="pagination" id="log-pagination" style="padding:12px;border-top:1px solid var(--border);flex-shrink:0"></div>'
+    + '</div>';
+
+  fetchSignalLog(1);
+}
+
+let logPage = 1;
+async function fetchSignalLog(page) {
+  logPage = page || 1;
+  try {
+    const r = await fetch(API + '/signal-log?page=' + logPage + '&limit=20', { headers: headers() });
+    const d = await r.json();
+    const entries = d.entries || [];
+    const p = d.pagination || {};
+    if (!entries.length) {
+      document.getElementById('log-table').innerHTML = '<div class="empty-state" style="padding:48px">No saved signals yet</div>';
+      document.getElementById('log-pagination').innerHTML = '';
+      return;
+    }
+    const rows = entries.map(function(e) {
+      const tps = e.takeProfits || [];
+      const tpStr = tps.length ? tps.map(function(v,i){ return 'TP'+(i+1)+': '+v; }).join(' / ') : '-';
+      const dirColor = e.direction==='LONG' ? 'var(--green)' : e.direction==='SHORT' ? 'var(--red)' : 'var(--text3)';
+      const entry = e.entryMin ? (e.entryMin===e.entryMax ? e.entryMin : e.entryMin+'-'+e.entryMax) : '-';
+      const conf = e.confidence ? Math.round(e.confidence*100)+'%' : '-';
+      const delBtn = '<button onclick="deleteLogEntry(\'' + e.id + '\')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:2px 8px;border-radius:4px" onmouseenter="this.style.color=\'var(--red)\';this.style.background=\'var(--red-dim)\'" onmouseleave="this.style.color=\'var(--text3)\';this.style.background=\'none\'">&#x2715;</button>';
+      return '<tr>'
+        +'<td style="font-family:var(--mono);font-size:11px;color:var(--text3)">'+new Date(e.createdAt).toLocaleString()+'</td>'
+        +'<td style="font-weight:700">'+e.symbol+'</td>'
+        +'<td style="color:'+dirColor+';font-weight:700">'+(e.direction||'-')+'</td>'
+        +'<td style="font-family:var(--mono);font-size:12px">'+entry+'</td>'
+        +'<td style="font-family:var(--mono);font-size:11px;color:var(--red)">'+(e.stopLoss||'-')+'</td>'
+        +'<td style="font-size:11px;color:var(--text3)">'+tpStr+'</td>'
+        +'<td style="font-family:var(--mono);font-size:11px">'+(e.leverage ? e.leverage+'x' : '-')+'</td>'
+        +'<td style="font-family:var(--mono);font-size:11px">'+conf+'</td>'
+        +'<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text3)">'+(e.note||'')+'</td>'
+        +'<td>'+delBtn+'</td>'
+        +'</tr>';
+    });
+    document.getElementById('log-table').innerHTML = '<table><thead><tr><th>Saved</th><th>Symbol</th><th>Dir</th><th>Entry</th><th>SL</th><th>Take Profits</th><th>Lev</th><th>Conf</th><th>Note</th><th></th></tr></thead><tbody>'+rows.join('')+'</tbody></table>';
+    const totalPages = Math.min(p.totalPages||1, 10);
+    const btns = [];
+    for (let i=1; i<=totalPages; i++) btns.push('<button class="page-btn '+(i===logPage?'active':'')+'" onclick="fetchSignalLog('+i+')">'+i+'</button>');
+    document.getElementById('log-pagination').innerHTML = btns.join('');
+  } catch(e) {
+    document.getElementById('log-table').innerHTML = '<div class="empty-state">Error: '+e.message+'</div>';
+  }
+}
+
+async function deleteLogEntry(id) {
+  if (!confirm('Remove this entry?')) return;
+  await fetch(API + '/signal-log/' + id, { method: 'DELETE', headers: headers() });
+  fetchSignalLog(logPage);
+}
+
+function loadPage() {
+  switch (currentPage) {
+    case 'overview': loadOverview(); break;
+    case 'signals': loadSignals(); break;
+    case 'providers': loadProviders(); break;
+    case 'parser': loadParser(); break;
+    case 'signal-log': loadSignalLog(); break;
+    case 'performance': loadPerformance(); break;
+    case 'duration': loadDurationPage(); break;
+    case 'monthly': loadMonthlyPage(); break;
+    case 'proof': loadProof(); break;
+    case 'watchlists': loadWatchlists(); break;
+    case 'subscription': loadSubscription(); break;
+    case 'settings': loadSettings(); break;
+    default: loadOverview();
+  }
+}
+
+// ── Boot ──────────────────────────────────────────────────────
+init();
+
+// ── Floating Signal Log Button ────────────────────────────────
+(function() {
+  const btn = document.createElement('button');
+  btn.id = 'float-log-btn';
+  btn.title = 'My Signal Log';
+  btn.innerHTML = '📋';
+  btn.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:500;'
+    + 'width:48px;height:48px;border-radius:50%;'
+    + 'background:var(--accent-dim);border:1px solid var(--accent-border);'
+    + 'color:var(--accent);font-size:20px;cursor:pointer;'
+    + 'display:flex;align-items:center;justify-content:center;'
+    + 'box-shadow:0 4px 20px rgba(167,139,250,.25);'
+    + 'transition:all .2s';
+  btn.onmouseenter = function() {
+    btn.style.transform = 'scale(1.1)';
+    btn.style.boxShadow = '0 4px 28px rgba(167,139,250,.4)';
+  };
+  btn.onmouseleave = function() {
+    btn.style.transform = 'scale(1)';
+    btn.style.boxShadow = '0 4px 20px rgba(167,139,250,.25)';
+  };
+  btn.onclick = openSignalLogModal;
+  document.body.appendChild(btn);
+})();
+// ═══════════════════════════════════════════════════════════════
+// PERFORMANCE PAGE
+// ═══════════════════════════════════════════════════════════════
+let perfPeriod = 'all';
+
+async function loadPerformance() {
+  const el = document.getElementById('page-content');
+  el.innerHTML = `
+    <div class="page-header fade-in">
+      <div>
+        <h2>Performance Analytics</h2>
+        <div class="subtitle">Equity curve, drawdown, and risk metrics</div>
+      </div>
+    </div>
+
+    <div class="filters fade-in fade-in-1" id="perf-periods">
+      <button class="btn ${perfPeriod === 'today' ? 'btn-accent' : 'btn-ghost'}" onclick="setPerfPeriod('today')">Today</button>
+      <button class="btn ${perfPeriod === '7d' ? 'btn-accent' : 'btn-ghost'}" onclick="setPerfPeriod('7d')">7D</button>
+      <button class="btn ${perfPeriod === '30d' ? 'btn-accent' : 'btn-ghost'}" onclick="setPerfPeriod('30d')">30D</button>
+      <button class="btn ${perfPeriod === '90d' ? 'btn-accent' : 'btn-ghost'}" onclick="setPerfPeriod('90d')">90D</button>
+      <button class="btn ${perfPeriod === 'all' ? 'btn-accent' : 'btn-ghost'}" onclick="setPerfPeriod('all')">All Time</button>
+    </div>
+
+    <div class="kpi-grid" style="grid-template-columns:repeat(6,1fr)" id="perf-kpis">
+      <div class="kpi kpi-green fade-in fade-in-1"><div class="kpi-label">Win Rate</div><div class="kpi-value" style="color:var(--green)" id="pk-wr">—</div><div class="kpi-sub" id="pk-wl">—</div></div>
+      <div class="kpi kpi-accent fade-in fade-in-2"><div class="kpi-label">Avg R-Multiple</div><div class="kpi-value" style="color:var(--accent)" id="pk-avgr">—</div><div class="kpi-sub" id="pk-bestr">—</div></div>
+      <div class="kpi kpi-blue fade-in fade-in-3"><div class="kpi-label">Total PnL</div><div class="kpi-value" style="color:var(--blue)" id="pk-pnl">—</div><div class="kpi-sub" id="pk-avgpnl">—</div></div>
+      <div class="kpi kpi-red fade-in fade-in-4"><div class="kpi-label">Max Drawdown</div><div class="kpi-value" style="color:var(--red)" id="pk-dd">—</div><div class="kpi-sub">peak to trough</div></div>
+      <div class="kpi kpi-amber fade-in fade-in-5"><div class="kpi-label">Profit Factor</div><div class="kpi-value" style="color:var(--amber)" id="pk-pf">—</div><div class="kpi-sub" id="pk-trades">—</div></div>
+      <div class="kpi kpi-green fade-in fade-in-5"><div class="kpi-label">Best Streak</div><div class="kpi-value" style="color:var(--green)" id="pk-streak">—</div><div class="kpi-sub" id="pk-lstreak">—</div></div>
+    </div>
+
+    <div class="card fade-in fade-in-3" id="equity-card">
+      <div class="card-title"><span class="icon">📈</span> Equity Curve (Cumulative PnL %)</div>
+      <div style="position:relative;height:280px"><canvas id="equity-chart"></canvas></div>
+    </div>
+
+    <div class="card fade-in fade-in-4" id="drawdown-card">
+      <div class="card-title"><span class="icon">📉</span> Drawdown</div>
+      <div style="position:relative;height:180px"><canvas id="drawdown-chart"></canvas></div>
+    </div>
+
+    <div class="overview-grid fade-in fade-in-5">
+      <div class="card">
+        <div class="card-title"><span class="icon">📊</span> Daily PnL</div>
+        <div style="position:relative;height:220px"><canvas id="daily-chart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🎯</span> R-Multiple Distribution</div>
+        <div style="position:relative;height:220px"><canvas id="rdist-chart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card fade-in fade-in-5">
+      <div class="card-title"><span class="icon">🏆</span> Top Symbols</div>
+      <div id="top-symbols"><div class="loading-state"><div class="spinner"></div></div></div>
+    </div>
+  `;
+
+  fetchPerformance();
+}
+
+function setPerfPeriod(p) {
+  perfPeriod = p;
+  loadPerformance();
+}
+
+async function fetchPerformance() {
+  try {
+    const r = await fetch(`${API}/performance?period=${perfPeriod}`, { headers: headers() });
+    const d = await r.json();
+    if (d.error) return;
+
+    const s = d.summary;
+
+    // KPIs
+    document.getElementById('pk-wr').textContent = s.winRate + '%';
+    document.getElementById('pk-wl').textContent = `${s.wins}W / ${s.losses}L / ${s.expired}E`;
+    document.getElementById('pk-avgr').textContent = s.avgR.toFixed(2) + 'R';
+    document.getElementById('pk-bestr').textContent = `best ${s.bestR.toFixed(1)}R / worst ${s.worstR.toFixed(1)}R`;
+    document.getElementById('pk-pnl').textContent = (s.totalPnl >= 0 ? '+' : '') + s.totalPnl.toFixed(1) + '%';
+    document.getElementById('pk-avgpnl').textContent = `avg ${s.avgPnl.toFixed(2)}% per trade`;
+    document.getElementById('pk-dd').textContent = '-' + s.maxDrawdown.toFixed(1) + '%';
+    document.getElementById('pk-pf').textContent = s.profitFactor.toFixed(2);
+    document.getElementById('pk-trades').textContent = `${s.totalTrades} trades`;
+    document.getElementById('pk-streak').textContent = s.maxWinStreak + 'W';
+    document.getElementById('pk-lstreak').textContent = `worst: ${s.maxLoseStreak}L`;
+
+    // Equity Chart
+    drawEquityChart(d.equityCurve);
+    // Drawdown Chart
+    drawDrawdownChart(d.equityCurve);
+    // Daily PnL
+    drawDailyChart(d.dailyPnl);
+    // R Distribution
+    drawRDistChart(d.rDistribution);
+    // Top Symbols
+    renderTopSymbols(d.topSymbols);
+
+  } catch(e) { console.error('Performance fetch error:', e); }
+}
+
+// ── Chart Helpers ─────────────────────────────────────────────
+
+function getCtx(id) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return null;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * 2;
+  canvas.height = rect.height * 2;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(2, 2);
+  return { ctx, w: rect.width, h: rect.height };
+}
+
+function drawEquityChart(curve) {
+  const c = getCtx('equity-chart');
+  if (!c || curve.length < 2) return;
+  const { ctx, w, h } = c;
+  const pad = { top: 20, right: 20, bottom: 30, left: 60 };
+  const cw = w - pad.left - pad.right;
+  const ch = h - pad.top - pad.bottom;
+
+  const vals = curve.map(p => p.cumPnl);
+  const minY = Math.min(0, ...vals);
+  const maxY = Math.max(0, ...vals);
+  const rangeY = maxY - minY || 1;
+
+  function x(i) { return pad.left + (i / (curve.length - 1)) * cw; }
+  function y(v) { return pad.top + ch - ((v - minY) / rangeY) * ch; }
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 0.5;
+  const steps = 5;
+  for (let i = 0; i <= steps; i++) {
+    const yy = pad.top + (i / steps) * ch;
+    ctx.beginPath(); ctx.moveTo(pad.left, yy); ctx.lineTo(w - pad.right, yy); ctx.stroke();
+    const val = maxY - (i / steps) * rangeY;
+    ctx.fillStyle = '#64748b';
+    ctx.font = '10px IBM Plex Mono';
+    ctx.textAlign = 'right';
+    ctx.fillText(val.toFixed(1) + '%', pad.left - 8, yy + 3);
+  }
+
+  // Zero line
+  if (minY < 0) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(pad.left, y(0)); ctx.lineTo(w - pad.right, y(0)); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Area fill
+  ctx.beginPath();
+  ctx.moveTo(x(0), y(0));
+  for (let i = 0; i < curve.length; i++) ctx.lineTo(x(i), y(curve[i].cumPnl));
+  ctx.lineTo(x(curve.length - 1), y(0));
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, pad.top, 0, h);
+  grad.addColorStop(0, 'rgba(167,139,250,0.15)');
+  grad.addColorStop(1, 'rgba(167,139,250,0.01)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  for (let i = 0; i < curve.length; i++) {
+    if (i === 0) ctx.moveTo(x(i), y(curve[i].cumPnl));
+    else ctx.lineTo(x(i), y(curve[i].cumPnl));
+  }
+  ctx.strokeStyle = '#a78bfa';
+  ctx.lineWidth = 1.5;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // X labels
+  ctx.fillStyle = '#64748b';
+  ctx.font = '10px IBM Plex Mono';
+  ctx.textAlign = 'center';
+  const labelCount = Math.min(6, curve.length);
+  for (let i = 0; i < labelCount; i++) {
+    const idx = Math.floor((i / (labelCount - 1)) * (curve.length - 1));
+    const d = new Date(curve[idx].date);
+    ctx.fillText(d.toLocaleDateString('en', { month: 'short', day: 'numeric' }), x(idx), h - 6);
+  }
+
+  // Final value
+  const last = vals[vals.length - 1];
+  ctx.fillStyle = last >= 0 ? '#34d399' : '#f87171';
+  ctx.font = 'bold 12px IBM Plex Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText((last >= 0 ? '+' : '') + last.toFixed(1) + '%', x(curve.length - 1) - 40, y(last) - 8);
+}
+
+function drawDrawdownChart(curve) {
+  const c = getCtx('drawdown-chart');
+  if (!c || curve.length < 2) return;
+  const { ctx, w, h } = c;
+  const pad = { top: 10, right: 20, bottom: 30, left: 60 };
+  const cw = w - pad.left - pad.right;
+  const ch = h - pad.top - pad.bottom;
+
+  const vals = curve.map(p => p.drawdown);
+  const minY = Math.min(...vals, 0);
+  const rangeY = Math.abs(minY) || 1;
+
+  function x(i) { return pad.left + (i / (curve.length - 1)) * cw; }
+  function y(v) { return pad.top + (-v / rangeY) * ch; }
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 3; i++) {
+    const yy = pad.top + (i / 3) * ch;
+    ctx.beginPath(); ctx.moveTo(pad.left, yy); ctx.lineTo(w - pad.right, yy); ctx.stroke();
+    const val = -(i / 3) * rangeY;
+    ctx.fillStyle = '#64748b'; ctx.font = '10px IBM Plex Mono'; ctx.textAlign = 'right';
+    ctx.fillText(val.toFixed(1) + '%', pad.left - 8, yy + 3);
+  }
+
+  // Area
+  ctx.beginPath();
+  ctx.moveTo(x(0), y(0));
+  for (let i = 0; i < curve.length; i++) ctx.lineTo(x(i), y(vals[i]));
+  ctx.lineTo(x(curve.length - 1), y(0));
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, pad.top, 0, h);
+  grad.addColorStop(0, 'rgba(248,113,113,0.02)');
+  grad.addColorStop(1, 'rgba(248,113,113,0.20)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  for (let i = 0; i < curve.length; i++) {
+    if (i === 0) ctx.moveTo(x(i), y(vals[i]));
+    else ctx.lineTo(x(i), y(vals[i]));
+  }
+  ctx.strokeStyle = '#f87171';
+  ctx.lineWidth = 1.5;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // X labels
+  ctx.fillStyle = '#64748b'; ctx.font = '10px IBM Plex Mono'; ctx.textAlign = 'center';
+  const labelCount = Math.min(6, curve.length);
+  for (let i = 0; i < labelCount; i++) {
+    const idx = Math.floor((i / (labelCount - 1)) * (curve.length - 1));
+    const d = new Date(curve[idx].date);
+    ctx.fillText(d.toLocaleDateString('en', { month: 'short', day: 'numeric' }), x(idx), h - 6);
+  }
+}
+
+function drawDailyChart(daily) {
+  const c = getCtx('daily-chart');
+  if (!c || daily.length === 0) return;
+  const { ctx, w, h } = c;
+  const pad = { top: 10, right: 10, bottom: 30, left: 50 };
+  const cw = w - pad.left - pad.right;
+  const ch = h - pad.top - pad.bottom;
+
+  const vals = daily.map(d => d.pnl);
+  const maxV = Math.max(...vals.map(Math.abs), 1);
+
+  const barW = Math.max(2, Math.min(12, (cw / daily.length) - 2));
+  const zeroY = pad.top + ch / 2;
+
+  // Zero line
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.moveTo(pad.left, zeroY); ctx.lineTo(w - pad.right, zeroY); ctx.stroke();
+
+  // Y labels
+  ctx.fillStyle = '#64748b'; ctx.font = '10px IBM Plex Mono'; ctx.textAlign = 'right';
+  ctx.fillText('+' + maxV.toFixed(0) + '%', pad.left - 6, pad.top + 10);
+  ctx.fillText('-' + maxV.toFixed(0) + '%', pad.left - 6, h - pad.bottom - 4);
+  ctx.fillText('0%', pad.left - 6, zeroY + 3);
+
+  // Bars
+  for (let i = 0; i < daily.length; i++) {
+    const bx = pad.left + (i / daily.length) * cw + (cw / daily.length - barW) / 2;
+    const barH = (Math.abs(daily[i].pnl) / maxV) * (ch / 2);
+    const isPos = daily[i].pnl >= 0;
+
+    ctx.fillStyle = isPos ? 'rgba(52,211,153,0.7)' : 'rgba(248,113,113,0.7)';
+    if (isPos) {
+      ctx.fillRect(bx, zeroY - barH, barW, barH);
+    } else {
+      ctx.fillRect(bx, zeroY, barW, barH);
+    }
+  }
+
+  // X labels
+  ctx.fillStyle = '#64748b'; ctx.font = '9px IBM Plex Mono'; ctx.textAlign = 'center';
+  const skip = Math.max(1, Math.floor(daily.length / 6));
+  for (let i = 0; i < daily.length; i += skip) {
+    const bx = pad.left + (i / daily.length) * cw + (cw / daily.length) / 2;
+    const d = new Date(daily[i].date);
+    ctx.fillText(d.toLocaleDateString('en', { month: 'short', day: 'numeric' }), bx, h - 6);
+  }
+}
+
+function drawRDistChart(dist) {
+  const c = getCtx('rdist-chart');
+  if (!c) return;
+  const { ctx, w, h } = c;
+  const pad = { top: 10, right: 10, bottom: 40, left: 40 };
+  const cw = w - pad.left - pad.right;
+  const ch = h - pad.top - pad.bottom;
+
+  const labels = Object.keys(dist);
+  const vals = Object.values(dist);
+  const maxV = Math.max(...vals, 1);
+  const barW = Math.max(8, (cw / labels.length) - 8);
+
+  // Bars
+  const colors = ['#f87171', '#f87171', '#fb923c', '#fbbf24', '#34d399', '#34d399', '#34d399'];
+  for (let i = 0; i < labels.length; i++) {
+    const bx = pad.left + (i / labels.length) * cw + (cw / labels.length - barW) / 2;
+    const barH = (vals[i] / maxV) * ch;
+
+    ctx.fillStyle = colors[i] || '#64748b';
+    ctx.globalAlpha = 0.7;
+    ctx.beginPath();
+    const radius = 3;
+    ctx.moveTo(bx + radius, pad.top + ch - barH);
+    ctx.lineTo(bx + barW - radius, pad.top + ch - barH);
+    ctx.quadraticCurveTo(bx + barW, pad.top + ch - barH, bx + barW, pad.top + ch - barH + radius);
+    ctx.lineTo(bx + barW, pad.top + ch);
+    ctx.lineTo(bx, pad.top + ch);
+    ctx.lineTo(bx, pad.top + ch - barH + radius);
+    ctx.quadraticCurveTo(bx, pad.top + ch - barH, bx + radius, pad.top + ch - barH);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // Count label
+    if (vals[i] > 0) {
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = 'bold 11px IBM Plex Mono';
+      ctx.textAlign = 'center';
+      ctx.fillText(vals[i].toString(), bx + barW / 2, pad.top + ch - barH - 5);
+    }
+  }
+
+  // X labels
+  ctx.fillStyle = '#64748b'; ctx.font = '9px IBM Plex Mono'; ctx.textAlign = 'center';
+  for (let i = 0; i < labels.length; i++) {
+    const bx = pad.left + (i / labels.length) * cw + (cw / labels.length) / 2;
+    ctx.fillText(labels[i], bx, h - 8);
+  }
+}
+
+function renderTopSymbols(symbols) {
+  if (!symbols || symbols.length === 0) {
+    document.getElementById('top-symbols').innerHTML = '<div class="empty-state">No data</div>';
+    return;
+  }
+  const rows = symbols.map((s, i) => `<tr>
+    <td style="font-family:var(--mono);font-weight:700;color:${i < 3 ? 'var(--amber)' : 'var(--text3)'}">#${i + 1}</td>
+    <td><strong>${s.symbol}</strong></td>
+    <td style="font-family:var(--mono)">${s.trades}</td>
+    <td style="font-family:var(--mono)" class="pos">${s.winRate}%</td>
+    <td style="font-family:var(--mono)" class="${s.pnl >= 0 ? 'pos' : 'neg'}">${s.pnl >= 0 ? '+' : ''}${s.pnl.toFixed(1)}%</td>
+  </tr>`).join('');
+
+  document.getElementById('top-symbols').innerHTML = `
+    <table><thead><tr><th style="width:48px">#</th><th>Symbol</th><th>Trades</th><th>Win Rate</th><th>PnL</th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PATCH: Live Market Ticker Bar + Market Overview
+// Uses Binance public API (no auth needed)
+// ═══════════════════════════════════════════════════════════════
+
+(function() {
+
+var TICKER_COINS = ['BTCUSDT','ETHUSDT','SOLUSDT','XRPUSDT','DOGEUSDT','ADAUSDT','AVAXUSDT','DOTUSDT','LINKUSDT','BNBUSDT'];
+var NAMES = {BTCUSDT:'BTC',ETHUSDT:'ETH',SOLUSDT:'SOL',XRPUSDT:'XRP',DOGEUSDT:'DOGE',ADAUSDT:'ADA',AVAXUSDT:'AVAX',DOTUSDT:'DOT',LINKUSDT:'LINK',BNBUSDT:'BNB'};
+var ICONS = {BTC:'₿',ETH:'Ξ',SOL:'◎',XRP:'✕',DOGE:'Ð',ADA:'₳',AVAX:'🔺',DOT:'●',LINK:'⬡',BNB:'◆'};
+var tickerData = {};
+
+// ── Inject CSS ────────────────────────────────────────────────
+var style = document.createElement('style');
+style.textContent =
+  '.ticker-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0;height:30px;display:flex;align-items:center;overflow:hidden;grid-column:2;position:relative;}' +
+  '.ticker-bar::before{content:"";position:absolute;left:0;top:0;bottom:0;width:40px;background:linear-gradient(90deg,var(--bg2),transparent);z-index:2;pointer-events:none;}' +
+  '.ticker-bar::after{content:"";position:absolute;right:0;top:0;bottom:0;width:40px;background:linear-gradient(-90deg,var(--bg2),transparent);z-index:2;pointer-events:none;}' +
+  '.ticker-track{display:flex;animation:tickScroll 40s linear infinite;white-space:nowrap;}' +
+  '.ticker-track:hover{animation-play-state:paused;}' +
+  '.ticker-item{display:flex;align-items:center;gap:5px;padding:0 16px;font-family:var(--mono);font-size:11px;color:var(--text2);cursor:default;border-right:1px solid var(--border);}' +
+  '.ticker-icon{font-size:12px;opacity:.5;}' +
+  '.ticker-name{font-weight:600;color:var(--text);letter-spacing:.02em;}' +
+  '.ticker-price{color:var(--text);}' +
+  '.ticker-chg{font-weight:600;font-size:10px;padding:1px 5px;border-radius:3px;}' +
+  '.ticker-up{color:#34d399;background:rgba(52,211,153,.1);}' +
+  '.ticker-down{color:#f87171;background:rgba(248,113,113,.1);}' +
+  '.ticker-spark{display:flex;align-items:flex-end;gap:1px;height:14px;}' +
+  '.ticker-spark-bar{width:2px;border-radius:1px;min-height:1px;}' +
+  '@keyframes tickScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}' +
+  '.market-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px;}' +
+  '.market-coin{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;transition:border-color .2s;cursor:default;}' +
+  '.market-coin:hover{border-color:var(--border2);}' +
+  '.market-coin-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}' +
+  '.market-coin-name{display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;}' +
+  '.market-coin-icon{font-size:16px;opacity:.6;}' +
+  '.market-coin-price{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px;}' +
+  '.market-coin-row{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);padding:3px 0;}' +
+  '.market-coin-row .val{font-family:var(--mono);color:var(--text2);}' +
+  '@media(max-width:900px){.market-grid{grid-template-columns:repeat(2,1fr)}.ticker-bar{display:none}}';
+document.head.appendChild(style);
+
+// ── Inject Ticker Bar into DOM ────────────────────────────────
+function injectTickerBar() {
+  var topbar = document.querySelector('.topbar');
+  if (!topbar || document.getElementById('ticker-bar')) return;
+  var bar = document.createElement('div');
+  bar.className = 'ticker-bar';
+  bar.id = 'ticker-bar';
+  bar.innerHTML = '<div class="ticker-track" id="ticker-track"></div>';
+  topbar.parentNode.insertBefore(bar, topbar.nextSibling);
+  // Fix grid to accommodate ticker
+  var app = document.querySelector('.app');
+  if (app) app.style.gridTemplateRows = 'var(--topbar-h) 30px 1fr';
+}
+
+// ── Format Price ──────────────────────────────────────────────
+function fmtPrice(p) {
+  p = parseFloat(p);
+  if (p >= 1000) return '$' + p.toLocaleString(undefined, {maximumFractionDigits:0});
+  if (p >= 1) return '$' + p.toFixed(2);
+  if (p >= 0.01) return '$' + p.toFixed(4);
+  return '$' + p.toFixed(6);
+}
+
+function fmtVol(v) {
+  v = parseFloat(v);
+  if (v >= 1e9) return (v/1e9).toFixed(1) + 'B';
+  if (v >= 1e6) return (v/1e6).toFixed(1) + 'M';
+  if (v >= 1e3) return (v/1e3).toFixed(0) + 'K';
+  return v.toFixed(0);
+}
+
+// ── Mini Sparkline (last 8 hours via klines) ──────────────────
+function renderSparkBars(data) {
+  if (!data || data.length === 0) return '';
+  var min = Math.min.apply(null, data);
+  var max = Math.max.apply(null, data);
+  var range = max - min || 1;
+  var isUp = data[data.length-1] >= data[0];
+  var color = isUp ? '#34d399' : '#f87171';
+  return '<div class="ticker-spark">' + data.map(function(v) {
+    var h = Math.max(2, Math.round(((v - min) / range) * 12));
+    return '<div class="ticker-spark-bar" style="height:' + h + 'px;background:' + color + '"></div>';
+  }).join('') + '</div>';
+}
+
+// ── Fetch Ticker Data ─────────────────────────────────────────
+async function fetchTickerData() {
+  try {
+    var symbols = TICKER_COINS.map(function(s){return '"'+s+'"'}).join(',');
+    var r = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=[' + symbols + ']');
+    var data = await r.json();
+    data.forEach(function(t) { tickerData[t.symbol] = t; });
+    updateTickerBar();
+  } catch(e) {
+    console.warn('Ticker fetch error:', e);
+  }
+}
+
+// ── Fetch Sparkline Data ──────────────────────────────────────
+var sparkData = {};
+async function fetchSparklines() {
+  for (var i = 0; i < TICKER_COINS.length; i++) {
+    try {
+      var r = await fetch('https://api.binance.com/api/v3/klines?symbol=' + TICKER_COINS[i] + '&interval=1h&limit=8');
+      var klines = await r.json();
+      sparkData[TICKER_COINS[i]] = klines.map(function(k) { return parseFloat(k[4]); }); // close prices
+    } catch(e) {}
+  }
+  updateTickerBar();
+}
+
+// ── Update Ticker Bar ─────────────────────────────────────────
+function updateTickerBar() {
+  var track = document.getElementById('ticker-track');
+  if (!track) return;
+
+  var items = '';
+  TICKER_COINS.forEach(function(sym) {
+    var t = tickerData[sym];
+    if (!t) return;
+    var name = NAMES[sym] || sym;
+    var icon = ICONS[name] || '●';
+    var price = fmtPrice(t.lastPrice);
+    var chg = parseFloat(t.priceChangePercent);
+    var chgClass = chg >= 0 ? 'ticker-up' : 'ticker-down';
+    var chgStr = (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%';
+    var spark = renderSparkBars(sparkData[sym] || []);
+
+    items += '<div class="ticker-item">' +
+      '<span class="ticker-icon">' + icon + '</span>' +
+      '<span class="ticker-name">' + name + '</span>' +
+      '<span class="ticker-price">' + price + '</span>' +
+      '<span class="ticker-chg ' + chgClass + '">' + chgStr + '</span>' +
+      spark +
+      '</div>';
+  });
+
+  // Duplicate for seamless scroll
+  track.innerHTML = items + items;
+}
+
+// ── Market Overview Widget (for Overview page) ────────────────
+window.renderMarketOverview = function() {
+  var container = document.getElementById('market-overview');
+  if (!container) return;
+
+  if (Object.keys(tickerData).length === 0) {
+    container.innerHTML = '<div class="loading-state"><div class="spinner"></div></div>';
+    return;
+  }
+
+  var html = '<div class="market-grid">';
+  TICKER_COINS.forEach(function(sym) {
+    var t = tickerData[sym];
+    if (!t) return;
+    var name = NAMES[sym] || sym;
+    var icon = ICONS[name] || '●';
+    var price = fmtPrice(t.lastPrice);
+    var chg = parseFloat(t.priceChangePercent);
+    var chgClass = chg >= 0 ? 'ticker-up' : 'ticker-down';
+    var chgStr = (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%';
+    var vol = fmtVol(t.quoteVolume);
+    var high = fmtPrice(t.highPrice);
+    var low = fmtPrice(t.lowPrice);
+    var spark = sparkData[sym] || [];
+
+    // Mini canvas sparkline for market card
+    var sparkHtml = '';
+    if (spark.length > 0) {
+      var svgW = 80, svgH = 24;
+      var min = Math.min.apply(null, spark);
+      var max = Math.max.apply(null, spark);
+      var range = max - min || 1;
+      var pts = spark.map(function(v, i) {
+        return (i / (spark.length - 1)) * svgW + ',' + (svgH - ((v - min) / range) * svgH);
+      }).join(' ');
+      var col = chg >= 0 ? '#34d399' : '#f87171';
+      sparkHtml = '<svg width="' + svgW + '" height="' + svgH + '" style="display:block;margin-top:8px">' +
+        '<polyline points="' + pts + '" fill="none" stroke="' + col + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+        '</svg>';
+    }
+
+    html += '<div class="market-coin">' +
+      '<div class="market-coin-head">' +
+        '<div class="market-coin-name"><span class="market-coin-icon">' + icon + '</span>' + name + '</div>' +
+        '<span class="ticker-chg ' + chgClass + '">' + chgStr + '</span>' +
+      '</div>' +
+      '<div class="market-coin-price">' + price + '</div>' +
+      sparkHtml +
+      '<div class="market-coin-row"><span>24h Vol</span><span class="val">$' + vol + '</span></div>' +
+      '<div class="market-coin-row"><span>High</span><span class="val" style="color:var(--green)">' + high + '</span></div>' +
+      '<div class="market-coin-row"><span>Low</span><span class="val" style="color:var(--red)">' + low + '</span></div>' +
+    '</div>';
+  });
+  html += '</div>';
+  container.innerHTML = html;
+};
+
+// ── Init ──────────────────────────────────────────────────────
+injectTickerBar();
+fetchTickerData();
+fetchSparklines();
+
+// Refresh every 30 seconds
+setInterval(fetchTickerData, 30000);
+setInterval(fetchSparklines, 300000); // sparklines every 5 min
+
+})();
+
+// ═══════════════════════════════════════════════════════════════
+// OVERRIDE: Add Market Overview to Overview page
+// ═══════════════════════════════════════════════════════════════
+
+var _prevLoadOverview = loadOverview;
+
+loadOverview = async function() {
+  await _prevLoadOverview();
+
+  // Inject market overview section after KPIs
+  var kpiGrid = document.querySelector('.kpi-grid');
+  if (kpiGrid && !document.getElementById('market-overview')) {
+    var section = document.createElement('div');
+    section.className = 'fade-in fade-in-2';
+    section.style.marginBottom = '24px';
+    section.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
+        '<div class="card-title" style="margin:0"><span class="icon">🌐</span> Live Market</div>' +
+        '<span style="font-size:10px;color:var(--text3);font-family:var(--mono)">via Binance · updates every 30s</span>' +
+      '</div>' +
+      '<div id="market-overview"><div class="loading-state"><div class="spinner"></div></div></div>';
+    kpiGrid.parentNode.insertBefore(section, kpiGrid.nextSibling);
+    if (typeof renderMarketOverview === 'function') renderMarketOverview();
+  }
+};
+
+
+
+// ═══════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════
+// DURATION ANALYTICS PAGE
+// ═══════════════════════════════════════════════════════════════
+async function loadDurationPage() {
+  const content = document.getElementById('page-content');
+  if (!content) return;
+  content.innerHTML = '<div class="loading-state" style="padding:40px;text-align:center;color:#64748b;">Loading duration analytics…</div>';
+  try {
+    const period = 'all';
+    const res = await fetch(`/api/v1/dashboard/performance?period=${period}`, {
+      headers: headers()
+    });
+    if (!res.ok) throw new Error(res.statusText);
+    const data = await res.json();
+    if (data.durationAnalytics) {
+      content.innerHTML = '<div id="duration-analytics-page" style="padding:8px 0;"></div>';
+      renderDurationAnalyticsStandalone(data.durationAnalytics, document.getElementById('duration-analytics-page'));
+    } else {
+      content.innerHTML = '<div style="padding:40px;color:#64748b;">No duration data available.</div>';
+    }
+  } catch(e) {
+    content.innerHTML = `<div style="padding:40px;color:#f87171;">Error loading duration analytics: ${e.message}</div>`;
+  }
+}
+
+function renderDurationAnalyticsStandalone(dur, container) {
+  function fmtHrs(h) {
+    if (!h || h === 0) return '—';
+    if (h < 1) return Math.round(h * 60) + 'm';
+    if (h < 24) return h.toFixed(1) + 'h';
+    return (h / 24).toFixed(1) + 'd';
+  }
+
+  container.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px;">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;">
+        <div style="color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Avg Duration</div>
+        <div style="color:var(--text);font-size:24px;font-weight:700;">${fmtHrs(dur.avgDuration)}</div>
+        <div style="color:var(--text3);font-size:11px;margin-top:4px;">Median: ${fmtHrs(dur.medianDuration)}</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;">
+        <div style="color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Avg Time to TP</div>
+        <div style="color:var(--green);font-size:24px;font-weight:700;">${fmtHrs(dur.avgTimeToTP)}</div>
+        <div style="color:var(--text3);font-size:11px;margin-top:4px;">Median: ${fmtHrs(dur.medianTimeToTP)}</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;">
+        <div style="color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Avg Time to SL</div>
+        <div style="color:var(--red);font-size:24px;font-weight:700;">${fmtHrs(dur.avgTimeToSL)}</div>
+        <div style="color:var(--text3);font-size:11px;margin-top:4px;">Median: ${fmtHrs(dur.medianTimeToSL)}</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;">
+        <div style="color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Trades Analyzed</div>
+        <div style="color:var(--text);font-size:24px;font-weight:700;">${dur.totalWithDuration || '—'}</div>
+      </div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;">
+      <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:16px;">Duration Distribution</div>
+      <canvas id="dur-dist-standalone" style="width:100%;height:200px;display:block;"></canvas>
+    </div>
+  `;
+
+  const canvas = document.getElementById('dur-dist-standalone');
+  if (canvas && dur.distribution) {
+    requestAnimationFrame(() => {
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width = canvas.offsetWidth;
+      const H = canvas.height = 200;
+      const pad = { top: 8, right: 50, bottom: 8, left: 70 };
+      const cW = W - pad.left - pad.right;
+      const cH = H - pad.top - pad.bottom;
+      const buckets = dur.distribution;
+      const maxCount = Math.max(...buckets.map(b => b.count), 1);
+      const barH = Math.min(22, (cH / buckets.length) * 0.72);
+      const gap = cH / buckets.length;
+
+      ctx.fillStyle = 'var(--card, #0d1220)';
+      ctx.fillRect(0, 0, W, H);
+
+      buckets.forEach((b, i) => {
+        const y = pad.top + i * gap + (gap - barH) / 2;
+        const barW = (b.count / maxCount) * cW;
+        ctx.fillStyle = '#64748b';
+        ctx.font = '11px "IBM Plex Mono", monospace';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(b.label, pad.left - 10, y + barH / 2);
+        ctx.fillStyle = '#6366f1';
+        ctx.beginPath();
+        ctx.roundRect(pad.left, y, Math.max(barW, 3), barH, 3);
+        ctx.fill();
+        if (b.count > 0) {
+          ctx.fillStyle = '#e2e8f0';
+          ctx.textAlign = 'left';
+          ctx.fillText(String(b.count), pad.left + barW + 8, y + barH / 2);
+        }
+      });
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MONTHLY BREAKDOWN PAGE
+// ═══════════════════════════════════════════════════════════════
+async function loadMonthlyPage() {
+  const content = document.getElementById('page-content');
+  if (!content) return;
+  content.innerHTML = '<div style="padding:40px;text-align:center;color:#64748b;">Loading monthly breakdown…</div>';
+  try {
+    const res = await fetch(`/api/v1/dashboard/performance?period=all`, {
+      headers: headers()
+    });
+    if (!res.ok) throw new Error(res.statusText);
+    const data = await res.json();
+    if (data.monthlyBreakdown) {
+      content.innerHTML = '<div id="monthly-page-inner" style="padding:8px 0;"></div>';
+      renderMonthlyBreakdownStandalone(data.monthlyBreakdown, document.getElementById('monthly-page-inner'));
+    } else {
+      content.innerHTML = '<div style="padding:40px;color:#64748b;">No monthly data available.</div>';
+    }
+  } catch(e) {
+    content.innerHTML = `<div style="padding:40px;color:#f87171;">Error loading monthly breakdown: ${e.message}</div>`;
+  }
+}
+
+function renderMonthlyBreakdownStandalone(months, container) {
+  if (!months || !months.length) {
+    container.innerHTML = '<div style="color:#64748b;padding:24px;">No monthly data.</div>';
+    return;
+  }
+
+  // Build bar chart data
+  const maxRet = Math.max(...months.map(m => Math.abs(m.totalReturn || 0)), 1);
+
+  const rows = months.map(m => {
+    const pct = Math.abs(m.totalReturn || 0) / maxRet * 100;
+    const isPos = (m.totalReturn || 0) >= 0;
+    const color = isPos ? 'var(--green)' : 'var(--red)';
+    const lossCount = (m.signals || 0) - (m.wins || 0) - (m.expired || 0);
+    return `
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:10px 12px;font-weight:600;color:var(--text);white-space:nowrap;">${m.month}</td>
+        <td style="padding:10px 12px;color:var(--text2);font-family:var(--mono);">${m.signals || 0}</td>
+        <td style="padding:10px 12px;color:var(--green);font-family:var(--mono);">${m.wins || 0}</td>
+        <td style="padding:10px 12px;color:var(--red);font-family:var(--mono);">${lossCount}</td>
+        <td style="padding:10px 12px;color:var(--text2);font-family:var(--mono);">${m.winRate != null ? m.winRate.toFixed(1) + '%' : '—'}</td>
+        <td style="padding:10px 12px;min-width:140px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="flex:1;height:8px;background:var(--border2);border-radius:4px;overflow:hidden;">
+              <div style="width:${pct}%;height:100%;background:${color};border-radius:4px;transition:width .3s;"></div>
+            </div>
+            <span style="color:${color};font-size:12px;font-family:var(--mono);min-width:52px;text-align:right;">
+              ${isPos ? '+' : ''}${(m.totalReturn || 0).toFixed(2)}%
+            </span>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="background:var(--bg3);border-bottom:1px solid var(--border2);">
+            <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;">Month</th>
+            <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;">Trades</th>
+            <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;">Wins</th>
+            <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;">Losses</th>
+            <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;">Win Rate</th>
+            <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;">Return</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+// Monthly Breakdown + Duration Analytics — Dashboard Patch
+// ═══════════════════════════════════════════════════════════════
+
+(function() {
+  // Wait for performance data to load, then render sections
+  const _origLoadPerf = window.loadPerformance;
+  if (!_origLoadPerf) {
+    console.warn('[monthly-patch] loadPerformance not found, waiting...');
+    return;
+  }
+
+  window.loadPerformance = async function() {
+    await _origLoadPerf.apply(this, arguments);
+    // Fetch performance data again to get new fields
+    try {
+      const period = document.querySelector('.perf-period-btn.active')?.dataset?.period || 'all';
+      const res = await fetch(`/api/v1/dashboard/performance?period=${period}`, {
+        headers: headers()
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.monthlyBreakdown) renderMonthlyBreakdown(data.monthlyBreakdown);
+      if (data.durationAnalytics) renderDurationAnalytics(data.durationAnalytics);
+    } catch (e) { console.error('[monthly-patch]', e); }
+  };
+
+  function renderMonthlyBreakdown(months) {
+    let container = document.getElementById('monthly-breakdown');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'monthly-breakdown';
+      container.style.cssText = 'margin-top:24px;';
+      // Insert after equity curve or top symbols
+      const anchor = document.getElementById('top-symbols') ||
+                     document.getElementById('equity-curve') ||
+                     document.querySelector('.perf-charts');
+      if (anchor) anchor.parentNode.insertBefore(container, anchor.nextSibling);
+      else document.querySelector('.performance-section')?.appendChild(container);
+    }
+
+    const months_display = months.map(m => {
+      const [y, mo] = m.month.split('-');
+      const date = new Date(parseInt(y), parseInt(mo) - 1);
+      return { ...m, label: date.toLocaleString('default', { month: 'short', year: 'numeric' }) };
+    });
+
+    container.innerHTML = `
+      <h3 style="font-size:16px;font-weight:600;color:#e2e8f0;margin-bottom:12px;">
+        📅 Monthly Breakdown
+      </h3>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead>
+            <tr style="border-bottom:1px solid #334155;color:#94a3b8;">
+              <th style="text-align:left;padding:8px;">Month</th>
+              <th style="text-align:right;padding:8px;">Trades</th>
+              <th style="text-align:right;padding:8px;">Wins</th>
+              <th style="text-align:right;padding:8px;">Losses</th>
+              <th style="text-align:right;padding:8px;">Win Rate</th>
+              <th style="text-align:right;padding:8px;">PnL %</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${months_display.map(m => `
+              <tr style="border-bottom:1px solid #1e293b;">
+                <td style="padding:8px;color:#e2e8f0;">${m.label}</td>
+                <td style="text-align:right;padding:8px;color:#cbd5e1;">${m.trades}</td>
+                <td style="text-align:right;padding:8px;color:#4ade80;">${m.wins}</td>
+                <td style="text-align:right;padding:8px;color:#f87171;">${m.losses}</td>
+                <td style="text-align:right;padding:8px;color:${m.winRate >= 50 ? '#4ade80' : '#f87171'};">${m.winRate}%</td>
+                <td style="text-align:right;padding:8px;color:${m.pnl >= 0 ? '#4ade80' : '#f87171'};">${m.pnl >= 0 ? '+' : ''}${m.pnl}%</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      <!-- Monthly PnL bar chart -->
+      <canvas id="monthly-pnl-chart" height="180" style="margin-top:16px;"></canvas>
+    `;
+
+    // Draw bar chart
+    const canvas = document.getElementById('monthly-pnl-chart');
+    if (canvas && months_display.length > 0) {
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width = canvas.offsetWidth;
+      const H = canvas.height = 180;
+      const pad = { top: 20, right: 16, bottom: 40, left: 50 };
+      const cW = W - pad.left - pad.right;
+      const cH = H - pad.top - pad.bottom;
+      const vals = months_display.map(m => m.pnl);
+      const maxAbs = Math.max(Math.abs(Math.min(...vals)), Math.abs(Math.max(...vals)), 1);
+      const barW = Math.min(40, (cW / months_display.length) * 0.7);
+      const gap = cW / months_display.length;
+      const zeroY = pad.top + cH / 2;
+
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, W, H);
+
+      // Zero line
+      ctx.strokeStyle = '#334155';
+      ctx.beginPath(); ctx.moveTo(pad.left, zeroY); ctx.lineTo(W - pad.right, zeroY); ctx.stroke();
+
+      months_display.forEach((m, i) => {
+        const x = pad.left + i * gap + (gap - barW) / 2;
+        const barH = (m.pnl / maxAbs) * (cH / 2);
+        ctx.fillStyle = m.pnl >= 0 ? '#4ade80' : '#f87171';
+        if (m.pnl >= 0) {
+          ctx.fillRect(x, zeroY - barH, barW, barH);
+        } else {
+          ctx.fillRect(x, zeroY, barW, Math.abs(barH));
+        }
+        // Label
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(m.label.split(' ')[0], x + barW / 2, H - 8);
+      });
+    }
+  }
+
+  function renderDurationAnalytics(dur) {
+    let container = document.getElementById('duration-analytics');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'duration-analytics';
+      container.style.cssText = 'margin-top:24px;';
+      const anchor = document.getElementById('monthly-breakdown') ||
+                     document.getElementById('top-symbols');
+      if (anchor) anchor.parentNode.insertBefore(container, anchor.nextSibling);
+      else document.querySelector('.performance-section')?.appendChild(container);
+    }
+
+    function fmtHrs(h) {
+      if (h === 0) return '—';
+      if (h < 1) return Math.round(h * 60) + 'm';
+      if (h < 24) return h.toFixed(1) + 'h';
+      return (h / 24).toFixed(1) + 'd';
+    }
+
+    container.innerHTML = `
+      <h3 style="font-size:16px;font-weight:600;color:#e2e8f0;margin-bottom:12px;">
+        ⏱️ Duration Analytics
+      </h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px;">
+        <div style="background:#1e293b;border-radius:8px;padding:12px;">
+          <div style="color:#94a3b8;font-size:11px;">Avg Duration</div>
+          <div style="color:#e2e8f0;font-size:20px;font-weight:600;">${fmtHrs(dur.avgDuration)}</div>
+          <div style="color:#64748b;font-size:11px;">Median: ${fmtHrs(dur.medianDuration)}</div>
+        </div>
+        <div style="background:#1e293b;border-radius:8px;padding:12px;">
+          <div style="color:#94a3b8;font-size:11px;">Avg Time to TP</div>
+          <div style="color:#4ade80;font-size:20px;font-weight:600;">${fmtHrs(dur.avgTimeToTP)}</div>
+          <div style="color:#64748b;font-size:11px;">Median: ${fmtHrs(dur.medianTimeToTP)}</div>
+        </div>
+        <div style="background:#1e293b;border-radius:8px;padding:12px;">
+          <div style="color:#94a3b8;font-size:11px;">Avg Time to SL</div>
+          <div style="color:#f87171;font-size:20px;font-weight:600;">${fmtHrs(dur.avgTimeToSL)}</div>
+          <div style="color:#64748b;font-size:11px;">Median: ${fmtHrs(dur.medianTimeToSL)}</div>
+        </div>
+        <div style="background:#1e293b;border-radius:8px;padding:12px;">
+          <div style="color:#94a3b8;font-size:11px;">Trades Analyzed</div>
+          <div style="color:#e2e8f0;font-size:20px;font-weight:600;">${dur.totalWithDuration}</div>
+        </div>
+      </div>
+      <!-- Duration distribution chart -->
+      <canvas id="duration-dist-chart" height="160"></canvas>
+    `;
+
+    // Draw horizontal bar chart for duration distribution
+    const canvas = document.getElementById('duration-dist-chart');
+    if (canvas && dur.distribution) {
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width = canvas.offsetWidth;
+      const H = canvas.height = 160;
+      const pad = { top: 8, right: 16, bottom: 8, left: 60 };
+      const cW = W - pad.left - pad.right;
+      const cH = H - pad.top - pad.bottom;
+      const buckets = dur.distribution;
+      const maxCount = Math.max(...buckets.map(b => b.count), 1);
+      const barH = Math.min(18, (cH / buckets.length) * 0.75);
+      const gap = cH / buckets.length;
+
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, W, H);
+
+      buckets.forEach((b, i) => {
+        const y = pad.top + i * gap + (gap - barH) / 2;
+        const barW = (b.count / maxCount) * cW;
+        // Label
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(b.label, pad.left - 8, y + barH / 2);
+        // Bar
+        ctx.fillStyle = '#6366f1';
+        ctx.fillRect(pad.left, y, Math.max(barW, 2), barH);
+        // Count
+        if (b.count > 0) {
+          ctx.fillStyle = '#e2e8f0';
+          ctx.textAlign = 'left';
+          ctx.fillText(String(b.count), pad.left + barW + 6, y + barH / 2);
+        }
+      });
+    }
+  }
+})();
+
+
+
+
+
+(function() {
+  var _origFetch = window.fetch;
+  var _lastPerfData = null;
+
+  // Intercept performance API responses to grab new fields
+  window.fetch = function() {
+    var result = _origFetch.apply(this, arguments);
+    var url = arguments[0];
+    if (typeof url === 'string' && url.indexOf('/performance') !== -1) {
+      result.then(function(resp) {
+        return resp.clone().json();
+      }).then(function(data) {
+        if (data && data.monthlyBreakdown) {
+          _lastPerfData = data;
+          if (typeof currentPage !== "undefined" && currentPage === "performance") { setTimeout(function() { renderMonthly(data.monthlyBreakdown); renderDuration(data.durationAnalytics); }, 300); }
+        }
+      }).catch(function(){});
+    }
+    return result;
+  };
+
+  function renderMonthly(months) {
+    if (!months || months.length === 0) return;
+    var old = document.getElementById('monthly-breakdown');
+    if (old) old.remove();
+    var c = document.createElement('div');
+    c.id = 'monthly-breakdown';
+    c.style.cssText = 'margin-top:24px;padding:16px;background:#1e293b;border-radius:12px;';
+    var anchor = document.getElementById('top-symbols') || document.querySelector('[class*=perf]') || document.querySelector('main');
+    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(c, anchor.nextSibling);
+    else document.body.appendChild(c);
+
+    var rows = months.map(function(m) {
+      var parts = m.month.split('-');
+      var d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1);
+      var label = d.toLocaleString('default', { month: 'short', year: 'numeric' });
+      var pnlColor = m.pnl >= 0 ? '#4ade80' : '#f87171';
+      var wrColor = m.winRate >= 50 ? '#4ade80' : '#f87171';
+      return '<tr style="border-bottom:1px solid #334155;">' +
+        '<td style="padding:8px;color:#e2e8f0;">' + label + '</td>' +
+        '<td style="text-align:right;padding:8px;color:#cbd5e1;">' + m.trades + '</td>' +
+        '<td style="text-align:right;padding:8px;color:#4ade80;">' + m.wins + '</td>' +
+        '<td style="text-align:right;padding:8px;color:#f87171;">' + m.losses + '</td>' +
+        '<td style="text-align:right;padding:8px;color:' + wrColor + ';">' + m.winRate + '%</td>' +
+        '<td style="text-align:right;padding:8px;color:' + pnlColor + ';">' + (m.pnl >= 0 ? '+' : '') + m.pnl + '%</td></tr>';
+    }).join('');
+
+    c.innerHTML = '<h3 style="font-size:16px;font-weight:600;color:#e2e8f0;margin-bottom:12px;">Monthly Breakdown</h3>' +
+      '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">' +
+      '<thead><tr style="border-bottom:1px solid #475569;color:#94a3b8;">' +
+      '<th style="text-align:left;padding:8px;">Month</th>' +
+      '<th style="text-align:right;padding:8px;">Trades</th>' +
+      '<th style="text-align:right;padding:8px;">Wins</th>' +
+      '<th style="text-align:right;padding:8px;">Losses</th>' +
+      '<th style="text-align:right;padding:8px;">Win Rate</th>' +
+      '<th style="text-align:right;padding:8px;">PnL %</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table></div>' +
+      '<canvas id="monthly-pnl-chart" height="180" style="margin-top:16px;width:100%;"></canvas>';
+
+    setTimeout(function() { drawMonthlyChart(months); }, 50);
+  }
+
+  function drawMonthlyChart(months) {
+    var canvas = document.getElementById('monthly-pnl-chart');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var W = canvas.width = canvas.offsetWidth || 600;
+    var H = canvas.height = 180;
+    var pad = { top: 20, right: 16, bottom: 40, left: 50 };
+    var cW = W - pad.left - pad.right;
+    var cH = H - pad.top - pad.bottom;
+    var vals = months.map(function(m) { return m.pnl; });
+    var maxAbs = Math.max(Math.abs(Math.min.apply(null, vals)), Math.abs(Math.max.apply(null, vals)), 1);
+    var gap = cW / months.length;
+    var barW = Math.min(40, gap * 0.7);
+    var zeroY = pad.top + cH / 2;
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = '#475569';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(pad.left, zeroY); ctx.lineTo(W - pad.right, zeroY); ctx.stroke();
+    ctx.setLineDash([]);
+
+    months.forEach(function(m, i) {
+      var parts = m.month.split('-');
+      var d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1);
+      var label = d.toLocaleString('default', { month: 'short' });
+      var x = pad.left + i * gap + (gap - barW) / 2;
+      var barH = (m.pnl / maxAbs) * (cH / 2);
+      ctx.fillStyle = m.pnl >= 0 ? '#4ade80' : '#f87171';
+      if (m.pnl >= 0) { ctx.fillRect(x, zeroY - barH, barW, barH); }
+      else { ctx.fillRect(x, zeroY, barW, Math.abs(barH)); }
+      // Value on bar
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = '11px sans-serif';
+      ctx.textAlign = 'center';
+      var vy = m.pnl >= 0 ? zeroY - barH - 6 : zeroY + Math.abs(barH) + 14;
+      ctx.fillText((m.pnl >= 0 ? '+' : '') + m.pnl + '%', x + barW / 2, vy);
+      // Month label
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '10px sans-serif';
+      ctx.fillText(label, x + barW / 2, H - 8);
+    });
+  }
+
+  function renderDuration(dur) {
+    if (!dur) return;
+    var old = document.getElementById('duration-analytics');
+    if (old) old.remove();
+    var c = document.createElement('div');
+    c.id = 'duration-analytics';
+    c.style.cssText = 'margin-top:16px;padding:16px;background:#1e293b;border-radius:12px;';
+    var anchor = document.getElementById('monthly-breakdown');
+    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(c, anchor.nextSibling);
+    else document.body.appendChild(c);
+
+    function fh(h) {
+      if (!h || h === 0) return '\u2014';
+      if (h < 1) return Math.round(h * 60) + 'm';
+      if (h < 24) return h.toFixed(1) + 'h';
+      return (h / 24).toFixed(1) + 'd';
+    }
+
+    function card(label, val, sub, color) {
+      return '<div style="background:#0f172a;border-radius:8px;padding:12px;min-width:130px;">' +
+        '<div style="color:#94a3b8;font-size:11px;margin-bottom:4px;">' + label + '</div>' +
+        '<div style="color:' + (color || '#e2e8f0') + ';font-size:20px;font-weight:600;">' + val + '</div>' +
+        (sub ? '<div style="color:#64748b;font-size:11px;margin-top:2px;">' + sub + '</div>' : '') + '</div>';
+    }
+
+    c.innerHTML = '<h3 style="font-size:16px;font-weight:600;color:#e2e8f0;margin-bottom:12px;">Duration Analytics</h3>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px;">' +
+      card('Avg Duration', fh(dur.avgDuration), 'Median: ' + fh(dur.medianDuration)) +
+      card('Avg Time to TP', fh(dur.avgTimeToTP), 'Median: ' + fh(dur.medianTimeToTP), '#4ade80') +
+      card('Avg Time to SL', fh(dur.avgTimeToSL), 'Median: ' + fh(dur.medianTimeToSL), '#f87171') +
+      card('Trades Analyzed', String(dur.totalWithDuration), '') +
+      '</div><canvas id="duration-dist-chart" height="160" style="width:100%;"></canvas>';
+
+    setTimeout(function() { drawDurationChart(dur.distribution); }, 50);
+  }
+
+  function drawDurationChart(buckets) {
+    var canvas = document.getElementById('duration-dist-chart');
+    if (!canvas || !buckets) return;
+    var ctx = canvas.getContext('2d');
+    var W = canvas.width = canvas.offsetWidth || 600;
+    var H = canvas.height = 160;
+    var pad = { top: 8, right: 40, bottom: 8, left: 60 };
+    var cW = W - pad.left - pad.right;
+    var cH = H - pad.top - pad.bottom;
+    var maxCount = Math.max.apply(null, buckets.map(function(b) { return b.count; }).concat([1]));
+    var gap = cH / buckets.length;
+    var barH = Math.min(18, gap * 0.75);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, W, H);
+
+    buckets.forEach(function(b, i) {
+      var y = pad.top + i * gap + (gap - barH) / 2;
+      var bw = Math.max((b.count / maxCount) * cW, 2);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '11px sans-serif';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(b.label, pad.left - 8, y + barH / 2);
+      ctx.fillStyle = '#6366f1';
+      ctx.fillRect(pad.left, y, bw, barH);
+      if (b.count > 0) {
+        ctx.fillStyle = '#e2e8f0';
+        ctx.textAlign = 'left';
+        ctx.fillText(String(b.count), pad.left + bw + 6, y + barH / 2);
+      }
+    });
+  }
+})();
+
+
+
+// ═══════════════════════════════════════════════════════════════
+// Multi-TP Progress Indicators — Dashboard Patch
+// ═══════════════════════════════════════════════════════════════
+(function() {
+  // Add TP progress column to signal table
+  var _origFetchSignals = window.fetchSignals;
+  if (!_origFetchSignals) return;
+
+  window.fetchSignals = async function() {
+    await _origFetchSignals.apply(this, arguments);
+    // Post-process: inject TP progress into each row
+    setTimeout(addTpProgressToTable, 200);
+  };
+
+  function tpProgress(t) {
+    if (!t) return '';
+    var levels = [];
+    if (t.tp1Price) levels.push({ n: 1, price: t.tp1Price, hit: t.tp1HitAt });
+    if (t.tp2Price) levels.push({ n: 2, price: t.tp2Price, hit: t.tp2HitAt });
+    if (t.tp3Price) levels.push({ n: 3, price: t.tp3Price, hit: t.tp3HitAt });
+    if (levels.length === 0) return '';
+
+    var dots = levels.map(function(l) {
+      var color = l.hit ? '#4ade80' : '#475569';
+      var border = l.hit ? 'none' : '1px solid #64748b';
+      var title = 'TP' + l.n + ': ' + l.price.toFixed(2) + (l.hit ? ' ✓ ' + new Date(l.hit).toLocaleString() : ' pending');
+      return '<span title="' + title + '" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + color + ';border:' + border + ';margin:0 2px;"></span>';
+    }).join('');
+
+    return '<span style="white-space:nowrap;">' + dots + ' <span style="font-size:10px;color:#94a3b8;">' + (t.tpHitCount || 0) + '/' + levels.length + '</span></span>';
+  }
+
+  function addTpProgressToTable() {
+    // Find the signals table
+    var table = document.querySelector('#signals-table table');
+    if (!table) return;
+    var thead = table.querySelector('thead tr');
+    var tbody = table.querySelector('tbody');
+    if (!thead || !tbody) return;
+
+    // Add TP column header if not already there
+    if (thead.innerHTML.indexOf('Targets') === -1) {
+      var th = document.createElement('th');
+      th.textContent = 'Targets';
+      thead.appendChild(th);
+    }
+
+    // We need the trade data — refetch from the cached response
+    // Instead, attach data via a global
+    if (window._lastSignalData) {
+      var signals = window._lastSignalData;
+      var rows = tbody.querySelectorAll('tr');
+      for (var i = 0; i < rows.length && i < signals.length; i++) {
+        var s = signals[i];
+        var t = s.trade || {};
+        var existing = rows[i].querySelector('.tp-progress-cell');
+        if (!existing) {
+          var td = document.createElement('td');
+          td.className = 'tp-progress-cell';
+          td.innerHTML = tpProgress(t);
+          rows[i].appendChild(td);
+        }
+      }
+    }
+  }
+
+  // Hook fetch to capture signal data
+  var _origFetch2 = window.fetch;
+  window.fetch = function() {
+    var url = arguments[0];
+    var result = _origFetch2.apply(this, arguments);
+    if (typeof url === 'string' && url.indexOf('/signals') !== -1 && url.indexOf('/signals/') === -1) {
+      result.then(function(r) { return r.clone().json(); }).then(function(d) {
+        if (d && d.signals) window._lastSignalData = d.signals;
+      }).catch(function(){});
+    }
+    return result;
+  };
+
+  // Also enhance click-to-detail: add TP progress to any modal/detail view
+  document.addEventListener('click', function(e) {
+    var row = e.target.closest && e.target.closest('tr');
+    if (!row || !window._lastSignalData) return;
+    var idx = Array.from(row.parentNode.children).indexOf(row);
+    if (idx < 0 || idx >= window._lastSignalData.length) return;
+    var s = window._lastSignalData[idx];
+    if (!s || !s.trade) return;
+    // If a detail panel opens, enhance it after a short delay
+    setTimeout(function() { enhanceDetailPanel(s.trade); }, 500);
+  });
+
+  function enhanceDetailPanel(t) {
+    var levels = [];
+    if (t.tp1Price) levels.push({ n: 1, price: t.tp1Price, hit: t.tp1HitAt });
+    if (t.tp2Price) levels.push({ n: 2, price: t.tp2Price, hit: t.tp2HitAt });
+    if (t.tp3Price) levels.push({ n: 3, price: t.tp3Price, hit: t.tp3HitAt });
+    if (levels.length === 0) return;
+
+    var existing = document.getElementById('multitp-detail');
+    if (existing) existing.remove();
+
+    var panel = document.createElement('div');
+    panel.id = 'multitp-detail';
+    panel.style.cssText = 'margin:12px 0;padding:12px;background:#0f172a;border-radius:8px;';
+
+    var barsHtml = levels.map(function(l) {
+      var pct = l.hit ? 100 : 0;
+      if (!l.hit && t.entryPrice && t.status === 'ACTIVE') {
+        // Could compute progress based on current price, but we don't have it client-side
+        pct = 0;
+      }
+      var barColor = l.hit ? '#4ade80' : '#334155';
+      var textColor = l.hit ? '#4ade80' : '#94a3b8';
+      var icon = l.hit ? '✅' : '⬜';
+      var hitTime = l.hit ? '<span style="color:#64748b;font-size:10px;margin-left:8px;">' + new Date(l.hit).toLocaleString() + '</span>' : '';
+      return '<div style="display:flex;align-items:center;gap:8px;margin:6px 0;">' +
+        '<span style="color:#94a3b8;font-size:12px;width:30px;">TP' + l.n + '</span>' +
+        '<div style="flex:1;height:6px;background:#1e293b;border-radius:3px;overflow:hidden;">' +
+          '<div style="width:' + pct + '%;height:100%;background:' + barColor + ';border-radius:3px;transition:width 0.3s;"></div>' +
+        '</div>' +
+        '<span style="color:' + textColor + ';font-size:12px;font-family:monospace;">' + l.price.toFixed(2) + '</span>' +
+        '<span style="font-size:12px;">' + icon + '</span>' +
+        hitTime +
+      '</div>';
+    }).join('');
+
+    var summary = (t.tpHitCount || 0) + ' of ' + levels.length + ' targets hit';
+    panel.innerHTML = '<div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:8px;">🎯 Target Progress</div>' +
+      barsHtml +
+      '<div style="color:#64748b;font-size:11px;margin-top:8px;">' + summary + '</div>';
+
+    // Try to insert into a detail view/modal
+    var detailEl = document.querySelector('.trade-detail, .signal-detail, .modal-body, [id*=detail]');
+    if (detailEl) {
+      detailEl.appendChild(panel);
+    }
+  }
+})();
+
+</script>
+</body>
+</html>

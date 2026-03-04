@@ -34,7 +34,28 @@ model Provider {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  marketplaceVisible  Boolean   @default(false) @map("marketplace_visible")
+  trackedSince        DateTime? @map("tracked_since")
+  marketType          String?   @map("market_type")
+  tradingStyle        String?   @map("trading_style")
+  leverageBand        String?   @map("leverage_band")
+  exchangeFocus       String?   @map("exchange_focus")
+  subscriberCount     Int?      @default(0) @map("subscriber_count")
+  isVerified          Boolean   @default(false) @map("is_verified")
+  language            String?   @default("EN")
+  channelType         String?   @default("telegram") @map("channel_type")
+  marketplaceTier     String    @default("PENDING") @map("marketplace_tier")
+  providerType        String    @default("SIGNAL") @map("provider_type")
+  category            String?
+  chain               String?
+  analyticsEligible   Boolean   @default(true) @map("analytics_eligible")
+
+  statsSnapshots      ProviderStatsSnapshot[]
+  monthlyStats        ProviderMonthlyStats[]
+  auditEvents         SignalAuditEvent[]
+
   signals       Signal[]
+  telegramSources TelegramSource[]
   trades        Trade[]
 
   @@map("providers")
@@ -59,6 +80,12 @@ model Signal {
   meta            Json?                         // model_version, etc.
   rawPayload      Json                          // full original payload (audit only)
   createdAt       DateTime @default(now())
+
+  originalHash    String?   @map("original_hash")
+  isExecutable    Boolean   @default(true) @map("is_executable")
+  wasEdited       Boolean   @default(false) @map("was_edited")
+  wasDeleted      Boolean   @default(false) @map("was_deleted")
+  editCount       Int       @default(0) @map("edit_count")
 
   provider        Provider @relation(fields: [providerId], references: [id])
   trade           Trade?                        // 1:1 optional derived trade
@@ -143,6 +170,9 @@ model User {
   subscription  Subscription?
   telegramUser  TelegramUser?
   watchlists    Watchlist[]
+  telegramInvites     TelegramInvite[]
+  telegramMemberships TelegramMembership[]
+  referrals           Referral[] @relation("Referrals")
   preferences   Json      @default("{}")       // notification prefs, display prefs
 
   @@index([workspaceId])
@@ -154,6 +184,7 @@ model User {
 model Subscription {
   id            String    @id @default(cuid())
   userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id])
   tier          String    @default("starter")  // starter | pro | elite
   status        String    @default("active")   // active | cancelled | past_due | trialing
   startsAt      DateTime  @default(now())
@@ -196,6 +227,7 @@ model TelegramUser {
   id            String    @id @default(cuid())
   telegramId    String    @unique              // Telegram user ID (numeric string)
   userId        String    @unique              // FK to User
+  user          User      @relation(fields: [userId], references: [id])
   chatId        String                         // Telegram chat ID for sending messages
   username      String?                        // Telegram @username (optional, not exposed publicly)
   isActive      Boolean   @default(true)
@@ -213,6 +245,7 @@ model TelegramUser {
 model Watchlist {
   id            String    @id @default(cuid())
   userId        String
+  user          User      @relation(fields: [userId], references: [id])
   type          String                         // symbol | provider
   value         String                         // e.g. "BTCUSDT" or "itb"
   isActive      Boolean   @default(true)
@@ -263,6 +296,7 @@ model SignalTemplate {
   channels    Json     @db.JsonB
   isDefault   Boolean  @default(false) @map("is_default")
   createdAt   DateTime @default(now()) @map("created_at")
+
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   publishes   SignalPublish[]
@@ -285,6 +319,7 @@ model SignalPublish {
   validatedAt DateTime?     @map("validated_at")
   publishedAt DateTime?     @map("published_at")
   createdAt   DateTime      @default(now()) @map("created_at")
+
   results     Json?         @db.JsonB
   error       String?       @db.Text
 
@@ -292,7 +327,9 @@ model SignalPublish {
 
   @@index([tradeId], name: "idx_signal_publish_trade")
   @@index([userId, createdAt(sort: Desc)], name: "idx_signal_publish_user")
+
   @@index([workspaceId, createdAt(sort: Desc)], name: "idx_signal_publish_workspace")
+
   @@map("signal_publishes")
 }
 
@@ -313,4 +350,218 @@ model SignalLog {
   note        String?
   createdAt   DateTime @default(now())
 
+
+}
+
+// ── Provider Stats Snapshot ───────────────────────────────────
+
+model ProviderStatsSnapshot {
+  id                  String   @id @default(cuid())
+  providerId          String   @map("provider_id")
+  period              String
+
+  winRate             Float?   @map("win_rate")
+  expectancyR         Float?   @map("expectancy_r")
+  volAdjExpectancy    Float?   @map("vol_adj_expectancy")
+  rStddev             Float?   @map("r_stddev")
+  maxDrawdownPct      Float?   @map("max_drawdown_pct")
+  tradeCount          Int      @default(0) @map("trade_count")
+  profitFactor        Float?   @map("profit_factor")
+  sampleConfidence    String?  @map("sample_confidence")
+
+  dataCompleteness    Float?   @map("data_completeness")
+  pctWithEntry        Float?   @map("pct_with_entry")
+  pctWithSl           Float?   @map("pct_with_sl")
+  pctWithTp           Float?   @map("pct_with_tp")
+  pctWithOutcome      Float?   @map("pct_with_outcome")
+  pctFullCycle        Float?   @map("pct_full_cycle")
+
+  cherryPickScore     Float?   @map("cherry_pick_score")
+  cherryDeleteRate    Float?   @map("cherry_delete_rate")
+  cherryEditRate      Float?   @map("cherry_edit_rate")
+  cherryUnresolvedRate Float?  @map("cherry_unresolved_rate")
+  cherryAnnounceRatio Float?   @map("cherry_announce_ratio")
+  cherryConfidence    Float?   @map("cherry_confidence")
+
+  computedAt          DateTime @default(now()) @map("computed_at")
+
+  provider            Provider @relation(fields: [providerId], references: [id])
+
+  @@unique([providerId, period])
+  @@map("provider_stats_snapshot")
+}
+
+model ProviderMonthlyStats {
+  id                  String   @id @default(cuid())
+  providerId          String   @map("provider_id")
+  month               String
+
+  winRate             Float?   @map("win_rate")
+  expectancyR         Float?   @map("expectancy_r")
+  volAdjExpectancy    Float?   @map("vol_adj_expectancy")
+  rStddev             Float?   @map("r_stddev")
+  maxDrawdownPct      Float?   @map("max_drawdown_pct")
+  tradeCount          Int      @default(0) @map("trade_count")
+  dataCompleteness    Float?   @map("data_completeness")
+  cherryPickScore     Float?   @map("cherry_pick_score")
+  sampleConfidence    String?  @map("sample_confidence")
+
+  computedAt          DateTime @default(now()) @map("computed_at")
+
+  provider            Provider @relation(fields: [providerId], references: [id])
+
+  @@unique([providerId, month])
+  @@map("provider_monthly_stats")
+}
+
+model SignalAuditEvent {
+  id            String    @id @default(cuid())
+  providerId    String    @map("provider_id")
+  signalId      String?   @map("signal_id")
+  eventType     String    @map("event_type")
+  eventData     Json?     @map("event_data")
+  detectedAt    DateTime  @default(now()) @map("detected_at")
+
+  provider      Provider  @relation(fields: [providerId], references: [id])
+
+  @@index([providerId, detectedAt(sort: Desc)])
+  @@map("signal_audit_events")
+}
+
+model WorkspaceProviderImport {
+  id            String    @id @default(cuid())
+  workspaceId   String    @map("workspace_id")
+  providerId    String    @map("provider_id")
+  userId        String?   @map("user_id")
+  isActive      Boolean   @default(true) @map("is_active")
+  importedAt    DateTime  @default(now()) @map("imported_at")
+
+  @@unique([workspaceId, providerId])
+  @@map("workspace_provider_imports")
+}
+
+model ProviderSubmission {
+  id              String    @id @default(cuid())
+  channelName     String    @map("channel_name")
+  channelUrl      String    @map("channel_url")
+  channelType     String    @default("telegram") @map("channel_type")
+  submitterEmail  String?   @map("submitter_email")
+  submitterUserId String?   @map("submitter_user_id")
+  description     String?
+  marketType      String?   @map("market_type")
+  tradingStyle    String?   @map("trading_style")
+  subscriberCount Int?      @map("subscriber_count")
+  status          String    @default("PENDING")
+  reviewerNotes   String?   @map("reviewer_notes")
+  reviewedAt      DateTime? @map("reviewed_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@map("provider_submissions")
+}
+
+// ── Telegram Bot Tables ───────────────────────────────────────
+
+model TelegramLinkCode {
+  id         String    @id @default(cuid())
+  code       String    @unique
+  telegramId String
+  userId     String?
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+  @@index([code])
+  @@index([telegramId])
+  @@index([expiresAt])
+  @@map("telegram_link_codes")
+}
+
+model TelegramSource {
+  id             String    @id @default(cuid())
+  name           String
+  telegramChatId String    @unique @map("telegram_chat_id")
+  category       String    @default("crypto_signals")
+  tierMin        String    @default("FREE") @map("tier_min")
+  status         String    @default("active")
+  sortOrder      Int       @default(0) @map("sort_order")
+  providerId     String?   @map("provider_id")
+  provider       Provider? @relation(fields: [providerId], references: [id])
+  memberCount    Int       @default(0) @map("member_count")
+  description    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  invites        TelegramInvite[]
+  memberships    TelegramMembership[]
+  @@index([category, status])
+  @@index([tierMin])
+  @@map("telegram_sources")
+}
+
+model TelegramInvite {
+  id         String         @id @default(cuid())
+  userId     String
+  user       User           @relation(fields: [userId], references: [id])
+  sourceId   String
+  source     TelegramSource @relation(fields: [sourceId], references: [id])
+  telegramId String
+  inviteLink String         @map("invite_link")
+  expiresAt  DateTime
+  usedAt     DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime       @default(now())
+  @@index([userId, sourceId])
+  @@index([telegramId])
+  @@index([expiresAt])
+  @@map("telegram_invites")
+}
+
+model TelegramMembership {
+  id            String         @id @default(cuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id])
+  sourceId      String
+  source        TelegramSource @relation(fields: [sourceId], references: [id])
+  telegramId    String
+  status        String         @default("active")
+  joinedAt      DateTime       @default(now())
+  removedAt     DateTime?
+  removalReason String?        @map("removal_reason")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  @@unique([userId, sourceId])
+  @@index([telegramId])
+  @@index([status])
+  @@map("telegram_memberships")
+}
+
+model TelegramAuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  telegramId String?
+  userId     String?
+  sourceId   String?
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+  @@index([action])
+  @@index([telegramId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("telegram_audit_logs")
+}
+
+model Referral {
+  id             String    @id @default(cuid())
+  referrerUserId String    @map("referrer_user_id")
+  referrer       User      @relation("Referrals", fields: [referrerUserId], references: [id])
+  referralCode   String    @unique @map("referral_code")
+  referredUserId String?   @map("referred_user_id")
+  rewardType     String    @default("credit") @map("reward_type")
+  rewardValue    Int       @default(0) @map("reward_value")
+  status         String    @default("pending")
+  claimedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  @@index([referrerUserId])
+  @@index([referralCode])
+  @@map("referrals")
 }

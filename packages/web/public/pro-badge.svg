@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="92" viewBox="0 0 260 92">
+  <defs>
+    <linearGradient id="border" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="diamond" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5b21b6"/>
+      <stop offset="100%" stop-color="#0e7490"/>
+    </linearGradient>
+    <linearGradient id="txt" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft">
+      <feGaussianBlur stdDeviation="1.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Outer glow border -->
+  <rect x="0" y="0" width="260" height="92" rx="15"
+        fill="none" stroke="url(#border)" stroke-width="2.5"
+        opacity="0.9" filter="url(#glow)"/>
+  <!-- Body -->
+  <rect x="3" y="3" width="254" height="86" rx="13" fill="#0d0d1a"/>
+  <!-- Left bar -->
+  <rect x="9" y="10" width="8" height="72" rx="4" fill="url(#bar)" filter="url(#soft)"/>
+  <!-- Diamond -->
+  <g transform="translate(53,46)" filter="url(#glow)">
+    <polygon points="0,-28 20,0 0,28 -20,0"
+             fill="url(#diamond)" stroke="url(#border)" stroke-width="2"/>
+    <polygon points="0,-13 9,0 0,13 -9,0"
+             fill="none" stroke="#a78bfa" stroke-width="1" opacity="0.4"/>
+  </g>
+  <!-- PRO -->
+  <text x="89" y="48" font-family="Arial Black, sans-serif" font-weight="900"
+        font-size="30" letter-spacing="6" fill="url(#txt)" filter="url(#glow)">PRO</text>
+  <!-- AGORAIQ -->
+  <text x="90" y="67" font-family="'Courier New', monospace" font-size="10"
+        letter-spacing="4" fill="#475569">AGORAIQ</text>
+  <!-- TIER pill -->
+  <rect x="187" y="28" width="62" height="32" rx="9"
+        fill="none" stroke="url(#border)" stroke-width="1.5" filter="url(#soft)"/>
+  <rect x="188" y="29" width="60" height="30" rx="8" fill="#0a0a14"/>
+  <text x="218" y="49" text-anchor="middle" font-family="'Courier New', monospace"
+        font-weight="700" font-size="10" letter-spacing="2" fill="#94a3b8">TIER</text>
+</svg>
