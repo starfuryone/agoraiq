@@ -1,0 +1,11 @@
+<svg width="130" height="36" viewBox="0 0 130 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="AgoraIQ">
+  <defs>
+    <linearGradient id="aiqHex" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#55d0ff"/>
+      <stop offset="100%" stop-color="#1a6eff"/>
+    </linearGradient>
+  </defs>
+  <polygon points="18,3 30,10 30,26 18,33 6,26 6,10" fill="url(#aiqHex)"/>
+  <text x="40" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#e2e4ef">Agora</text>
+  <text x="101" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#00d4ff">IQ</text>
+</svg>

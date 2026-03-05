@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#060a14"/>
+<title>Risk Disclaimer — AgoraIQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#060a14;--bg2:#0b1120;--bg3:#111827;--bg4:#1a2332;
+  --border:#1e293b;--border2:#334155;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --cyan:#38bdf8;--violet:#a78bfa;--green:#4ade80;--amber:#f59e0b;--red:#ff3b5c;
+  --mono:'JetBrains Mono',monospace;--sans:'DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+.nav{position:sticky;top:0;z-index:100;background:rgba(6,10,20,.82);backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid rgba(30,41,59,.5)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-weight:800;font-size:16px;letter-spacing:-.02em;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px}
+.nav-logo .agora{color:#e2e8f0}
+.nav-logo .iq{color:#00e5ff}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-links a{font-size:13px;font-weight:500;color:var(--text3);text-decoration:none;padding:6px 14px;border-radius:8px;transition:all .2s}
+.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.nav-cta{font-size:13px;font-weight:600;color:#fff;background:linear-gradient(135deg,var(--cyan),var(--violet));padding:7px 18px;border-radius:8px;text-decoration:none;transition:opacity .2s}
+.nav-cta:hover{opacity:.88}
+.page-wrap{max-width:800px;margin:0 auto;padding:64px 24px 96px}
+.page-header{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--border)}
+.page-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(255,59,92,.08);border:1px solid rgba(255,59,92,.2);border-radius:999px;padding:4px 14px;font-size:12px;font-weight:600;color:var(--red);letter-spacing:.06em;text-transform:uppercase;margin-bottom:16px}
+.page-header h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.03em;line-height:1.15;margin-bottom:12px}
+.page-header p{font-size:14px;color:var(--text3)}
+.uk-banner{background:rgba(255,59,92,.06);border:1px solid rgba(255,59,92,.2);border-radius:12px;padding:16px 20px;margin-bottom:32px;font-size:13.5px;line-height:1.7;color:var(--text2)}
+.uk-banner strong{color:var(--red);display:block;margin-bottom:4px;font-size:14px}
+.risk-hero{background:linear-gradient(135deg,rgba(255,59,92,.08),rgba(245,158,11,.04));border:1px solid rgba(255,59,92,.2);border-radius:14px;padding:24px 28px;margin-bottom:40px}
+.risk-hero p{font-size:15px;font-weight:500;line-height:1.75;color:var(--text);margin:0}
+.risk-hero p strong{color:var(--red)}
+.doc-section{margin-bottom:40px}
+.doc-section h2{font-size:17px;font-weight:700;color:var(--text);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.doc-section h3{font-size:14px;font-weight:600;color:var(--amber);margin:20px 0 8px}
+.doc-section p{font-size:14px;color:var(--text2);line-height:1.8;margin-bottom:12px}
+.doc-section p:last-child{margin-bottom:0}
+.doc-section ul{padding-left:20px;margin-bottom:12px}
+.doc-section ul li{font-size:14px;color:var(--text2);line-height:1.8;margin-bottom:6px}
+.doc-section a{color:var(--cyan);text-decoration:none}
+.doc-section a:hover{text-decoration:underline}
+.risk-item{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--border)}
+.risk-item:last-child{border-bottom:none}
+.risk-icon{font-size:22px;flex-shrink:0;margin-top:2px}
+.risk-item-content h3{font-size:14px;font-weight:700;color:var(--text);margin:0 0 6px}
+.risk-item-content p{font-size:13.5px;color:var(--text2);line-height:1.75;margin:0}
+.legal-footer{border-top:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.25)}
+.legal-footer-inner{max-width:1200px;margin:0 auto;padding:32px 24px 40px}
+.legal-disclaimer{font-size:11.5px;line-height:1.7;color:var(--text3);max-width:860px}
+.legal-links{display:flex;flex-wrap:wrap;gap:6px 4px;align-items:center;margin-top:20px}
+.legal-links a{font-size:12px;color:var(--text3);text-decoration:none;transition:color .2s}
+.legal-links a:hover{color:var(--cyan)}
+.legal-links a.active{color:var(--violet)}
+.legal-sep{color:rgba(255,255,255,.2);font-size:12px}
+
+.legal-copy{font-size:11px;color:rgba(255,255,255,.2);margin-top:12px}
+
+/* ── MEGA FOOTER ── */
+.site-footer{border-top:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.25)}
+.site-footer-inner{max-width:1200px;margin:0 auto;padding:40px 24px 48px}
+.footer-top{display:flex;flex-wrap:wrap;gap:40px 56px;margin-bottom:32px}
+.footer-brand{min-width:200px;max-width:260px}
+.footer-logo{display:flex;align-items:center;gap:6px;text-decoration:none;font-size:14px;font-weight:800;letter-spacing:-.02em;margin-bottom:12px}
+.footer-logo .agora{color:#e2e8f0}
+.footer-logo .iq{color:#00e5ff}
+.footer-logo svg{flex-shrink:0}
+.footer-brand p{font-size:12px;color:var(--text3);line-height:1.65}
+.footer-col h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:12px}
+.footer-col a{display:block;font-size:12.5px;color:var(--text3);text-decoration:none;padding:3px 0;transition:color .2s}
+.footer-col a:hover{color:var(--cyan)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.06);padding-top:20px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px}
+.footer-disclaimer{font-size:11px;line-height:1.6;color:var(--text3);max-width:640px}
+.footer-disclaimer strong{color:var(--red)}
+.footer-copy{font-size:11px;color:rgba(255,255,255,.2)}
+@media(max-width:600px){.footer-top{gap:28px}.footer-brand{max-width:100%}}
+
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><svg width="22" height="22" viewBox="0 0 40 40" fill="none"><defs><linearGradient id="hg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="#00e5ff"/><stop offset="1" stop-color="#0066ff"/></linearGradient></defs><polygon points="20,2 38,11 38,29 20,38 2,29 2,11" fill="url(#hg)"/></svg><span class="logotext"><span class="agora">Agora</span><span class="iq">IQ</span></span></a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/proof">Proof</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/login">Log in</a>
+      <a href="/signup" class="nav-cta">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+  <div class="page-header">
+    <div class="page-tag">⚠ Risk Warning</div>
+    <h1>Risk Disclaimer</h1>
+    <p>Last updated: 18 February 2026 &nbsp;·&nbsp; ChatLogic Insights LTD</p>
+  </div>
+
+  <div class="risk-hero">
+    <p><strong>Trading cryptocurrencies and derivatives carries a high level of risk and may not be suitable for all investors.</strong> You could lose some or all of your invested capital. Past performance of signals shown on this platform is not indicative of future results. Do not trade with money you cannot afford to lose.</p>
+  </div>
+
+  <div class="uk-banner">
+    <strong>⚠ Service Restricted — UK Persons Excluded</strong>
+    This service is not directed at, and must not be used by, persons located in the United Kingdom. AgoraIQ is not authorised or regulated by the Financial Conduct Authority (FCA) under the Financial Services and Markets Act 2000 (FSMA). Offering financial promotions or investment-related services to UK persons without FCA authorisation is prohibited. By using this service you confirm you are not a UK national, resident, or person accessing from within the UK.
+  </div>
+
+  <div class="doc-section">
+    <h2>1. Not Financial Advice</h2>
+    <p>AgoraIQ is a data aggregation and analytics platform. We collect, process, and display historical signal performance data from third-party signal providers. Nothing on this platform constitutes:</p>
+    <ul>
+      <li>Financial advice or investment advice</li>
+      <li>A recommendation or solicitation to buy or sell any cryptocurrency, token, derivative, contract for difference (CFD), or any other financial instrument</li>
+      <li>Portfolio management or discretionary investment services</li>
+      <li>A financial promotion as defined under section 21 of FSMA (for UK persons, to whom this service is in any case not available)</li>
+    </ul>
+    <p>You should always conduct your own independent research and seek qualified, licensed financial advice before making any trading or investment decision.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>2. Key Risks</h2>
+
+    <div class="risk-item">
+      <span class="risk-icon">📉</span>
+      <div class="risk-item-content">
+        <h3>Total Loss of Capital</h3>
+        <p>Cryptocurrency markets are highly volatile. The value of any digital asset can fall to zero. Leveraged or derivative trading can result in losses exceeding your initial deposit. You should never invest more than you can afford to lose entirely.</p>
+      </div>
+    </div>
+
+    <div class="risk-item">
+      <span class="risk-icon">📊</span>
+      <div class="risk-item-content">
+        <h3>Historical Performance Is Not Predictive</h3>
+        <p>Signal performance statistics displayed on AgoraIQ reflect historical outcomes under the conditions and parameters documented in our methodology. Past win rates, risk-to-reward ratios, and return figures do not guarantee, imply, or predict future performance. Market conditions change and strategies that performed well historically may perform poorly in the future.</p>
+      </div>
+    </div>
+
+    <div class="risk-item">
+      <span class="risk-icon">⚡</span>
+      <div class="risk-item-content">
+        <h3>Market Volatility and Liquidity</h3>
+        <p>Cryptocurrency markets can experience sudden, extreme price movements. Liquidity may be insufficient to execute trades at the prices shown in historical signal data. Slippage, spreads, and exchange fees will reduce actual returns compared to theoretical performance.</p>
+      </div>
+    </div>
+
+    <div class="risk-item">
+      <span class="risk-icon">🔧</span>
+      <div class="risk-item-content">
+        <h3>Execution Risk</h3>
+        <p>AgoraIQ does not execute trades. If you choose to act on signal data from this platform, you are solely responsible for order execution, including timing, sizing, and the choice of exchange. Delays between signal publication and execution will affect results.</p>
+      </div>
+    </div>
+
+    <div class="risk-item">
+      <span class="risk-icon">🏛️</span>
+      <div class="risk-item-content">
+        <h3>Regulatory and Legal Risk</h3>
+        <p>The regulatory status of cryptocurrency trading varies by jurisdiction and is subject to rapid change. It is your responsibility to ensure that your use of this platform and any trading activities comply with the laws of your jurisdiction. We do not provide legal advice.</p>
+      </div>
+    </div>
+
+    <div class="risk-item">
+      <span class="risk-icon">🔐</span>
+      <div class="risk-item-content">
+        <h3>Technology and Counterparty Risk</h3>
+        <p>Blockchain technology and cryptocurrency exchanges carry risks including smart contract vulnerabilities, exchange insolvency, hacks, and system outages. We are not responsible for losses arising from failures of third-party exchanges or technologies.</p>
+      </div>
+    </div>
+
+    <div class="risk-item">
+      <span class="risk-icon">🌍</span>
+      <div class="risk-item-content">
+        <h3>Data Accuracy</h3>
+        <p>While we take reasonable steps to ensure data accuracy, signal performance data is sourced from third-party providers and external price feeds. We cannot guarantee that all data is free from errors, omissions, or delays. You should verify material data independently before relying on it.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-section">
+    <h2>3. Regulatory Status</h2>
+    <p>ChatLogic Insights LTD is <strong>not</strong> authorised, regulated, or licensed by any financial regulatory authority, including:</p>
+    <ul>
+      <li>Financial Conduct Authority (FCA) — United Kingdom</li>
+      <li>Securities and Exchange Commission (SEC) — United States</li>
+      <li>Commodity Futures Trading Commission (CFTC) — United States</li>
+      <li>European Securities and Markets Authority (ESMA) — European Union</li>
+      <li>Any other equivalent national financial regulator</li>
+    </ul>
+    <p>We do not hold any licence to provide investment services, portfolio management, or financial advice in any jurisdiction. Our service is limited to data aggregation and analytics tooling.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>4. Jurisdictional Restrictions</h2>
+    <p>In addition to the UK exclusion noted above, you are solely responsible for ensuring that your use of AgoraIQ is lawful in your jurisdiction. We make no representation that the Service is appropriate or available for use in all countries. We reserve the right to restrict access from any jurisdiction at any time.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>5. Your Acknowledgement</h2>
+    <p>By using AgoraIQ, you acknowledge that:</p>
+    <ul>
+      <li>You have read and understood this Risk Disclaimer in full</li>
+      <li>You are not a UK person and are not accessing from within the United Kingdom</li>
+      <li>You understand the risks involved in cryptocurrency and derivative trading</li>
+      <li>You are using this platform for informational purposes only</li>
+      <li>You take full and sole responsibility for any trading decisions and their outcomes</li>
+      <li>ChatLogic Insights LTD bears no liability for losses arising from your use of this platform</li>
+    </ul>
+  </div>
+
+  <div class="doc-section">
+    <h2>6. Contact</h2>
+    <p>For questions about this disclaimer: <a href="mailto:legal@agoraiq.net">legal@agoraiq.net</a></p>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="/" class="footer-logo"><svg width="18" height="18" viewBox="0 0 40 40" fill="none"><defs><linearGradient id="hg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="#00e5ff"/><stop offset="1" stop-color="#0066ff"/></linearGradient></defs><polygon points="20,2 38,11 38,29 20,38 2,29 2,11" fill="url(#hg)"/></svg><span class="logotext"><span class="agora">Agora</span><span class="iq">IQ</span></span></a>
+        <p>AI-powered signal intelligence. Track, score, and verify crypto trading signals with verifiable proof.</p>
+      </div>
+      <div class="footer-col">
+        <h4>About Us</h4>
+        <a href="/about">About</a>
+        <a href="/careers">Careers</a>
+        <a href="/announcements">Announcements</a>
+        <a href="/news">News</a>
+        <a href="/press">Press</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/cookies">Cookies</a>
+        <a href="/disclaimer">Disclaimer</a>
+        <a href="/trust">Building Trust</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="/blog">Blog</a>
+        <a href="/community">Community</a>
+        <a href="/risk-warning">Risk Warning</a>
+        <a href="/notices">Notices</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-disclaimer"><strong>⚠ Not for UK Persons.</strong> AgoraIQ is not authorised or regulated by the FCA. Not directed at UK persons. Nothing on this site constitutes financial advice. Past performance does not guarantee future results.</div>
+      <div class="footer-copy">© 2026 ChatLogic Insights LTD. All rights reserved.</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

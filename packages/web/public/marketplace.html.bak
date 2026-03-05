@@ -5,6 +5,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>AgoraIQ — Signal Provider Marketplace</title>
+<meta name="description" content="103+ crypto signal providers tracked with immutable proof, cherry-pick detection, and vol-adjusted scoring. Only verified providers get ranked.">
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -13,10 +14,10 @@
   --font:'IBM Plex Sans',sans-serif;--mono:'IBM Plex Mono',monospace;
   --bg:#060a14;--bg2:#0b0f1a;--bg3:#111827;--card:#0d1220;--card-hover:#111828;
   --border:#1a2236;--border2:#243049;
-  --accent:#a78bfa;--accent-dim:rgba(167,139,250,.10);--accent-border:rgba(167,139,250,.20);
-  --green:#34d399;--green-dim:rgba(52,211,153,.10);
+  --accent:#a78bfa;--accent-dim:rgba(167,139,250,.10);--accent-border:rgba(167,139,250,.20);--accent-glow:rgba(167,139,250,.06);
+  --green:#34d399;--green-dim:rgba(52,211,153,.10);--green-border:rgba(52,211,153,.20);
   --red:#f87171;--red-dim:rgba(248,113,113,.10);
-  --blue:#38bdf8;--blue-dim:rgba(56,189,248,.10);
+  --blue:#38bdf8;--blue-dim:rgba(56,189,248,.10);--blue-border:rgba(56,189,248,.20);
   --amber:#fbbf24;--amber-dim:rgba(251,191,36,.10);
   --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;--dim:#475569;
   --r:8px;--r-lg:12px;
@@ -26,155 +27,287 @@ body{font-family:var(--font);font-size:14px;line-height:1.5;background:var(--bg)
 a{color:inherit;text-decoration:none}
 button{font-family:var(--font);cursor:pointer;border:none;background:none;color:inherit}
 
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
 /* ── Header ── */
-.mp-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
-.mp-header-left{display:flex;align-items:center;gap:16px}
-.mp-logo{font-size:15px;font-weight:700;letter-spacing:-.02em}
+.mp-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(16px);background:rgba(11,15,26,.85)}
+.mp-header-left{display:flex;align-items:center;gap:14px}
+.mp-logo{display:flex;align-items:center;gap:10px}
 .mp-logo .a{color:var(--accent)}.mp-logo .b{color:var(--text)}
-.mp-title{font-size:18px;font-weight:700;color:var(--text)}
-.mp-subtitle{font-size:12px;color:var(--text3)}
-.mp-back{padding:8px 16px;border-radius:var(--r);border:1px solid var(--border);color:var(--text2);font-size:13px;font-weight:500;transition:all .15s}
-.mp-back:hover{border-color:var(--accent-border);color:var(--text)}
+.mp-logo-text{font-size:19px;font-weight:600;letter-spacing:-.01em}
+.mp-nav{display:flex;gap:8px;align-items:center}
+.mp-nav-btn{padding:7px 14px;border-radius:var(--r);font-size:12px;font-weight:500;color:var(--text2);border:1px solid var(--border);transition:all .15s}
+.mp-nav-btn:hover{border-color:var(--accent-border);color:var(--text)}
+.mp-nav-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.mp-nav-btn.primary:hover{opacity:.9}
+
+/* ── Hero / Value Prop ── */
+.hero{padding:40px 32px 32px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(167,139,250,.03) 0%,transparent 100%)}
+.hero-inner{max-width:900px}
+.hero h1{font-size:26px;font-weight:700;line-height:1.25;margin-bottom:8px}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero-sub{font-size:14px;color:var(--text2);margin-bottom:24px;max-width:600px}
+.hero-stats{display:flex;gap:24px;flex-wrap:wrap}
+.hero-stat{display:flex;flex-direction:column}
+.hero-stat-val{font-size:22px;font-weight:700;font-family:var(--mono)}
+.hero-stat-val.accent{color:var(--accent)}
+.hero-stat-val.green{color:var(--green)}
+.hero-stat-val.blue{color:var(--blue)}
+.hero-stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.hero-pills{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap}
+.hero-pill{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);padding:6px 12px;background:var(--card);border:1px solid var(--border);border-radius:20px}
+.hero-pill b{color:var(--text);font-weight:600}
 
 /* ── SSE Ticker ── */
-.ticker-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 32px;overflow:hidden;height:36px;display:flex;align-items:center;gap:8px}
+.ticker-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:7px 32px;overflow:hidden;height:34px;display:flex;align-items:center;gap:10px}
+.ticker-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;animation:pulse 2s infinite}
+.ticker-dot.live{background:var(--green)}
+.ticker-dot.off{background:var(--dim)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .ticker-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);flex-shrink:0}
 .ticker-feed{display:flex;gap:16px;overflow:hidden;flex:1}
-.ticker-item{display:flex;align-items:center;gap:6px;font-size:12px;font-family:var(--mono);white-space:nowrap;animation:fadeIn .3s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.ticker-item{display:flex;align-items:center;gap:5px;font-size:11px;font-family:var(--mono);white-space:nowrap;animation:fadeSlide .4s ease}
+@keyframes fadeSlide{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+
+/* ── Collection Pills ── */
+.coll-pill{padding:5px 12px;font-size:11px;font-weight:600;color:var(--text3);border:1px solid var(--border);border-radius:16px;background:var(--bg);cursor:pointer;transition:all .15s}
+.coll-pill:hover{border-color:var(--accent-border);color:var(--text)}
+.coll-pill.active{background:var(--accent-dim);border-color:var(--accent-border);color:var(--accent)}
+/* ── Type Tabs ── */
+.type-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 32px;background:var(--bg2)}
+.type-tab{padding:11px 18px;font-size:12px;font-weight:600;color:var(--text3);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;display:flex;align-items:center;gap:6px}
+.type-tab:hover{color:var(--text)}
+.type-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.type-tab .count{font-size:10px;background:var(--bg3);padding:1px 6px;border-radius:10px;color:var(--text3)}
 
 /* ── Filters ── */
-.filters{padding:20px 32px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border)}
-.filter-group{display:flex;align-items:center;gap:6px}
-.filter-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
-select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:var(--r);font-size:12px;font-family:var(--font)}
+.filters{padding:14px 32px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border);background:var(--bg)}
+.filter-group{display:flex;align-items:center;gap:5px}
+.filter-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:11px;font-family:var(--font)}
 select:focus{outline:none;border-color:var(--accent-border)}
 .filter-spacer{flex:1}
-.sort-btn{padding:6px 12px;border-radius:var(--r);font-size:12px;font-weight:500;color:var(--text3);border:1px solid transparent;transition:all .15s}
-.sort-btn:hover,.sort-btn.active{color:var(--text);border-color:var(--border);background:var(--bg3)}
+.filter-count{font-size:11px;color:var(--text3);font-family:var(--mono)}
 
 /* ── Provider Grid ── */
-.grid{padding:24px 32px;display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px}
-.provider-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;transition:all .2s;cursor:pointer;position:relative}
-.provider-card:hover{border-color:var(--accent-border);background:var(--card-hover);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
-.provider-card.verified::after{content:"";position:absolute;top:16px;right:16px;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
-.pc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.pc-name{font-size:15px;font-weight:700}
-.pc-badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em}
+.grid{padding:20px 32px;display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px}
+.section-label{padding:20px 32px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── Provider Card ── */
+.pc{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;transition:all .2s;cursor:pointer;position:relative;overflow:hidden}
+.pc:hover{border-color:var(--accent-border);background:var(--card-hover);transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.pc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.pc-name{font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px}
+.pc-verified{width:14px;height:14px;border-radius:50%;background:var(--green);display:inline-flex;align-items:center;justify-content:center;font-size:8px;color:#000;font-weight:700;flex-shrink:0}
+.pc-badges{display:flex;gap:4px;flex-wrap:wrap}
+.pc-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.pc-badge.ranked{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
+.pc-badge.beta{background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue-border)}
 .pc-badge.clean{background:var(--green-dim);color:var(--green)}
 .pc-badge.caution{background:var(--amber-dim);color:var(--amber)}
 .pc-badge.suspect{background:var(--red-dim);color:var(--red)}
-.pc-tags{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
-.pc-tag{font-size:10px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--text3);border:1px solid var(--border)}
-.pc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.pc-stat{text-align:center}
-.pc-stat-val{font-size:16px;font-weight:700;font-family:var(--mono)}
-.pc-stat-val.pos{color:var(--green)}.pc-stat-val.neg{color:var(--red)}.pc-stat-val.neutral{color:var(--text2)}
-.pc-stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
-.pc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
-.pc-meta{font-size:11px;color:var(--text3)}
-.pc-completeness{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3)}
-.pc-bar{width:60px;height:4px;border-radius:2px;background:var(--bg3);overflow:hidden}
-.pc-bar-fill{height:100%;border-radius:2px;background:var(--accent);transition:width .5s}
+.pc-badge.type-signal{background:var(--accent-dim);color:var(--accent)}
+.pc-badge.type-tool{background:rgba(251,191,36,.08);color:var(--amber)}
+.pc-badge.type-alert{background:rgba(56,189,248,.08);color:var(--blue)}
+.pc-tags{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
+.pc-tag{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--bg3);color:var(--text3)}
+.pc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.pc-s{text-align:center;padding:6px 2px;background:var(--bg);border-radius:6px}
+.pc-s-val{font-size:14px;font-weight:700;font-family:var(--mono);line-height:1.2}
+.pc-s-val.pos{color:var(--green)}.pc-s-val.neg{color:var(--red)}.pc-s-val.neutral{color:var(--text2)}
+.pc-s-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+.pc-footer{display:flex;align-items:center;justify-content:space-between}
+.pc-meta{font-size:10px;color:var(--text3);display:flex;align-items:center;gap:8px}
+.pc-quality{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3)}
+.pc-bar{width:48px;height:3px;border-radius:2px;background:var(--bg3);overflow:hidden}
+.pc-bar-fill{height:100%;border-radius:2px;transition:width .5s}
+.pc-bar-fill.high{background:var(--green)}.pc-bar-fill.mid{background:var(--amber)}.pc-bar-fill.low{background:var(--red)}
+
+/* ── Tooltips ── */
+.tip{position:relative;cursor:help;border-bottom:1px dotted var(--text3)}
+.tip:hover .tip-text{display:block}
+.tip-text{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:8px 12px;font-size:11px;color:var(--text);width:220px;line-height:1.5;z-index:50;box-shadow:0 4px 16px rgba(0,0,0,.4);pointer-events:none;font-weight:400;text-transform:none;letter-spacing:0}
 
 /* ── Detail Modal ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;backdrop-filter:blur(4px)}
 .modal-overlay.open{display:flex}
-.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-lg);width:90%;max-width:800px;max-height:85vh;overflow-y:auto;padding:32px}
-.modal-close{position:absolute;top:16px;right:16px;font-size:18px;color:var(--text3);cursor:pointer}
-.modal h2{font-size:20px;font-weight:700;margin-bottom:4px}
-.modal .subtitle{color:var(--text3);font-size:13px;margin-bottom:24px}
-.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-lg);width:100%;max-width:820px;padding:28px 32px;position:relative}
+.modal-x{position:absolute;top:16px;right:20px;font-size:18px;color:var(--text3);cursor:pointer;padding:4px;z-index:10}
+.modal-x:hover{color:var(--text)}
+.modal h2{font-size:18px;font-weight:700;margin-bottom:2px;padding-right:32px}
+.modal .modal-sub{color:var(--text3);font-size:12px;margin-bottom:20px}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center}
-.stat-card .val{font-size:18px;font-weight:700;font-family:var(--mono)}
-.stat-card .lbl{font-size:10px;color:var(--text3);text-transform:uppercase;margin-top:4px}
-.period-tabs{display:flex;gap:4px;margin-bottom:20px}
-.period-tab{padding:6px 14px;border-radius:var(--r);font-size:12px;font-weight:500;color:var(--text3);border:1px solid transparent;transition:all .15s}
+.stat-card .val{font-size:17px;font-weight:700;font-family:var(--mono)}
+.stat-card .lbl{font-size:9px;color:var(--text3);text-transform:uppercase;margin-top:3px;letter-spacing:.04em}
+.period-tabs{display:flex;gap:3px;margin-bottom:16px}
+.period-tab{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;color:var(--text3);border:1px solid transparent;transition:all .15s}
 .period-tab:hover,.period-tab.active{color:var(--text);background:var(--bg3);border-color:var(--border)}
-.timeline-item{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
-.tl-type{font-family:var(--mono);font-weight:600;width:60px}
-.tl-pair{color:var(--text);font-weight:500}
-.tl-r{font-family:var(--mono);font-weight:600}
-.tl-hash{font-family:var(--mono);font-size:11px;color:var(--text3)}
-.tl-time{margin-left:auto;color:var(--text3);font-size:11px}
+.detail-section{margin-top:20px}
+.detail-section h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:10px}
+.timeline-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px}
+.tl-badge{font-family:var(--mono);font-weight:700;font-size:10px;padding:2px 6px;border-radius:4px;width:52px;text-align:center}
+.tl-badge.tp{background:var(--green-dim);color:var(--green)}
+.tl-badge.sl{background:var(--red-dim);color:var(--red)}
+.tl-badge.active{background:var(--accent-dim);color:var(--accent)}
+.tl-badge.edit{background:var(--amber-dim);color:var(--amber)}
+.tl-badge.del{background:var(--red-dim);color:var(--red)}
+.lc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.lc-item{text-align:center;padding:8px;background:var(--card);border-radius:6px;border:1px solid var(--border)}
+.lc-val{font-size:15px;font-weight:700;font-family:var(--mono)}
+.lc-label{font-size:9px;color:var(--text3);text-transform:uppercase;margin-top:2px}
+.month-row{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px}
+.month-row span{font-family:var(--mono)}
 
-/* ── Type Tabs ── */
-.type-tab{padding:12px 20px;font-size:13px;font-weight:600;color:var(--text3);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
-.type-tab:hover{color:var(--text)}
-.type-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-/* ── Empty/Loading ── */
-.loading{display:flex;align-items:center;justify-content:center;padding:80px;color:var(--text3)}
-.empty{text-align:center;padding:80px 32px;color:var(--text3)}
+/* ── Submit Modal Content ── */
+.form-field{margin-bottom:14px}
+.form-field label{display:block;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.form-field input,.form-field select,.form-field textarea{width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:var(--font)}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{outline:none;border-color:var(--accent)}
+.form-field textarea{resize:vertical;min-height:60px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-btn{width:100%;padding:11px;border-radius:var(--r);background:var(--accent);color:#fff;font-size:14px;font-weight:700;border:none;cursor:pointer;margin-top:8px;transition:opacity .15s}
+.form-btn:hover{opacity:.9}
+.form-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── Metrics Info ── */
+.metrics-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 32px;display:flex;align-items:center;gap:16px;font-size:11px}
+.metrics-bar a{color:var(--accent);font-weight:600;text-decoration:underline;text-decoration-color:rgba(167,139,250,.3);text-underline-offset:2px}
+.metrics-bar a:hover{text-decoration-color:var(--accent)}
+
+/* ── Loading / Empty ── */
+.loading{display:flex;align-items:center;justify-content:center;padding:60px;color:var(--text3);gap:8px}
+.loading::before{content:'';width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:60px 32px;color:var(--text3)}
+
+/* ── No-JS Fallback ── */
+.noscript-section{padding:40px 32px;text-align:center;background:var(--bg2);border-bottom:1px solid var(--border)}
+.noscript-section h2{font-size:20px;margin-bottom:12px}
+.noscript-section p{color:var(--text2);max-width:500px;margin:0 auto}
 
 /* ── Responsive ── */
 @media(max-width:768px){
   .grid{grid-template-columns:1fr;padding:16px}
-  .filters{padding:12px 16px}
-  .mp-header{padding:12px 16px}
+  .filters{padding:10px 16px}
+  .mp-header{padding:10px 16px}
+  .hero{padding:24px 16px}
+  .hero-stats{gap:16px}
   .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .pc-stats{grid-template-columns:repeat(2,1fr)}
+  .type-tabs{padding:0 16px;overflow-x:auto}
+  .form-row{grid-template-columns:1fr}
+  .lc-grid{grid-template-columns:repeat(2,1fr)}
 }
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap" rel="stylesheet">
 </head>
 <body>
 
 <!-- ═══ Header ═══ -->
 <div class="mp-header">
   <div class="mp-header-left">
-    <div class="mp-logo" style="display:flex;align-items:center;gap:10px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="a">Agora</span><span class="b">IQ</span></div>
-    <div>
-      <div class="mp-title">Signal Provider Marketplace</div>
-      <div class="mp-subtitle"><span id="tier-counts">Loading...</span> · SHA-256 immutable proof · Cherry-pick detection</div>
+    <div class="mp-logo">
+      <div style="width:20px;height:20px;background:linear-gradient(135deg,#00e5ff,#0066ff);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex-shrink:0"></div>
+      <div style="font-family:Syne,Arial Black,sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.5px;color:#e2e8f0;white-space:nowrap">Agora<span style="color:#00e5ff">IQ</span></div>
     </div>
   </div>
-  <div style="display:flex;gap:8px;align-items:center">
-    <button onclick="openSubmitForm()" style="padding:8px 16px;border-radius:var(--r);background:var(--accent);color:#fff;font-size:13px;font-weight:600;border:none;cursor:pointer">+ Suggest Provider</button>
-    <a href="/dashboard" class="mp-back">← Console</a>
+  <div class="mp-nav">
+    <button class="mp-nav-btn primary" onclick="openSubmitForm()">+ Suggest Provider</button>
+    <a href="/dashboard" class="mp-nav-btn">← Console</a>
   </div>
+</div>
+
+<!-- ═══ Hero / Value Prop ═══ -->
+<div class="hero">
+  <div class="hero-inner">
+    <h1>Signal providers, <em>ranked by math</em> — not marketing</h1>
+    <p class="hero-sub">Every signal is hashed at ingestion, tracked to outcome, and scored for cherry-picking. We don't sell signals — we prove who's real.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-val accent" id="h-total">—</div><div class="hero-stat-label">Sources Tracked</div></div>
+      <div class="hero-stat"><div class="hero-stat-val green" id="h-verified">—</div><div class="hero-stat-label">Verified (Ranked)</div></div>
+      <div class="hero-stat"><div class="hero-stat-val blue" id="h-beta">—</div><div class="hero-stat-label">Tracked (Beta)</div></div>
+      <div class="hero-stat"><div class="hero-stat-val" id="h-trades" style="color:var(--text)">—</div><div class="hero-stat-label">Trades Resolved</div></div>
+    </div>
+    <div class="hero-pills">
+      <span class="hero-pill"><b>SHA-256</b> immutable hashing</span>
+      <span class="hero-pill"><b>Edit/delete</b> tracking</span>
+      <span class="hero-pill"><b>Cherry-pick</b> scoring</span>
+      <span class="hero-pill"><b>Vol-adjusted</b> expectancy</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Trust Banner ═══ -->
+<div style="padding:10px 32px;background:var(--bg2);border-bottom:1px solid var(--border);font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px">
+  <span style="color:var(--accent);font-weight:700" id="banner-count">103+</span> sources tracked. Signals ranked <b style="color:var(--text)">only</b> after verification: ≥30 trades · ≥60% data quality · cherry-pick audit.
 </div>
 
 <!-- ═══ SSE Ticker ═══ -->
 <div class="ticker-bar">
-  <span class="ticker-label">Live Feed</span>
+  <span class="ticker-dot off" id="ticker-dot"></span>
+  <span class="ticker-label">Live</span>
   <div class="ticker-feed" id="ticker-feed">
-    <span style="color:var(--text3);font-size:12px">Connecting...</span>
+    <span style="color:var(--text3);font-size:11px">Waiting for events...</span>
   </div>
 </div>
 
-<!-- ═══ Filters ═══ -->
-<div style="display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 32px;background:var(--bg2)">
-  <button class="type-tab active" data-type="all" onclick="setType(this)">All Sources</button>
-  <button class="type-tab" data-type="SIGNAL" onclick="setType(this)">📡 Signals</button>
-  <button class="type-tab" data-type="TOOL" onclick="setType(this)">🤖 Bots</button>
-  <button class="type-tab" data-type="ALERT" onclick="setType(this)">🐋 Alerts</button>
+<!-- ═══ Metrics Explainer Bar ═══ -->
+<div class="metrics-bar">
+  <span style="color:var(--text3)">How we rank:</span>
+  <span class="tip" style="color:var(--text2)">VaE<span class="tip-text"><b>Vol-Adjusted Expectancy</b> — Average R-multiple divided by standard deviation. Rewards consistency, not just wins. A provider with +0.5R avg and low variance beats one with +1.0R avg and wild swings.</span></span>
+  <span style="color:var(--border2)">·</span>
+  <span class="tip" style="color:var(--text2)">Win Rate<span class="tip-text"><b>Win Rate</b> — % of resolved trades that hit at least one take-profit level. Important, but meaningless without position sizing context.</span></span>
+  <span style="color:var(--border2)">·</span>
+  <span class="tip" style="color:var(--text2)">Cherry Score<span class="tip-text"><b>Cherry-Pick Score</b> — Detects providers who delete losing signals, edit entries after the fact, or leave trades unresolved. 0 = clean, 1 = severe manipulation. Based on edit rate, delete rate, unresolved %, and announce timing.</span></span>
+  <span style="color:var(--border2)">·</span>
+  <span class="tip" style="color:var(--text2)">Data Quality<span class="tip-text"><b>Data Completeness</b> — What % of signals include entry, SL, TP, and have a resolved outcome. Higher = more auditable. Providers below 60% can't be ranked.</span></span>
+  <span style="color:var(--border2)">·</span>
+  <span class="tip" style="color:var(--text2)">Max DD<span class="tip-text"><b>Max Drawdown</b> — Worst peak-to-trough decline in cumulative R. Shows the real pain of following this provider. A -15R drawdown means 15 risk units lost before recovery.</span></span>
 </div>
+
+<!-- ═══ Type Tabs ═══ -->
+<div class="type-tabs">
+  <button class="type-tab active" data-type="all" onclick="setType(this)">All Sources <span class="count" id="c-all">—</span></button>
+  <button class="type-tab" data-type="SIGNAL" onclick="setType(this)">📡 Signals <span class="count" id="c-signal">—</span></button>
+  <button class="type-tab" data-type="TOOL" onclick="setType(this)">🤖 Bots <span class="count" id="c-tool">—</span></button>
+  <button class="type-tab" data-type="ALERT" onclick="setType(this)">🐋 Alerts <span class="count" id="c-alert">—</span></button>
+</div>
+
+<!-- ═══ Filters ═══ -->
+<!-- ═══ Collections ═══ -->
+<div style="padding:10px 32px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:var(--bg)">
+  <button class="coll-pill active" onclick="setCollection(this,'')">All</button>
+  <button class="coll-pill" onclick="setCollection(this,'topvae')">Top VaE</button>
+  <button class="coll-pill" onclick="setCollection(this,'consistent')">Most Consistent</button>
+  <button class="coll-pill" onclick="setCollection(this,'winrate')">High Win Rate</button>
+  <button class="coll-pill" onclick="setCollection(this,'bots')">Bots (Solana)</button>
+  <button class="coll-pill" onclick="setCollection(this,'alerts')">Whales & Alerts</button>
+</div>
+
 <div class="filters">
-  <div class="filter-group">
-    <span class="filter-label">Market</span>
-    <select id="f-market" onchange="loadProviders()">
-      <option value="All">All</option><option>Spot</option><option>Futures</option><option>Mixed</option>
-    </select>
-  </div>
-  <div class="filter-group">
-    <span class="filter-label">Style</span>
-    <select id="f-style" onchange="loadProviders()">
-      <option value="All">All</option><option>Scalp</option><option>Swing</option><option>Day Trade</option><option>Position</option>
-    </select>
-  </div>
-  <div class="filter-group">
-    <span class="filter-label">Min Trades</span>
-    <select id="f-min" onchange="loadProviders()">
-      <option value="0">Any</option><option value="5">5+</option><option value="20">20+</option><option value="50">50+</option><option value="100">100+</option>
-    </select>
+  <div class="filter-group" style="flex:1;max-width:220px">
+    <input id="f-search" type="text" placeholder="Search providers..." oninput="onSearch()" style="width:100%;padding:5px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:var(--font)">
   </div>
   <div class="filter-group">
     <span class="filter-label">Tier</span>
-    <select id="f-tier" onchange="loadProviders()">
-      <option value="all">All</option><option value="VERIFIED">✅ Verified</option><option value="BETA">🧪 Beta</option>
-    </select>
+    <select id="f-tier" onchange="loadProviders()"><option value="all">All</option><option value="VERIFIED">Verified Only</option><option value="BETA">Beta Only</option></select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">Market</span>
+    <select id="f-market" onchange="loadProviders()"><option value="All">All</option><option>Spot</option><option>Futures</option><option>Mixed</option></select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">Min Trades</span>
+    <select id="f-min" onchange="loadProviders()"><option value="0">Any</option><option value="1">1+</option><option value="5">5+</option><option value="20">20+</option><option value="50">50+</option><option value="100">100+</option></select>
   </div>
   <div class="filter-spacer"></div>
   <div class="filter-group">
-    <span class="filter-label">Sort by</span>
+    <span class="filter-label">Sort</span>
     <select id="f-sort" onchange="loadProviders()">
       <option value="volAdj">Vol-Adj Expectancy</option>
       <option value="expectancy">Raw Expectancy</option>
@@ -183,12 +316,21 @@ select:focus{outline:none;border-color:var(--accent-border)}
       <option value="completeness">Data Quality</option>
     </select>
   </div>
+  <span class="filter-count" id="result-count"></span>
 </div>
 
 <!-- ═══ Provider Grid ═══ -->
-<div class="grid" id="provider-grid">
+<div id="provider-grid">
   <div class="loading">Loading providers...</div>
 </div>
+
+<!-- ═══ No-JS Fallback ═══ -->
+<noscript>
+  <div class="noscript-section">
+    <h2>JavaScript required</h2>
+    <p>The AgoraIQ Marketplace requires JavaScript to load provider data and live feeds. Please enable JavaScript or use a modern browser.</p>
+  </div>
+</noscript>
 
 <!-- ═══ Detail Modal ═══ -->
 <div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
@@ -200,198 +342,354 @@ const TOKEN = localStorage.getItem('agoraiq_token');
 if (!TOKEN) window.location.href = '/login';
 function headers() { return { Authorization: 'Bearer ' + TOKEN }; }
 
-// ── Auth check: Pro/Elite only ──
-(async function checkTier() {
+// ── Auth gate ──
+let userTier = 'FREE';
+(async function init() {
   try {
     const r = await fetch('/api/v1/auth/me', { headers: headers() });
     if (!r.ok) { window.location.href = '/login'; return; }
     const d = await r.json();
-    const tier = d.subscription?.planTier || d.subscription?.tier?.toUpperCase() || 'FREE';
-    if (tier === 'FREE') {
+    userTier = d.subscription?.planTier || d.subscription?.tier?.toUpperCase() || 'FREE';
+    if (userTier === 'FREE') {
       document.getElementById('provider-grid').innerHTML = `
-        <div class="empty">
-          <div style="font-size:48px;margin-bottom:16px">◈</div>
-          <div style="font-size:16px;font-weight:600;margin-bottom:8px">Marketplace requires Pro or Elite</div>
-          <div style="margin-bottom:20px">Upgrade your plan to browse verified signal providers</div>
-          <a href="/dashboard#subscription" style="padding:10px 24px;border-radius:8px;background:var(--accent);color:#fff;font-weight:600;font-size:13px">Upgrade Now →</a>
+        <div class="empty" style="padding:80px 32px">
+          <div style="font-size:40px;margin-bottom:12px">◈</div>
+          <div style="font-size:17px;font-weight:700;margin-bottom:6px">Marketplace requires Pro or Elite</div>
+          <div style="color:var(--text2);margin-bottom:20px;font-size:13px">Upgrade to browse 100+ verified signal providers with immutable proof</div>
+          <a href="/dashboard#subscription" style="display:inline-block;padding:10px 28px;border-radius:8px;background:var(--accent);color:#fff;font-weight:700;font-size:13px">Upgrade Now →</a>
         </div>`;
       return;
     }
+    loadHeroStats();
     loadProviders();
+    connectSSE();
   } catch { window.location.href = '/login'; }
 })();
 
+// ── Hero Stats (single lightweight call) ──
+async function loadHeroStats() {
+  try {
+    const r = await fetch('/api/v1/marketplace/summary');
+    const d = await r.json();
+    document.getElementById('h-total').textContent = d.total;
+    document.getElementById('h-verified').textContent = d.verified;
+    document.getElementById('h-beta').textContent = d.beta;
+    document.getElementById('h-trades').textContent = d.totalResolvedTradesAllTime.toLocaleString();
+    document.getElementById('c-all').textContent = d.tracked;
+    document.getElementById('c-signal').textContent = d.signals;
+    document.getElementById('c-tool').textContent = d.tools;
+    document.getElementById('c-alert').textContent = d.alerts;
+  } catch {}
+}
+
 // ── Load Providers ──
+let currentType = 'all';
+function setCollection(el, key) {
+  document.querySelectorAll('.coll-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  if (key === 'topvae') { document.getElementById('f-sort').value = 'volAdj'; document.getElementById('f-min').value = '5'; }
+  else if (key === 'consistent') { document.getElementById('f-sort').value = 'volAdj'; document.getElementById('f-min').value = '20'; }
+  else if (key === 'winrate') { document.getElementById('f-sort').value = 'winrate'; document.getElementById('f-min').value = '5'; }
+  else if (key === 'bots') { currentType = 'TOOL'; document.querySelectorAll('.type-tab').forEach(t => { t.classList.toggle('active', t.dataset.type === 'TOOL'); }); }
+  else if (key === 'alerts') { currentType = 'ALERT'; document.querySelectorAll('.type-tab').forEach(t => { t.classList.toggle('active', t.dataset.type === 'ALERT'); }); }
+  else { document.getElementById('f-sort').value = 'volAdj'; document.getElementById('f-min').value = '0'; currentType = 'all'; document.querySelectorAll('.type-tab').forEach(t => { t.classList.toggle('active', t.dataset.type === 'all'); }); }
+  loadProviders();
+}
+
+function setType(el) {
+  document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentType = el.dataset.type;
+  loadProviders();
+}
+
+let searchTimeout;
+function onSearch() {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(loadProviders, 300);
+}
+
 async function loadProviders() {
   const grid = document.getElementById('provider-grid');
-  grid.innerHTML = '<div class="loading">Loading...</div>';
+  grid.innerHTML = '<div class="loading">Loading providers...</div>';
+  const search = document.getElementById('f-search')?.value?.trim() || '';
   const params = new URLSearchParams({
     market: document.getElementById('f-market').value,
-    style: document.getElementById('f-style').value,
     minTrades: document.getElementById('f-min').value,
     sort: document.getElementById('f-sort').value,
-    type: document.querySelector('.type-tab.active')?.dataset.type || 'all',
-    tier: document.getElementById('f-tier').value,
+    tier: 'all',
+    type: currentType,
+    limit: '200',
   });
+  if (search.length >= 2) params.set('search', search);
   try {
     const r = await fetch('/api/v1/marketplace/providers?' + params);
     const d = await r.json();
-    if (!d.providers || d.providers.length === 0) {
-      grid.innerHTML = '<div class="empty">No providers match your filters</div>';
+    const all = d.providers || [];
+    document.getElementById('result-count').textContent = all.length + ' results';
+    if (all.length === 0) {
+      grid.innerHTML = '<div class="empty"><div style="font-size:32px;margin-bottom:8px">∅</div>No providers match your filters<br><span style="font-size:12px;color:var(--dim)">Try adjusting filters or switching tabs</span></div>';
       return;
     }
-    grid.innerHTML = d.providers.map(p => renderCard(p)).join('');
+    // 3 buckets
+    const verified = all.filter(p => p.tier === 'VERIFIED');
+    const beta = all.filter(p => p.tier === 'BETA');
+    const pending = all.filter(p => p.tier === 'PENDING');
+
+    // Sort: verified by VaE, beta by trades desc, pending by name
+    verified.sort((a,b) => (b.stats30d?.volAdjExpectancy||0) - (a.stats30d?.volAdjExpectancy||0));
+    beta.sort((a,b) => (b.stats30d?.trades||0) - (a.stats30d?.trades||0) || (b.stats30d?.dataCompleteness||0) - (a.stats30d?.dataCompleteness||0));
+    pending.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+
+    let html = '';
+    if (verified.length > 0) {
+      html += '<div class="section-label">Verified & Ranked — meets all verification thresholds</div>';
+      html += '<div class="grid">' + verified.map(p => renderCard(p)).join('') + '</div>';
+    }
+    if (beta.length > 0) {
+      html += '<div class="section-label">Tracked (Beta) — ingesting signals, not yet ranked (' + beta.length + ')</div>';
+      html += '<div class="grid">' + beta.map(p => renderCard(p)).join('') + '</div>';
+    }
+    if (pending.length > 0) {
+      html += '<div class="section-label">Directory — listed, tracking not yet started (' + pending.length + ')</div>';
+      html += '<div class="grid">' + pending.map(p => renderCard(p)).join('') + '</div>';
+    }
+    grid.innerHTML = html;
   } catch(e) {
-    grid.innerHTML = '<div class="empty">Failed to load providers</div>';
+    grid.innerHTML = '<div class="empty">Failed to load providers. <button onclick="loadProviders()" style="color:var(--accent);text-decoration:underline">Retry</button></div>';
   }
 }
 
 function renderCard(p) {
   const s = p.stats30d || {};
-  const vae = s.volAdjExpectancy != null ? (s.volAdjExpectancy >= 0 ? '+' : '') + s.volAdjExpectancy.toFixed(2) : '—';
-  const wr = s.winRate != null ? (s.winRate * 100).toFixed(1) + '%' : '—';
+  const isPending = p.tier === 'PENDING';
+  const isVerified = p.tier === 'VERIFIED';
   const trades = s.trades || 0;
+
+  // Tier badge
+  const tierBadge = isVerified ? '<span class="pc-badge ranked">\u2713 Ranked</span>'
+    : isPending ? '<span class="pc-badge" style="background:var(--bg3);color:var(--dim);border:1px solid var(--border)">\u23f3 Directory</span>'
+    : '<span class="pc-badge beta">\ud83e\uddea Beta</span>';
+
+  // Type badge
+  const typeIcon = p.providerType === 'TOOL' ? '\ud83e\udd16' : p.providerType === 'ALERT' ? '\ud83d\udc0b' : '\ud83d\udce1';
+  const typeClass = p.providerType === 'TOOL' ? 'type-tool' : p.providerType === 'ALERT' ? 'type-alert' : 'type-signal';
+
+  // Tags
+  const tags = [p.category, p.chain, (p.tags||{}).market, (p.tags||{}).style].filter(Boolean);
+
+  // For PENDING: no stats, just directory listing
+  if (isPending) {
+    return `<div class="pc" style="opacity:.7" onclick="openDetail('${esc(p.slug)}')">
+      <div class="pc-top">
+        <div class="pc-name">${esc(p.name)}</div>
+        <div class="pc-badges">${tierBadge}<span class="pc-badge ${typeClass}">${typeIcon} ${p.providerType||'SIGNAL'}</span></div>
+      </div>
+      <div class="pc-tags">${tags.map(t => '<span class="pc-tag">'+esc(t)+'</span>').join('') || '<span class="pc-tag">Crypto</span>'}</div>
+      <div style="padding:12px 0;text-align:center;color:var(--text3);font-size:11px;border:1px dashed var(--border);border-radius:6px;margin-bottom:12px">Tracking not started · Listed in directory</div>
+      <div class="pc-footer">
+        <span class="pc-meta"><span>${p.language || 'EN'}</span></span>
+        <span style="font-size:10px;color:var(--dim)">No data yet</span>
+      </div>
+    </div>`;
+  }
+
+  // Stats for VERIFIED and BETA
+  const vae = s.volAdjExpectancy != null ? (s.volAdjExpectancy >= 0 ? '+' : '') + s.volAdjExpectancy.toFixed(2) : '\u2014';
+  const wr = s.winRate != null ? (s.winRate * 100).toFixed(1) + '%' : '\u2014';
+  const maxdd = s.maxDD != null ? s.maxDD.toFixed(1) + '%' : '\u2014';
   const cherry = s.cherryLabel || 'Unknown';
   const cherryClass = cherry === 'Clean' ? 'clean' : cherry === 'Caution' ? 'caution' : 'suspect';
   const vaeClass = s.volAdjExpectancy > 0 ? 'pos' : s.volAdjExpectancy < 0 ? 'neg' : 'neutral';
   const wrVal = s.winRate != null ? s.winRate * 100 : 0;
   const wrClass = wrVal >= 50 ? 'pos' : wrVal > 0 ? 'neg' : 'neutral';
   const compl = s.dataCompleteness != null ? (s.dataCompleteness * 100).toFixed(0) : 0;
-  const tags = p.tags || {};
-  const typeIcon = p.providerType === 'TOOL' ? '🤖' : p.providerType === 'ALERT' ? '🐋' : '📡';
-  const tagHtml = [p.providerType !== 'SIGNAL' ? p.category : null, p.chain, tags.market, tags.style, tags.leverageBand, tags.exchange].filter(Boolean).map(t => `<span class="pc-tag">${t}</span>`).join('');
-  const verified = p.isVerified ? ' verified' : '';
-  return `<div class="provider-card${verified}" onclick="openDetail('${p.slug}')">
-    <div class="pc-header">
-      <span class="pc-name">${esc(p.name)}</span>
-      <span style="display:flex;gap:6px;align-items:center">
-        <span class="pc-badge" style="background:${p.tier==='VERIFIED'?'var(--green-dim)':'var(--blue-dim)'};color:${p.tier==='VERIFIED'?'var(--green)':'var(--blue)'}">${p.tier==='VERIFIED'?'✅ Ranked':'🧪 Beta'}</span>
-        <span class="pc-badge ${cherryClass}">${cherry}</span>
-      </span>
+  const complClass = compl >= 60 ? 'high' : compl >= 30 ? 'mid' : 'low';
+  const verifiedDot = isVerified ? '<span class="pc-verified" title="Meets all verification thresholds">\u2713</span>' : '';
+
+  return `<div class="pc" onclick="openDetail('${esc(p.slug)}')">
+    <div class="pc-top">
+      <div class="pc-name">${verifiedDot}${esc(p.name)}</div>
+      <div class="pc-badges">${tierBadge}<span class="pc-badge ${typeClass}">${typeIcon} ${p.providerType||'SIGNAL'}</span>${trades > 0 ? '<span class="pc-badge '+cherryClass+'">'+cherry+'</span>' : ''}</div>
     </div>
-    <div class="pc-tags">${tagHtml || '<span class="pc-tag">Crypto</span>'} <span class="pc-tag" style="border-color:var(--accent-border);color:var(--accent)">${typeIcon} ${p.providerType || 'SIGNAL'}</span></div>
+    <div class="pc-tags">${tags.map(t => '<span class="pc-tag">'+esc(t)+'</span>').join('') || '<span class="pc-tag">Crypto</span>'}</div>
     <div class="pc-stats">
-      <div class="pc-stat"><div class="pc-stat-val ${vaeClass}">${vae}</div><div class="pc-stat-label">VaE (30d)</div></div>
-      <div class="pc-stat"><div class="pc-stat-val ${wrClass}">${wr}</div><div class="pc-stat-label">Win Rate</div></div>
-      <div class="pc-stat"><div class="pc-stat-val neutral">${trades}</div><div class="pc-stat-label">Trades</div></div>
+      <div class="pc-s"><div class="pc-s-val ${vaeClass}">${vae}</div><div class="pc-s-label">VaE</div></div>
+      <div class="pc-s"><div class="pc-s-val ${wrClass}">${wr}</div><div class="pc-s-label">Win Rate</div></div>
+      <div class="pc-s"><div class="pc-s-val neutral">${trades}</div><div class="pc-s-label">Trades</div></div>
+      <div class="pc-s"><div class="pc-s-val neutral">${maxdd}</div><div class="pc-s-label">Max DD</div></div>
     </div>
     <div class="pc-footer">
-      <span class="pc-meta">${p.subscriberCount || 0} subs · ${p.language || 'EN'}</span>
-      <span class="pc-completeness"><span class="pc-bar"><span class="pc-bar-fill" style="width:${compl}%"></span></span>${compl}% complete</span>
+      <span class="pc-meta"><span>${p.language || 'EN'}</span><span>${p.channelType || 'telegram'}</span></span>
+      <span class="pc-quality">
+        <span class="pc-bar"><span class="pc-bar-fill ${complClass}" style="width:${compl}%"></span></span>
+        ${compl}% quality
+      </span>
     </div>
   </div>`;
 }
 
-// ── Provider Detail ──
+// ── Provider Detail Modal ──
 async function openDetail(slug) {
   const modal = document.getElementById('modal');
-  const content = document.getElementById('modal-content');
+  const mc = document.getElementById('modal-content');
   modal.classList.add('open');
-  content.innerHTML = '<div class="loading">Loading...</div>';
+  document.body.style.overflow = 'hidden';
+  mc.innerHTML = '<div class="loading" style="padding:40px">Loading provider data...</div>';
   try {
-    const [detail, monthly] = await Promise.all([
-      fetch('/api/v1/marketplace/providers/' + slug).then(r => r.json()),
-      fetch('/api/v1/marketplace/providers/' + slug + '/monthly').then(r => r.json()),
-    ]);
+    const detail = await fetch('/api/v1/marketplace/providers/' + slug).then(r => r.json());
     const p = detail.provider;
+    const bestStats = detail.stats?.['30d'] || detail.stats?.['all'] || {};
+    const trades = bestStats.trades || 0;
+
+    // PENDING or very low data: show minimal modal
+    if (p.marketplaceTier === 'PENDING' || trades < 5) {
+      const compl = bestStats.dataCompleteness != null ? (bestStats.dataCompleteness * 100).toFixed(1) + '%' : '0%';
+      const lc = bestStats.lifecycle || {};
+      mc.innerHTML = '<span class="modal-x" onclick="closeModal()">✕</span>' +
+        '<h2>' + esc(p.name) + '</h2>' +
+        '<div class="modal-sub">' + esc(p.description || '') + '</div>' +
+        '<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:20px">' +
+          '<div style="font-size:13px;font-weight:700;margin-bottom:8px;color:var(--amber)">Not enough data for ranking</div>' +
+          '<div style="font-size:12px;color:var(--text2);margin-bottom:16px">' +
+            (p.marketplaceTier === 'PENDING' ? 'This provider is listed in the directory but tracking has not started yet.' :
+            'This provider is being tracked but needs ≥30 trades and ≥60% data completeness to be ranked.') +
+          '</div>' +
+          '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;font-size:12px">' +
+            '<div><span style="color:var(--text3)">Status:</span> <span style="color:var(--text)">' + p.marketplaceTier + '</span></div>' +
+            '<div><span style="color:var(--text3)">Trades (30d):</span> <span style="color:var(--text)">' + trades + ' / 30 needed</span></div>' +
+            '<div><span style="color:var(--text3)">Data quality:</span> <span style="color:var(--text)">' + compl + ' / 60% needed</span></div>' +
+            '<div><span style="color:var(--text3)">Tracked since:</span> <span style="color:var(--text)">' + (p.trackedSince ? new Date(p.trackedSince).toLocaleDateString() : 'Not yet') + '</span></div>' +
+          '</div>' +
+          (lc.withEntry != null ? '<div style="margin-top:16px"><div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px">PARSING COVERAGE</div><div class="lc-grid">' +
+            '<div class="lc-item"><div class="lc-val">' + (lc.withEntry != null ? (lc.withEntry*100).toFixed(0)+'%' : '—') + '</div><div class="lc-label">Entry</div></div>' +
+            '<div class="lc-item"><div class="lc-val">' + (lc.withSL != null ? (lc.withSL*100).toFixed(0)+'%' : '—') + '</div><div class="lc-label">Stop Loss</div></div>' +
+            '<div class="lc-item"><div class="lc-val">' + (lc.withTP != null ? (lc.withTP*100).toFixed(0)+'%' : '—') + '</div><div class="lc-label">Take Profit</div></div>' +
+            '<div class="lc-item"><div class="lc-val">' + (lc.withOutcome != null ? (lc.withOutcome*100).toFixed(0)+'%' : '—') + '</div><div class="lc-label">Resolved</div></div>' +
+          '</div></div>' : '') +
+        '</div>' +
+        '<div style="text-align:center;padding:12px;border:1px dashed var(--border);border-radius:8px;font-size:12px;color:var(--text3)">' +
+          'Have info about this provider\u0027s signal format? <button onclick="closeModal();openSubmitForm()" style="color:var(--accent);text-decoration:underline;border:none;background:none;cursor:pointer;font-size:12px">Help improve coverage</button>' +
+        '</div>';
+      return;
+    }
+
+    // Full detail for providers with data
+    const monthly = await fetch('/api/v1/marketplace/providers/' + slug + '/monthly').then(r => r.json());
     const periods = ['7d','30d','90d','all'];
     let activePeriod = '30d';
 
-    function renderDetail() {
+    function render() {
       const s = detail.stats[activePeriod] || {};
       const vae = s.volAdjExpectancy != null ? (s.volAdjExpectancy >= 0 ? '+' : '') + s.volAdjExpectancy.toFixed(3) : '—';
-      const wr = s.winRate != null ? (s.winRate * 100).toFixed(1) + '%' : '—';
       const exp = s.expectancyR != null ? (s.expectancyR >= 0 ? '+' : '') + s.expectancyR.toFixed(3) + 'R' : '—';
+      const wr = s.winRate != null ? (s.winRate * 100).toFixed(1) + '%' : '—';
       const sigma = s.rStddev != null ? s.rStddev.toFixed(3) : '—';
       const pf = s.profitFactor != null ? s.profitFactor.toFixed(2) : '—';
       const dd = s.maxDD != null ? s.maxDD.toFixed(1) + '%' : '—';
       const compl = s.dataCompleteness != null ? (s.dataCompleteness * 100).toFixed(1) + '%' : '—';
       const conf = s.sampleConfidence || '—';
+      const cherryLabel = s.cherryLabel || 'Unknown';
+      const cherryColor = cherryLabel === 'Clean' ? 'var(--green)' : cherryLabel === 'Caution' ? 'var(--amber)' : 'var(--red)';
 
-      const lcHtml = s.lifecycle ? `
-        <div style="margin-top:20px">
-          <div style="font-weight:600;margin-bottom:8px;font-size:13px">Signal Lifecycle Completeness</div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
-            ${['Entry|' + ((s.lifecycle.withEntry||0)*100).toFixed(0), 'SL|' + ((s.lifecycle.withSL||0)*100).toFixed(0), 'TP|' + ((s.lifecycle.withTP||0)*100).toFixed(0), 'Outcome|' + ((s.lifecycle.withOutcome||0)*100).toFixed(0)].map(x => {
-              const [l,v] = x.split('|');
-              return `<div style="text-align:center"><div style="font-family:var(--mono);font-weight:600;font-size:14px">${v}%</div><div style="font-size:10px;color:var(--text3)">${l}</div></div>`;
-            }).join('')}
-          </div>
-        </div>` : '';
+      const lc = s.lifecycle || {};
+      const lcHtml = `<div class="lc-grid">
+        <div class="lc-item"><div class="lc-val">${lc.withEntry != null ? (lc.withEntry*100).toFixed(0)+'%' : '—'}</div><div class="lc-label">Entry</div></div>
+        <div class="lc-item"><div class="lc-val">${lc.withSL != null ? (lc.withSL*100).toFixed(0)+'%' : '—'}</div><div class="lc-label">Stop Loss</div></div>
+        <div class="lc-item"><div class="lc-val">${lc.withTP != null ? (lc.withTP*100).toFixed(0)+'%' : '—'}</div><div class="lc-label">Take Profit</div></div>
+        <div class="lc-item"><div class="lc-val">${lc.withOutcome != null ? (lc.withOutcome*100).toFixed(0)+'%' : '—'}</div><div class="lc-label">Resolved</div></div>
+      </div>`;
 
-      const monthHtml = (monthly.months || []).slice(0,6).map(m => `
-        <div style="display:flex;align-items:center;gap:12px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">
-          <span style="font-family:var(--mono);width:60px;color:var(--text3)">${m.month}</span>
-          <span style="width:50px;font-family:var(--mono);font-weight:600;color:${m.volAdjExpectancy > 0 ? 'var(--green)' : m.volAdjExpectancy < 0 ? 'var(--red)' : 'var(--text3)'}">${m.volAdjExpectancy != null ? m.volAdjExpectancy.toFixed(2) : '—'}</span>
-          <span style="width:50px;color:var(--text2)">${m.trades} trades</span>
-          <span style="width:50px;color:var(--text2)">${m.winRate != null ? (m.winRate*100).toFixed(0) + '%' : '—'} WR</span>
-        </div>`).join('');
+      const monthRows = (monthly.months || []).slice(0,8).map(m => {
+        const mvae = m.volAdjExpectancy != null ? m.volAdjExpectancy.toFixed(2) : '—';
+        const mColor = m.volAdjExpectancy > 0 ? 'var(--green)' : m.volAdjExpectancy < 0 ? 'var(--red)' : 'var(--text3)';
+        return `<div class="month-row">
+          <span style="width:60px;color:var(--text3)">${m.month}</span>
+          <span style="width:55px;color:${mColor};font-weight:600">${mvae}</span>
+          <span style="width:55px;color:var(--text2)">${m.trades} trades</span>
+          <span style="width:50px;color:var(--text2)">${m.winRate != null ? (m.winRate*100).toFixed(0)+'% WR' : '—'}</span>
+        </div>`;
+      }).join('');
 
-      const signalHtml = (detail.recentSignals || []).slice(0,5).map(s => `
-        <div class="timeline-item">
-          <span class="tl-type" style="color:${s.outcome==='HIT_TP'?'var(--green)':s.outcome==='HIT_SL'?'var(--red)':'var(--text3)'}">${s.outcome}</span>
-          <span class="tl-pair">${s.symbol}</span>
-          <span class="tl-r" style="color:${(s.rMultiple||0)>=0?'var(--green)':'var(--red)'}">${s.rMultiple!=null?(s.rMultiple>=0?'+':'')+s.rMultiple.toFixed(1)+'R':'—'}</span>
-          <span class="tl-hash">${s.hashShort||''} ${s.wasEdited?'✏':''}${s.wasDeleted?'🗑':''}</span>
-          <span class="tl-time">${new Date(s.timestamp).toLocaleDateString()}</span>
-        </div>`).join('');
+      const signalRows = (detail.recentSignals || []).slice(0,8).map(sig => {
+        const cls = sig.outcome === 'HIT_TP' ? 'tp' : sig.outcome === 'HIT_SL' ? 'sl' : 'active';
+        const rVal = sig.rMultiple != null ? (sig.rMultiple >= 0 ? '+' : '') + sig.rMultiple.toFixed(1) + 'R' : '—';
+        const rColor = (sig.rMultiple||0) >= 0 ? 'var(--green)' : 'var(--red)';
+        const flags = (sig.wasEdited ? ' <span style="color:var(--amber)" title="Signal was edited after posting">✏</span>' : '') + (sig.wasDeleted ? ' <span style="color:var(--red)" title="Signal was deleted">🗑</span>' : '');
+        return `<div class="timeline-row">
+          <span class="tl-badge ${cls}">${sig.outcome}</span>
+          <span style="font-weight:600;width:80px">${sig.symbol}</span>
+          <span style="color:${rColor};font-family:var(--mono);font-weight:600;width:50px">${rVal}</span>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">${sig.hashShort || ''}${flags}</span>
+          <span style="margin-left:auto;color:var(--text3);font-size:10px">${sig.timestamp ? new Date(sig.timestamp).toLocaleDateString() : ''}</span>
+        </div>`;
+      }).join('');
 
-      content.innerHTML = `
-        <div style="position:relative">
-          <span style="position:absolute;top:0;right:0;font-size:18px;color:var(--text3);cursor:pointer" onclick="closeModal()">✕</span>
-          <h2>${esc(p.name)} ${p.isVerified ? '<span style="color:var(--green);font-size:14px">● Verified</span>' : ''}</h2>
-          <div class="subtitle">${esc(p.description || 'No description')} · Tracked since ${p.trackedSince ? new Date(p.trackedSince).toLocaleDateString() : 'Unknown'}</div>
-          <div class="period-tabs">
-            ${periods.map(pd => `<button class="period-tab ${pd===activePeriod?'active':''}" onclick="window._setPeriod('${pd}')">${pd}</button>`).join('')}
-          </div>
-          <div class="stat-grid">
-            <div class="stat-card"><div class="val" style="color:${s.volAdjExpectancy>0?'var(--green)':'var(--red)'}">${vae}</div><div class="lbl">Vol-Adj Expectancy</div></div>
-            <div class="stat-card"><div class="val">${exp}</div><div class="lbl">Raw Expectancy</div></div>
-            <div class="stat-card"><div class="val">${wr}</div><div class="lbl">Win Rate</div></div>
-            <div class="stat-card"><div class="val">${s.trades||0}</div><div class="lbl">Trades</div></div>
-            <div class="stat-card"><div class="val">${sigma}</div><div class="lbl">R Std Dev</div></div>
-            <div class="stat-card"><div class="val">${pf}</div><div class="lbl">Profit Factor</div></div>
-            <div class="stat-card"><div class="val">${dd}</div><div class="lbl">Max Drawdown</div></div>
-            <div class="stat-card"><div class="val">${conf}</div><div class="lbl">Sample Confidence</div></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-            <span style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;background:${s.cherryLabel==='Clean'?'var(--green-dim)':s.cherryLabel==='Caution'?'var(--amber-dim)':'var(--red-dim)'};color:${s.cherryLabel==='Clean'?'var(--green)':s.cherryLabel==='Caution'?'var(--amber)':'var(--red)'}">${s.cherryLabel || 'Unknown'}</span>
-            <span style="font-size:12px;color:var(--text3)">Cherry-Pick Score: ${s.cherryPickScore != null ? s.cherryPickScore.toFixed(3) : '—'}</span>
-            <span style="font-size:12px;color:var(--text3)">· Data Completeness: ${compl}</span>
-          </div>
+      mc.innerHTML = `
+        <span class="modal-x" onclick="closeModal()">✕</span>
+        <h2>${esc(p.name)} ${p.isVerified ? '<span style="color:var(--green);font-size:13px">● Verified</span>' : ''}</h2>
+        <div class="modal-sub">${esc(p.description || '')} · Tracked since ${p.trackedSince ? new Date(p.trackedSince).toLocaleDateString() : 'recently'}</div>
+
+        <div class="period-tabs">${periods.map(pd => `<button class="period-tab ${pd===activePeriod?'active':''}" onclick="window._sp('${pd}')">${pd}</button>`).join('')}</div>
+
+        <div class="stat-grid">
+          <div class="stat-card"><div class="val" style="color:${s.volAdjExpectancy>0?'var(--green)':'var(--red)'}">${vae}</div><div class="lbl">Vol-Adj Expectancy</div></div>
+          <div class="stat-card"><div class="val">${exp}</div><div class="lbl">Expectancy</div></div>
+          <div class="stat-card"><div class="val">${wr}</div><div class="lbl">Win Rate</div></div>
+          <div class="stat-card"><div class="val">${s.trades||0}</div><div class="lbl">Trades</div></div>
+          <div class="stat-card"><div class="val">${sigma}</div><div class="lbl">R Std Dev</div></div>
+          <div class="stat-card"><div class="val">${pf}</div><div class="lbl">Profit Factor</div></div>
+          <div class="stat-card"><div class="val">${dd}</div><div class="lbl">Max Drawdown</div></div>
+          <div class="stat-card"><div class="val">${conf}</div><div class="lbl">Confidence</div></div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;background:${cherryLabel==='Clean'?'var(--green-dim)':cherryLabel==='Caution'?'var(--amber-dim)':'var(--red-dim)'};color:${cherryColor}">${cherryLabel}</span>
+          <span style="font-size:11px;color:var(--text3)">Cherry Score: ${s.cherryPickScore != null ? s.cherryPickScore.toFixed(3) : '—'}</span>
+          <span style="font-size:11px;color:var(--text3)">· Data Quality: ${compl}</span>
+        </div>
+
+        <div class="detail-section">
+          <h3>Signal Lifecycle</h3>
+          <p style="font-size:11px;color:var(--text3);margin-bottom:10px">What % of signals include each component. Providers need ≥60% to be ranked.</p>
           ${lcHtml}
-          <div style="margin-top:24px">
-            <div style="font-weight:600;margin-bottom:8px;font-size:13px">Monthly Breakdown</div>
-            ${monthHtml || '<div style="color:var(--text3);font-size:12px">No monthly data yet</div>'}
-          </div>
-          <div style="margin-top:24px">
-            <div style="font-weight:600;margin-bottom:8px;font-size:13px">Recent Signals</div>
-            ${signalHtml || '<div style="color:var(--text3);font-size:12px">No recent signals with hashes</div>'}
-          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3>Monthly Breakdown</h3>
+          ${monthRows || '<div style="color:var(--text3);font-size:12px">No monthly data yet</div>'}
+        </div>
+
+        <div class="detail-section">
+          <h3>Recent Signals</h3>
+          <p style="font-size:11px;color:var(--text3);margin-bottom:10px">Each signal is SHA-256 hashed at ingestion. Edits and deletes are flagged.</p>
+          ${signalRows || '<div style="color:var(--text3);font-size:12px">No resolved signals yet</div>'}
         </div>`;
     }
 
-    window._setPeriod = function(pd) { activePeriod = pd; renderDetail(); };
-    renderDetail();
+    window._sp = function(pd) { activePeriod = pd; render(); };
+    render();
   } catch(e) {
-    content.innerHTML = '<div class="empty">Failed to load provider details</div>';
+    mc.innerHTML = '<div class="empty">Failed to load provider. <button onclick="closeModal()" style="color:var(--accent)">Close</button></div>';
   }
 }
-function closeModal() { document.getElementById('modal').classList.remove('open'); }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-function setType(el) {
-  document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  loadProviders();
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow = '';
 }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 // ── SSE Live Feed ──
 function connectSSE() {
   const feed = document.getElementById('ticker-feed');
+  const dot = document.getElementById('ticker-dot');
   try {
     const es = new EventSource('/api/v1/feed/live');
-    es.addEventListener('connected', () => { feed.innerHTML = '<span style="color:var(--green);font-size:11px">● Connected</span>'; });
+    es.addEventListener('connected', () => {
+      dot.className = 'ticker-dot live';
+      feed.innerHTML = '<span style="color:var(--green);font-size:11px">Connected — waiting for signals</span>';
+    });
     es.addEventListener('signal', e => {
       try {
         const d = JSON.parse(e.data);
@@ -399,108 +697,91 @@ function connectSSE() {
         const icon = d.type === 'HIT_TP' ? '▲' : d.type === 'HIT_SL' ? '▼' : '◆';
         const item = document.createElement('span');
         item.className = 'ticker-item';
-        item.innerHTML = `<span style="color:${color}">${icon}</span> <span style="color:var(--text2)">${d.provider}</span> <span style="font-weight:600">${d.pair}</span> ${d.result ? `<span style="color:${color}">${d.result}</span>` : ''}`;
-        feed.insertBefore(item, feed.firstChild);
-        if (feed.children.length > 20) feed.removeChild(feed.lastChild);
+        item.innerHTML = `<span style="color:${color}">${icon}</span> <span style="color:var(--text3)">${esc(d.provider)}</span> <b>${esc(d.pair)}</b> ${d.result ? `<span style="color:${color};font-weight:700">${d.result}</span>` : ''}`;
+        if (feed.querySelector('.ticker-item')) {
+          feed.insertBefore(item, feed.firstChild);
+        } else {
+          feed.innerHTML = '';
+          feed.appendChild(item);
+        }
+        if (feed.children.length > 15) feed.removeChild(feed.lastChild);
       } catch {}
     });
-    es.onerror = () => { setTimeout(connectSSE, 5000); es.close(); };
+    es.onerror = () => {
+      dot.className = 'ticker-dot off';
+      setTimeout(() => { es.close(); connectSSE(); }, 5000);
+    };
   } catch { setTimeout(connectSSE, 5000); }
 }
-connectSSE();
 
-// Load tier summary
-(async function loadTierCounts() {
-  try {
-    const r = await fetch('/api/v1/marketplace/tiers/summary');
-    const d = await r.json();
-    document.getElementById('tier-counts').innerHTML =
-      '<span style="color:var(--green)">' + d.verified + ' verified</span> · ' +
-      '<span style="color:var(--blue)">' + d.beta + ' tracked</span> · ' +
-      (d.verified + d.beta) + ' providers';
-  } catch {}
-})();
-
-// Submit form
+// ── Submit Form ──
 function openSubmitForm() {
   const modal = document.getElementById('modal');
   const content = document.getElementById('modal-content');
   modal.classList.add('open');
-  content.innerHTML = `
-    <div style="position:relative">
-      <span style="position:absolute;top:0;right:0;font-size:18px;color:var(--text3);cursor:pointer" onclick="closeModal()">\u2715</span>
-      <h2>Suggest a Signal Provider</h2>
-      <div class="subtitle">Submit a Telegram or Discord channel for tracking. We'll review it within 48 hours.</div>
-      <div style="display:flex;flex-direction:column;gap:14px;margin-top:20px">
-        <div>
-          <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;display:block;margin-bottom:4px">Channel Name *</label>
-          <input id="sub-name" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px" placeholder="e.g. CryptoSignals VIP">
-        </div>
-        <div>
-          <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;display:block;margin-bottom:4px">Channel URL *</label>
-          <input id="sub-url" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px" placeholder="https://t.me/channel_name">
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div>
-            <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;display:block;margin-bottom:4px">Platform</label>
-            <select id="sub-type" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px">
-              <option value="telegram">Telegram</option><option value="discord">Discord</option>
-            </select>
-          </div>
-          <div>
-            <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;display:block;margin-bottom:4px">Market Type</label>
-            <select id="sub-market" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px">
-              <option value="">Unknown</option><option>Spot</option><option>Futures</option><option>Mixed</option>
-            </select>
-          </div>
-        </div>
-        <div>
-          <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;display:block;margin-bottom:4px">Your Email (optional)</label>
-          <input id="sub-email" type="email" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px" placeholder="you@example.com">
-        </div>
-        <div>
-          <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;display:block;margin-bottom:4px">Description</label>
-          <textarea id="sub-desc" rows="3" style="width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px;resize:vertical" placeholder="What makes this provider interesting?"></textarea>
-        </div>
-        <button id="sub-btn" onclick="submitProvider()" style="padding:10px 24px;border-radius:var(--r);background:var(--accent);color:#fff;font-size:14px;font-weight:600;border:none;cursor:pointer;margin-top:8px">Submit for Review</button>
-        <div id="sub-status" style="font-size:12px;margin-top:4px"></div>
-      </div>
+  document.body.style.overflow = 'hidden';
+  mc.innerHTML = `
+    <span class="modal-x" onclick="closeModal()">✕</span>
+    <h2>Suggest a Signal Provider</h2>
+    <div class="modal-sub">Submit a Telegram or Discord channel. We'll start tracking within 48 hours.</div>
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+      <span style="font-size:11px;padding:4px 10px;border-radius:4px;background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent-border)">Step 1: Submit link</span>
+      <span style="font-size:11px;padding:4px 10px;border-radius:4px;background:var(--bg3);color:var(--text3)">Step 2: We configure parser</span>
+      <span style="font-size:11px;padding:4px 10px;border-radius:4px;background:var(--bg3);color:var(--text3)">Step 3: Listed as Beta</span>
+      <span style="font-size:11px;padding:4px 10px;border-radius:4px;background:var(--bg3);color:var(--text3)">Step 4: Verified at 30+ trades</span>
+    </div>
+    <div class="form-field"><label>Channel Name *</label><input id="sub-name" placeholder="e.g. CryptoSignals VIP"></div>
+    <div class="form-field"><label>Channel URL *</label><input id="sub-url" placeholder="https://t.me/channel_name or Discord invite"></div>
+    <div class="form-row">
+      <div class="form-field"><label>Platform</label><select id="sub-type"><option value="telegram">Telegram</option><option value="discord">Discord</option></select></div>
+      <div class="form-field"><label>Market</label><select id="sub-market"><option value="">Unknown</option><option>Spot</option><option>Futures</option><option>Mixed</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-field"><label>Trading Style</label><select id="sub-style"><option value="">Unknown</option><option>Scalp</option><option>Day Trade</option><option>Swing</option><option>Position</option></select></div>
+      <div class="form-field"><label>Your Email (optional)</label><input id="sub-email" type="email" placeholder="you@example.com"></div>
+    </div>
+    <div class="form-field"><label>Notes</label><textarea id="sub-desc" placeholder="Signal format (Cornix, custom, etc.), frequency, anything else we should know"></textarea></div>
+    <button class="form-btn" id="sub-btn" onclick="doSubmit()">Submit for Review</button>
+    <div id="sub-status" style="margin-top:8px;font-size:12px"></div>
+    <div style="margin-top:16px;font-size:11px;color:var(--text3);border-top:1px solid var(--border);padding-top:12px">
+      <b>Supported formats:</b> Cornix, standard TP/SL format, custom (we'll configure). Most channels parse within 24h.<br>
+      <b>Verification:</b> Providers earn "Verified" status after 30+ resolved trades with ≥60% data completeness.
     </div>`;
 }
 
-async function submitProvider() {
+async function doSubmit() {
   const btn = document.getElementById('sub-btn');
   const status = document.getElementById('sub-status');
   const name = document.getElementById('sub-name').value.trim();
   const url = document.getElementById('sub-url').value.trim();
-  if (!name || !url) { status.innerHTML = '<span style="color:var(--red)">Name and URL are required</span>'; return; }
+  if (!name || !url) { status.innerHTML = '<span style="color:var(--red)">Channel name and URL are required</span>'; return; }
   btn.disabled = true; btn.textContent = 'Submitting...';
   try {
     const r = await fetch('/api/v1/marketplace/submit', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(TOKEN ? { Authorization: 'Bearer ' + TOKEN } : {}) },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + TOKEN },
       body: JSON.stringify({
-        channelName: name,
-        channelUrl: url,
+        channelName: name, channelUrl: url,
         channelType: document.getElementById('sub-type').value,
         email: document.getElementById('sub-email').value.trim() || null,
         marketType: document.getElementById('sub-market').value || null,
+        tradingStyle: document.getElementById('sub-style').value || null,
         description: document.getElementById('sub-desc').value.trim() || null,
       }),
     });
     const d = await r.json();
     if (d.submitted) {
-      status.innerHTML = '<span style="color:var(--green)">\u2705 Submitted! We\'ll review within 48 hours.</span>';
-      btn.textContent = 'Submitted';
+      status.innerHTML = '<span style="color:var(--green)">✓ Submitted! We\'ll review within 48h and start tracking.</span>';
+      btn.textContent = 'Submitted ✓';
     } else if (d.error === 'ALREADY_SUBMITTED') {
-      status.innerHTML = '<span style="color:var(--amber)">This channel has already been submitted.</span>';
+      status.innerHTML = '<span style="color:var(--amber)">This channel was already submitted.</span>';
       btn.disabled = false; btn.textContent = 'Submit for Review';
     } else {
-      status.innerHTML = '<span style="color:var(--red)">' + (d.error || 'Submission failed') + '</span>';
+      status.innerHTML = '<span style="color:var(--red)">' + (d.error || 'Failed') + '</span>';
       btn.disabled = false; btn.textContent = 'Submit for Review';
     }
-  } catch(e) {
-    status.innerHTML = '<span style="color:var(--red)">Network error. Please try again.</span>';
+  } catch {
+    status.innerHTML = '<span style="color:var(--red)">Network error — try again</span>';
     btn.disabled = false; btn.textContent = 'Submit for Review';
   }
 }

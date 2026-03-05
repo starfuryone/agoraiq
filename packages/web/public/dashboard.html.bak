@@ -339,6 +339,7 @@ select.filter-input { cursor: pointer; }
 .fade-in-4 { animation-delay: .20s; }
 .fade-in-5 { animation-delay: .25s; }
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -346,12 +347,19 @@ select.filter-input { cursor: pointer; }
 
   <!-- ═══ Sidebar ═══ -->
   <aside class="sidebar">
-    <a class="sidebar-logo" href="/">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <span class="mark"><span class="a">Agora</span><span class="b">IQ</span></span>
-    </a>
+    <a href="/dashboard" class="logo">
+    <svg width="130" height="36" viewBox="0 0 130 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="AgoraIQ">
+      <defs>
+        <linearGradient id="aiqHex" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#55d0ff"/>
+          <stop offset="100%" stop-color="#1a6eff"/>
+        </linearGradient>
+      </defs>
+      <polygon points="18,3 30,10 30,26 18,33 6,26 6,10" fill="url(#aiqHex)"/>
+      <text x="40" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#e2e4ef">Agora</text>
+      <text x="101" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#00d4ff">IQ</text>
+    </svg>
+  </a>
 
     <div class="sidebar-label">Intelligence</div>
     <nav class="sidebar-nav">
@@ -363,8 +371,16 @@ select.filter-input { cursor: pointer; }
         <span class="nav-badge" id="signal-count">—</span>
       </div>
       <div class="nav-item" data-page="providers">
-        <span class="nav-icon">◇</span> Providers
+        <span class="nav-icon">◎</span> Providers
       </div>
+      <div class="sidebar-label">Markets</div>
+      <div class="sidebar-nav">
+        <a href="/markets" style="display:flex;align-items:center;gap:10px;margin:8px;padding:10px 14px;border-radius:8px;background:linear-gradient(135deg,#06b6d4,#3b82f6);color:#fff;font-weight:600;font-size:13px;text-decoration:none;box-shadow:0 0 16px rgba(59,130,246,.4);transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          <span style="font-size:15px">⊞</span> Markets Console <span style="margin-left:auto;font-size:10px;opacity:.8">LIVE</span>
+      </a>
+      <a href="/marketplace" id="marketplace-nav" style="display:none;align-items:center;gap:10px;margin:8px;padding:10px 14px;border-radius:8px;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;font-weight:600;font-size:13px;text-decoration:none;box-shadow:0 0 16px rgba(167,139,250,.4);transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          <span style="font-size:15px">◈</span> Marketplace <span style="margin-left:auto;font-size:10px;opacity:.8">NEW</span>
+      </a>
       <div class="nav-item" data-page="parser">
         <span class="nav-icon">⟁</span> Signal Parser
       </div>
@@ -402,7 +418,7 @@ select.filter-input { cursor: pointer; }
 
     <div class="sidebar-plan" id="sidebar-plan">
       <div class="plan-label">Current Plan</div>
-      <div class="plan-name" id="plan-name">Loading…</div>
+      <img src="/pro-badge.svg" id="plan-name" style="width:190px;height:auto;margin:4px 0">
       <a class="plan-btn" id="plan-btn" href="#" onclick="navigate('subscription')">Manage Plan</a>
     </div>
   </aside>
@@ -461,6 +477,9 @@ async function init() {
     if (d.subscription) {
       planInfo.planTier = d.subscription.planTier || d.subscription.tier?.toUpperCase() || 'FREE';
       planInfo.subscriptionStatus = d.subscription.subscriptionStatus || d.subscription.status || 'inactive';
+      // Show Marketplace nav for Pro/Elite
+      const mpNav = document.getElementById("marketplace-nav");
+      if (mpNav && ["PRO","ELITE"].includes(planInfo.planTier)) { mpNav.style.display = "flex"; }
     }
 
     // Try billing status for more accurate data
@@ -473,6 +492,17 @@ async function init() {
     } catch(e) {}
 
     updatePlanUI();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const pageParam = urlParams.get('p');
+    if (pageParam && pageNames[pageParam]) {
+      currentPage = pageParam;
+      document.querySelectorAll('.nav-item').forEach(n => {
+        n.classList.toggle('active', n.dataset.page === pageParam);
+      });
+      document.getElementById('breadcrumb').textContent = pageNames[pageParam];
+    }
+
     loadPage();
   } catch (e) { logout(); }
 }
@@ -480,8 +510,8 @@ async function init() {
 function updatePlanUI() {
   const name = planInfo.planTier || 'FREE';
   const el = document.getElementById('plan-name');
-  el.textContent = name === 'FREE' ? 'Free Plan' : `${name} Plan`;
-  el.style.color = name === 'FREE' ? '#64748b' : name === 'ELITE' ? '#38bdf8' : '#a78bfa';
+  el.src = name === 'ELITE' ? '/elite-badge.svg' : name === 'PRO' ? '/pro-badge.svg' : '/pro-badge.svg';
+  el.style.display = name === 'FREE' ? 'none' : 'block';
 
   const btn = document.getElementById('plan-btn');
   if (name === 'FREE') {
@@ -495,7 +525,7 @@ function updatePlanUI() {
       try {
         const r = await fetch(`${BILLING_API}/portal`, { headers: headers() });
         const d = await r.json();
-        if (d.url) window.location.href = d.url;
+        if (d.url) { window.location.href = d.url; } else { navigate('subscription'); }
       } catch(e) { navigate('subscription'); }
     };
   }
@@ -510,6 +540,9 @@ const pageNames = {
 };
 
 function navigate(page) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('p', page);
+  window.history.pushState({}, '', url);
   currentPage = page;
   document.querySelectorAll('.nav-item').forEach(n => {
     n.classList.toggle('active', n.dataset.page === page);
@@ -670,7 +703,7 @@ async function loadSignals() {
         <h2>Live Signals</h2>
         <div class="subtitle">Real-time signal feed with outcome tracking</div>
       </div>
-      <a href="${API}/exports/csv" class="btn btn-green">⬇ Export CSV</a>
+      <button class="btn btn-green" onclick="exportCsv()">⬇ Export CSV</button>
     </div>
     <div class="filters fade-in fade-in-1">
       <input class="filter-input" id="f-symbol" placeholder="Symbol (e.g. BTCUSDT)" style="width:160px">
@@ -731,81 +764,142 @@ async function loadProviders() {
   el.innerHTML = `
     <div class="page-header fade-in">
       <div>
-        <h2>Provider Leaderboard</h2>
-        <div class="subtitle">Ranked by verified performance — not hype</div>
+        <h2>Signal Providers</h2>
+        <div class="subtitle">Live performance tracking across all connected channels</div>
       </div>
     </div>
-    <div class="filters fade-in fade-in-1">
+    <div id="prov-stats" class="fade-in fade-in-1" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px"></div>
+    <div class="filters fade-in fade-in-2" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:20px">
+      <input type="text" class="filter-input" id="p-search" placeholder="Search providers…" oninput="renderProviderView()" style="flex:1;min-width:160px">
       <select class="filter-input" id="p-period" onchange="fetchProviders()">
         <option value="7d">7 Days</option>
         <option value="30d" selected>30 Days</option>
         <option value="90d">90 Days</option>
       </select>
+      <select class="filter-input" id="p-category" onchange="renderProviderView()">
+        <option value="all">All Categories</option>
+        <option value="spot">Spot</option>
+        <option value="futures">Futures</option>
+        <option value="futures-low">Futures (Low)</option>
+        <option value="futures-high">Futures (High)</option>
+      </select>
+      <select class="filter-input" id="p-status" onchange="renderProviderView()">
+        <option value="all">All Statuses</option>
+        <option value="active">Receiving Signals</option>
+        <option value="awaiting">Awaiting Signals</option>
+      </select>
     </div>
-    <div class="card fade-in fade-in-2" style="padding:0;overflow:hidden">
+    <div class="card fade-in fade-in-3" style="padding:0;overflow:hidden">
       <div id="providers-table"><div class="loading-state"><div class="spinner"></div></div></div>
     </div>`;
   fetchProviders();
 }
-
+let _providerData = [];
+function getSourceIcon(cfg) {
+  if (!cfg) return '⚡';
+  if (cfg.source === 'telegram' || cfg.channel || cfg.telegramChannel) return '✈';
+  if (cfg.discordChannelId) return '🎮';
+  if (cfg.webhookSecret) return '🔗';
+  return '⚡';
+}
+function getSourceLabel(cfg) {
+  if (!cfg) return 'api';
+  if (cfg.source === 'telegram' || cfg.channel || cfg.telegramChannel) return 'telegram';
+  if (cfg.discordChannelId) return 'discord';
+  if (cfg.webhookSecret) return 'webhook';
+  return 'api';
+}
+function getCatColor(cat) {
+  if (cat === 'spot') return '#22d3ee';
+  if (cat && cat.startsWith('futures')) return '#a78bfa';
+  return '#64748b';
+}
+function renderProviderView() {
+  const search = (document.getElementById('p-search')?.value || '').toLowerCase();
+  const catFilter = document.getElementById('p-category')?.value || 'all';
+  const statusFilter = document.getElementById('p-status')?.value || 'all';
+  const all = _providerData;
+  const filtered = all.filter(p => {
+    if (search && !p.name.toLowerCase().includes(search) && !p.slug.toLowerCase().includes(search)) return false;
+    if (catFilter !== 'all') {
+      const cat = p.category || '';
+      if (catFilter === 'futures') { if (!cat.startsWith('futures') && cat !== 'all') return false; }
+      else if (cat !== catFilter && cat !== 'all') return false;
+    }
+    if (statusFilter === 'active' && p.totalTrades === 0) return false;
+    if (statusFilter === 'awaiting' && p.totalTrades > 0) return false;
+    return true;
+  });
+  const active = filtered.filter(p => p.totalTrades > 0).sort((a, b) => b.avgR - a.avgR);
+  const monitoring = filtered.filter(p => p.totalTrades === 0).sort((a, b) => a.name.localeCompare(b.name));
+  const totalProviders = all.length;
+  const activeCount = all.filter(p => p.totalTrades > 0).length;
+  const awaitingCount = all.filter(p => p.totalTrades === 0).length;
+  const totalSignals = all.reduce((s, p) => s + (p.totalTrades || 0), 0);
+  document.getElementById('prov-stats').innerHTML =
+    '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-top:2px solid #a78bfa"><div style="font-size:26px;font-weight:800;color:var(--text1)">' + totalProviders + '</div><div style="font-size:10px;color:var(--text3);margin-top:4px;text-transform:uppercase;letter-spacing:.05em">Total Providers</div></div>'
+    + '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-top:2px solid var(--green)"><div style="font-size:26px;font-weight:800;color:var(--green)">' + activeCount + '</div><div style="font-size:10px;color:var(--text3);margin-top:4px;text-transform:uppercase;letter-spacing:.05em">Receiving Signals</div></div>'
+    + '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-top:2px solid var(--amber)"><div style="font-size:26px;font-weight:800;color:var(--amber)">' + awaitingCount + '</div><div style="font-size:10px;color:var(--text3);margin-top:4px;text-transform:uppercase;letter-spacing:.05em">Awaiting Signals</div></div>'
+    + '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-top:2px solid #38bdf8"><div style="font-size:26px;font-weight:800;color:#38bdf8">' + totalSignals.toLocaleString() + '</div><div style="font-size:10px;color:var(--text3);margin-top:4px;text-transform:uppercase;letter-spacing:.05em">Trades Tracked</div></div>';
+  let html = '';
+  if (active.length) {
+    const rows = active.map((p, i) => {
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '<span style="color:var(--text3);font-size:13px">' + (i+1) + '</span>';
+      const wr = p.winRate;
+      const wrColor = wr >= 65 ? 'var(--green)' : wr >= 45 ? 'var(--text2)' : '#e05';
+      const rColor = p.avgR >= 1 ? 'var(--green)' : p.avgR > 0 ? 'var(--text2)' : '#e05';
+      const retColor = p.totalReturn >= 0 ? 'var(--green)' : '#e05';
+      const catColor = getCatColor(p.category);
+      return '<tr style="cursor:pointer" onclick="openProviderModal(\'' + p.slug + '\',\'' + p.name.replace(/'/g,"\\'") + '\')">'
+        + '<td style="text-align:center;font-size:15px;width:40px">' + medal + '</td>'
+        + '<td><div style="display:flex;align-items:center;gap:8px"><span style="font-size:14px">' + getSourceIcon(p._config) + '</span><div><div style="font-weight:600">' + p.name + '</div>'
+        + '<div style="display:flex;gap:6px;margin-top:2px;align-items:center">'
+        + '<span style="font-size:10px;color:' + catColor + ';background:' + catColor + '15;border:1px solid ' + catColor + '30;padding:1px 7px;border-radius:4px">' + (p.category || 'all') + '</span>'
+        + '<span style="font-size:9px;color:var(--text3)">' + getSourceLabel(p._config) + '</span>'
+        + '</div></div></div></td>'
+        + '<td style="font-family:var(--mono);text-align:right">' + p.totalTrades + '</td>'
+        + '<td style="font-family:var(--mono);text-align:right;color:' + wrColor + '">' + wr + '%</td>'
+        + '<td style="font-family:var(--mono);text-align:right;color:' + rColor + '">' + p.avgR.toFixed(2) + 'R</td>'
+        + '<td style="font-family:var(--mono);text-align:right;color:' + retColor + '">' + (p.totalReturn >= 0 ? '+' : '') + p.totalReturn.toFixed(1) + '%</td>'
+        + '<td style="text-align:center"><span style="display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;color:var(--green);background:rgba(52,211,153,.1)"><span style="font-size:7px">●</span> Active</span></td>'
+        + '</tr>';
+    });
+    html += '<div style="padding:16px 20px 8px"><div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">🏆 Leaderboard — Ranked by Avg R (' + active.length + ')</div></div>'
+      + '<table style="width:100%"><thead><tr>'
+      + '<th style="width:40px">#</th><th>Provider</th><th style="text-align:right">Trades</th><th style="text-align:right">Win Rate</th><th style="text-align:right">Avg R</th><th style="text-align:right">Return</th><th style="text-align:center;width:90px">Status</th>'
+      + '</tr></thead><tbody>' + rows.join('') + '</tbody></table>';
+  }
+  if (monitoring.length) {
+    html += '<div style="border-top:1px solid var(--border);padding:16px 20px 8px">'
+      + '<div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">📡 Monitoring — Awaiting First Signals (' + monitoring.length + ')</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">'
+      + monitoring.map(p => {
+          const catColor = getCatColor(p.category);
+          return '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px;transition:border-color .15s" onmouseover="this.style.borderColor=\'var(--text3)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+            + '<span style="font-size:16px;opacity:.7">' + getSourceIcon(p._config) + '</span>'
+            + '<div style="min-width:0;flex:1"><div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.name + '</div>'
+            + '<div style="display:flex;gap:6px;margin-top:3px;align-items:center">'
+            + '<span style="font-size:9px;color:' + catColor + ';background:' + catColor + '15;padding:1px 6px;border-radius:3px">' + (p.category || 'all') + '</span>'
+            + '<span style="font-size:9px;color:var(--text3)">' + getSourceLabel(p._config) + '</span>'
+            + '</div></div>'
+            + '<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;color:var(--amber);background:rgba(251,191,36,.1);white-space:nowrap"><span style="font-size:6px">◌</span> Awaiting</span>'
+            + '</div>';
+        }).join('')
+      + '</div></div>';
+  }
+  if (!active.length && !monitoring.length) {
+    html = '<div class="empty-state" style="padding:60px 20px"><div style="font-size:32px;margin-bottom:12px">📡</div><p>No providers match your filters</p></div>';
+  }
+  document.getElementById('providers-table').innerHTML = html;
+}
 async function fetchProviders() {
   const period = document.getElementById('p-period')?.value || '30d';
   try {
+    document.getElementById('providers-table').innerHTML = '<div class="loading-state"><div class="spinner"></div></div>';
     const r = await fetch(API + '/providers?period=' + period, { headers: headers() });
     const d = await r.json();
-    const all = d.leaderboard || [];
-
-    const active = all.filter(p => p.totalTrades > 0);
-    const monitoring = all.filter(p => p.totalTrades === 0);
-
-    // ── Leaderboard table ──────────────────────────────────────
-    let html = '';
-    if (active.length) {
-      const rows = active.map((p, i) => {
-        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '<span style="color:var(--text3);font-size:13px">' + (i+1) + '</span>';
-        const wr = p.winRate;
-        const wrColor = wr >= 65 ? 'var(--green)' : wr >= 45 ? 'var(--text2)' : '#e05';
-        const rColor = p.avgR >= 1 ? 'var(--green)' : p.avgR > 0 ? 'var(--text2)' : '#e05';
-        const retColor = p.totalReturn >= 0 ? 'var(--green)' : '#e05';
-        return '<tr style="cursor:pointer" data-slug="' + p.slug + '" data-name="' + p.name.replace(/"/g,'&quot;') + '">'
-          + '<td style="text-align:center;font-size:15px;width:48px">' + medal + '</td>'
-          + '<td><div style="font-weight:600">' + p.name + '</div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">' + p.category + '</div></td>'
-          + '<td style="font-family:var(--mono);text-align:right">' + p.totalTrades + '</td>'
-          + '<td style="font-family:var(--mono);text-align:right;color:' + wrColor + '">' + wr + '%</td>'
-          + '<td style="font-family:var(--mono);text-align:right;color:' + rColor + '">' + p.avgR.toFixed(2) + 'R</td>'
-          + '<td style="font-family:var(--mono);text-align:right;color:' + retColor + '">' + (p.totalReturn >= 0 ? '+' : '') + p.totalReturn.toFixed(1) + '%</td>'
-          + '</tr>';
-      });
-      html += '<table style="width:100%">'
-        + '<thead><tr>'
-        + '<th style="width:48px">#</th>'
-        + '<th>Provider</th>'
-        + '<th style="text-align:right">Signals</th>'
-        + '<th style="text-align:right">Win Rate</th>'
-        + '<th style="text-align:right">Avg R</th>'
-        + '<th style="text-align:right">Return</th>'
-        + '</tr></thead>'
-        + '<tbody>' + rows.join('') + '</tbody></table>';
-    } else {
-      html += '<div class="empty-state" style="padding:40px">No completed trades in this period yet</div>';
-    }
-
-    // ── Monitoring grid ────────────────────────────────────────
-    if (monitoring.length) {
-      html += '<div style="border-top:1px solid var(--border);padding:16px 20px 8px">'
-        + '<div style="color:var(--text3);font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px">📡 Monitoring — Awaiting First Signals (' + monitoring.length + ')</div>'
-        + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">'
-        + monitoring.map(p =>
-            '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px">'
-            + '<span style="display:flex;align-items:center;gap:1px"><span class="wl-dot"></span><span class="wl-dot"></span><span class="wl-dot"></span></span>'
-            + '<div style="min-width:0"><div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.name + '</div>'
-            + '<div style="font-size:10px;color:var(--text3)">' + p.category + '</div></div>'
-            + '</div>'
-          ).join('')
-        + '</div></div>';
-    }
-
-    document.getElementById('providers-table').innerHTML = html;
+    _providerData = d.leaderboard || [];
+    renderProviderView();
   } catch(e) {
     document.getElementById('providers-table').innerHTML = '<div class="empty-state">Error loading providers</div>';
     console.error(e);
@@ -1080,14 +1174,14 @@ async function loadSubscription() {
       ` : ''}
       <div style="margin-top:16px;display:flex;gap:8px">
         ${tier !== 'FREE' ? `<button class="btn btn-accent" onclick="openPortal()">Manage Billing →</button>` : ''}
-        ${tier === 'FREE' ? `<a class="btn btn-accent" href="https://buy.stripe.com/test_6oU28sfnC9CYbXe1wAbAs00">Upgrade to Pro — $99/mo</a>` : ''}
-        ${tier === 'FREE' ? `<a class="btn btn-ghost" href="https://buy.stripe.com/test_dRmdRa5N202o1iA7UYbAs01">Upgrade to Elite — $299/mo</a>` : ''}
+        ${tier === 'FREE' ? `<button class="btn btn-accent" onclick="startCheckout('PRO')">Upgrade to Pro — $19/mo</button>` : ''}
+        ${tier === 'FREE' ? `<button class="btn btn-ghost" onclick="startCheckout('ELITE')">Upgrade to Elite — $49/mo</button>` : ''}
       </div>
     </div>
 
     <div class="overview-grid fade-in fade-in-2">
       <div class="card">
-        <div class="card-title"><span class="icon" style="color:var(--accent)">◆</span> Pro — $99/mo</div>
+        <div class="card-title"><span class="icon" style="color:var(--accent)">◆</span> Pro — $19/mo</div>
         <div style="font-size:13px;color:var(--text3);line-height:1.7">
           ✓ Full signal history<br>
           ✓ Advanced analytics<br>
@@ -1099,7 +1193,7 @@ async function loadSubscription() {
         ${tier === 'FREE' ? `<a class="btn btn-accent" href="https://buy.stripe.com/test_6oU28sfnC9CYbXe1wAbAs00" style="width:100%;margin-top:16px">Upgrade to Pro →</a>` : ''}
       </div>
       <div class="card">
-        <div class="card-title"><span class="icon" style="color:var(--blue)">⬡</span> Elite — $299/mo</div>
+        <div class="card-title"><span class="icon" style="color:var(--blue)">⬡</span> Elite — $49/mo</div>
         <div style="font-size:13px;color:var(--text3);line-height:1.7">
           ✓ Everything in Pro<br>
           ✓ Discord integration<br>
@@ -1111,6 +1205,19 @@ async function loadSubscription() {
         ${tier !== 'ELITE' ? `<a class="btn btn-ghost" href="https://buy.stripe.com/test_dRmdRa5N202o1iA7UYbAs01" style="width:100%;margin-top:16px;border-color:rgba(56,189,248,.2);color:var(--blue)">Upgrade to Elite →</a>` : ''}
       </div>
     </div>`;
+}
+
+async function startCheckout(planKey) {
+  try {
+    const r = await fetch(`${BILLING_API}/checkout`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ planKey })
+    });
+    const d = await r.json();
+    if (d.url) { window.location.href = d.url; }
+    else { alert(d.message || 'Checkout failed. Please try again.'); }
+  } catch(e) { alert('Could not start checkout. Please try again.'); }
 }
 
 async function openPortal() {
@@ -1837,7 +1944,24 @@ function renderTopSymbols(symbols) {
 
 (function() {
 
-var TICKER_COINS = ['BTCUSDT','ETHUSDT','SOLUSDT','XRPUSDT','DOGEUSDT','ADAUSDT','AVAXUSDT','DOTUSDT','LINKUSDT','BNBUSDT'];
+
+// Binance symbol → Kraken pair (Kraken normalises response keys, map both forms)
+var KRAKEN_PAIRS = {
+  'BTCUSDT':'XBTUSD',  'ETHUSDT':'ETHUSD',  'SOLUSDT':'SOLUSD',
+  'XRPUSDT':'XRPUSD',  'DOGEUSDT':'XDGUSD', 'ADAUSDT':'ADAUSD',
+  'AVAXUSDT':'AVAXUSD','DOTUSDT':'DOTUSD',   'LINKUSDT':'LINKUSD',
+  'UNIUSDT':'UNIUSD',
+};
+// Kraken normalised response key → Binance-style symbol (for reverse lookup)
+var KRAKEN_RMAP = {
+  'XXBTZUSD':'BTCUSDT','XETHZUSD':'ETHUSDT','SOLUSD':'SOLUSDT',
+  'XXRPZUSD':'XRPUSDT','XDGUSD':'DOGEUSDT', 'ADAUSD':'ADAUSDT',
+  'AVAXUSD':'AVAXUSDT','DOTUSD':'DOTUSDT',   'LINKUSD':'LINKUSDT',
+  'UNIUSD':'UNIUSDT',
+  // non-normalised fallbacks
+  'XBTUSD':'BTCUSDT','ETHUSD':'ETHUSDT','XRPUSD':'XRPUSDT',
+};
+var TICKER_COINS = ['BTCUSDT','ETHUSDT','SOLUSDT','XRPUSDT','DOGEUSDT','ADAUSDT','AVAXUSDT','DOTUSDT','LINKUSDT','UNIUSDT'];
 var NAMES = {BTCUSDT:'BTC',ETHUSDT:'ETH',SOLUSDT:'SOL',XRPUSDT:'XRP',DOGEUSDT:'DOGE',ADAUSDT:'ADA',AVAXUSDT:'AVAX',DOTUSDT:'DOT',LINKUSDT:'LINK',BNBUSDT:'BNB'};
 var ICONS = {BTC:'₿',ETH:'Ξ',SOL:'◎',XRP:'✕',DOGE:'Ð',ADA:'₳',AVAX:'🔺',DOT:'●',LINK:'⬡',BNB:'◆'};
 var tickerData = {};
@@ -1920,24 +2044,45 @@ function renderSparkBars(data) {
 // ── Fetch Ticker Data ─────────────────────────────────────────
 async function fetchTickerData() {
   try {
-    var symbols = TICKER_COINS.map(function(s){return '"'+s+'"'}).join(',');
-    var r = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=[' + symbols + ']');
-    var data = await r.json();
-    data.forEach(function(t) { tickerData[t.symbol] = t; });
+    var pairs = TICKER_COINS.map(function(s){ return KRAKEN_PAIRS[s]; }).filter(Boolean).join(',');
+    var r = await fetch('https://api.kraken.com/0/public/Ticker?pair=' + pairs);
+    var json = await r.json();
+    if (json.error && json.error.length) throw new Error(json.error[0]);
+    Object.entries(json.result).forEach(function(entry) {
+      var krakenKey = entry[0], t = entry[1];
+      var sym = KRAKEN_RMAP[krakenKey];
+      if (!sym) return;
+      var price  = parseFloat(t.c[0]);
+      var open24 = parseFloat(t.o);
+      var chgPct = ((price - open24) / open24) * 100;
+      // Normalise to same shape updateTickerBar() expects
+      tickerData[sym] = {
+        lastPrice:          t.c[0],
+        priceChangePercent: chgPct.toFixed(2),
+      };
+    });
     updateTickerBar();
   } catch(e) {
-    console.warn('Ticker fetch error:', e);
+    console.warn('Ticker fetch error (Kraken):', e);
   }
 }
 
 // ── Fetch Sparkline Data ──────────────────────────────────────
 var sparkData = {};
 async function fetchSparklines() {
+  // Kraken OHLC: interval=60 = 1h candles, close price is index 4
   for (var i = 0; i < TICKER_COINS.length; i++) {
+    var binSym  = TICKER_COINS[i];
+    var krakPair = KRAKEN_PAIRS[binSym];
+    if (!krakPair) continue;
     try {
-      var r = await fetch('https://api.binance.com/api/v3/klines?symbol=' + TICKER_COINS[i] + '&interval=1h&limit=8');
-      var klines = await r.json();
-      sparkData[TICKER_COINS[i]] = klines.map(function(k) { return parseFloat(k[4]); }); // close prices
+      var r = await fetch('https://api.kraken.com/0/public/OHLC?pair=' + krakPair + '&interval=60');
+      var json = await r.json();
+      if (json.error && json.error.length) continue;
+      var pairKey = Object.keys(json.result).find(function(k){ return k !== 'last'; });
+      if (!pairKey) continue;
+      var candles = json.result[pairKey].slice(-8); // last 8 hourly candles
+      sparkData[binSym] = candles.map(function(k) { return parseFloat(k[4]); });
     } catch(e) {}
   }
   updateTickerBar();
@@ -2038,6 +2183,7 @@ fetchSparklines();
 // Refresh every 30 seconds
 setInterval(fetchTickerData, 30000);
 setInterval(fetchSparklines, 300000); // sparklines every 5 min
+setInterval(function(){ if(typeof loadPage==='function') loadPage(); }, 30000); // refresh dashboard data every 30s
 
 })();
 
@@ -2059,7 +2205,7 @@ loadOverview = async function() {
     section.innerHTML =
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
         '<div class="card-title" style="margin:0"><span class="icon">🌐</span> Live Market</div>' +
-        '<span style="font-size:10px;color:var(--text3);font-family:var(--mono)">via Binance · updates every 30s</span>' +
+        '<span style="font-size:10px;color:var(--text3);font-family:var(--mono)">via Kraken · updates every 30s</span>' +
       '</div>' +
       '<div id="market-overview"><div class="loading-state"><div class="spinner"></div></div></div>';
     kpiGrid.parentNode.insertBefore(section, kpiGrid.nextSibling);
@@ -2777,6 +2923,35 @@ function renderMonthlyBreakdownStandalone(months, container) {
     }
   }
 })();
+
+async function exportCsv() {
+  const token = localStorage.getItem('agoraiq_token');
+  if (!token) { window.location.href = '/login.html'; return; }
+  const btn = event.target;
+  btn.textContent = '⏳ Exporting...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${API}/exports/csv`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (res.status === 401) { window.location.href = '/login.html'; return; }
+    if (!res.ok) throw new Error('Export failed: ' + res.status);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'agoraiq-signals-' + new Date().toISOString().slice(0,10) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    alert('Export failed: ' + e.message);
+  } finally {
+    btn.textContent = '⬇ Export CSV';
+    btn.disabled = false;
+  }
+}
 
 </script>
 </body>

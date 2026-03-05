@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#060a14"/>
+<title>Privacy Policy — AgoraIQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#060a14;--bg2:#0b1120;--bg3:#111827;--bg4:#1a2332;
+  --border:#1e293b;--border2:#334155;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --cyan:#38bdf8;--violet:#a78bfa;--green:#4ade80;--amber:#f59e0b;--red:#ff3b5c;
+  --mono:'JetBrains Mono',monospace;--sans:'DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(6,10,20,.82);backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid rgba(30,41,59,.5)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-weight:800;font-size:16px;letter-spacing:-.02em;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px}
+.nav-logo .agora{color:#e2e8f0}
+.nav-logo .iq{color:#00e5ff}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-links a{font-size:13px;font-weight:500;color:var(--text3);text-decoration:none;padding:6px 14px;border-radius:8px;transition:all .2s}
+.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.nav-cta{font-size:13px;font-weight:600;color:#fff;background:linear-gradient(135deg,var(--cyan),var(--violet));padding:7px 18px;border-radius:8px;text-decoration:none;transition:opacity .2s}
+.nav-cta:hover{opacity:.88}
+
+/* PAGE */
+.page-wrap{max-width:800px;margin:0 auto;padding:64px 24px 96px}
+.page-header{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--border)}
+.page-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.15);border-radius:999px;padding:4px 14px;font-size:12px;font-weight:600;color:var(--violet);letter-spacing:.06em;text-transform:uppercase;margin-bottom:16px}
+.page-header h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.03em;line-height:1.15;margin-bottom:12px}
+.page-header p{font-size:14px;color:var(--text3)}
+.uk-banner{background:rgba(255,59,92,.06);border:1px solid rgba(255,59,92,.2);border-radius:12px;padding:16px 20px;margin-bottom:40px;font-size:13.5px;line-height:1.7;color:var(--text2)}
+.uk-banner strong{color:var(--red);display:block;margin-bottom:4px;font-size:14px}
+
+/* CONTENT */
+.doc-section{margin-bottom:40px}
+.doc-section h2{font-size:17px;font-weight:700;color:var(--text);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.doc-section h3{font-size:14px;font-weight:600;color:var(--cyan);margin:20px 0 8px}
+.doc-section p{font-size:14px;color:var(--text2);line-height:1.8;margin-bottom:12px}
+.doc-section p:last-child{margin-bottom:0}
+.doc-section ul{padding-left:20px;margin-bottom:12px}
+.doc-section ul li{font-size:14px;color:var(--text2);line-height:1.8;margin-bottom:4px}
+.doc-section a{color:var(--cyan);text-decoration:none}
+.doc-section a:hover{text-decoration:underline}
+.data-table{width:100%;border-collapse:collapse;margin:16px 0 12px;font-size:13px}
+.data-table th{text-align:left;padding:10px 14px;background:var(--bg3);color:var(--text3);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border2)}
+.data-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:rgba(255,255,255,.02)}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:5px;font-family:var(--mono)}
+.badge-green{background:rgba(74,222,128,.1);color:var(--green);border:1px solid rgba(74,222,128,.2)}
+.badge-amber{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+
+/* ── MEGA FOOTER ── */
+.site-footer{border-top:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.25)}
+.site-footer-inner{max-width:1200px;margin:0 auto;padding:40px 24px 48px}
+.footer-top{display:flex;flex-wrap:wrap;gap:40px 56px;margin-bottom:32px}
+.footer-brand{min-width:200px;max-width:260px}
+.footer-logo{display:flex;align-items:center;gap:6px;text-decoration:none;font-size:14px;font-weight:800;letter-spacing:-.02em;margin-bottom:12px}
+.footer-logo .agora{color:#e2e8f0}
+.footer-logo .iq{color:#00e5ff}
+.footer-logo svg{flex-shrink:0}
+.footer-brand p{font-size:12px;color:var(--text3);line-height:1.65}
+.footer-col h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:12px}
+.footer-col a{display:block;font-size:12.5px;color:var(--text3);text-decoration:none;padding:3px 0;transition:color .2s}
+.footer-col a:hover{color:var(--cyan)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.06);padding-top:20px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px}
+.footer-disclaimer{font-size:11px;line-height:1.6;color:var(--text3);max-width:640px}
+.footer-disclaimer strong{color:var(--red)}
+.footer-copy{font-size:11px;color:rgba(255,255,255,.2)}
+@media(max-width:600px){.footer-top{gap:28px}.footer-brand{max-width:100%}}
+
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><svg width="22" height="22" viewBox="0 0 40 40" fill="none"><defs><linearGradient id="hg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="#00e5ff"/><stop offset="1" stop-color="#0066ff"/></linearGradient></defs><polygon points="20,2 38,11 38,29 20,38 2,29 2,11" fill="url(#hg)"/></svg><span class="logotext"><span class="agora">Agora</span><span class="iq">IQ</span></span></a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/proof">Proof</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/login">Log in</a>
+      <a href="/signup" class="nav-cta">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+  <div class="page-header">
+    <div class="page-tag">Legal</div>
+    <h1>Privacy Policy</h1>
+    <p>Last updated: 18 February 2026 &nbsp;·&nbsp; ChatLogic Insights LTD</p>
+  </div>
+
+  <div class="uk-banner">
+    <strong>⚠ Not Available to UK Persons</strong>
+    AgoraIQ is not authorised or regulated by the Financial Conduct Authority (FCA). This service is not directed at, and must not be accessed by, persons located in the United Kingdom. By using AgoraIQ you confirm you are not a UK person as defined under the Financial Services and Markets Act 2000 (FSMA). ChatLogic Insights LTD does not accept UK residents as users and will delete any data collected from UK persons upon identification.
+  </div>
+
+  <div class="doc-section">
+    <h2>1. Who We Are</h2>
+    <p>ChatLogic Insights LTD ("we", "us", "our") operates the AgoraIQ platform at <a href="https://agoraiq.net">agoraiq.net</a> and <a href="https://app.agoraiq.net">app.agoraiq.net</a>. We are the data controller responsible for your personal data.</p>
+    <p>Company registration: ChatLogic Insights LTD. For data protection enquiries, contact us at: <a href="mailto:privacy@agoraiq.net">privacy@agoraiq.net</a></p>
+  </div>
+
+  <div class="doc-section">
+    <h2>2. Data We Collect</h2>
+    <table class="data-table">
+      <thead>
+        <tr><th>Category</th><th>Examples</th><th>Purpose</th><th>Basis</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Account data</td>
+          <td>Email address, display name, password hash</td>
+          <td>Account creation and authentication</td>
+          <td><span class="badge badge-green">Contract</span></td>
+        </tr>
+        <tr>
+          <td>Usage data</td>
+          <td>Pages visited, features used, session duration</td>
+          <td>Platform improvement and security</td>
+          <td><span class="badge badge-amber">Legitimate interest</span></td>
+        </tr>
+        <tr>
+          <td>Technical data</td>
+          <td>IP address, browser type, device identifiers</td>
+          <td>Security, fraud prevention, debugging</td>
+          <td><span class="badge badge-amber">Legitimate interest</span></td>
+        </tr>
+        <tr>
+          <td>Payment data</td>
+          <td>Billing address, last 4 digits (Stripe handles card data)</td>
+          <td>Subscription billing</td>
+          <td><span class="badge badge-green">Contract</span></td>
+        </tr>
+        <tr>
+          <td>Communications</td>
+          <td>Support tickets, email correspondence</td>
+          <td>Customer support</td>
+          <td><span class="badge badge-green">Contract</span></td>
+        </tr>
+        <tr>
+          <td>Marketing preferences</td>
+          <td>Email opt-in status, communication preferences</td>
+          <td>Sending product updates (opt-in only)</td>
+          <td><span class="badge badge-green">Consent</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <p>We do not collect special category data (health, biometric, racial or ethnic origin, religious beliefs, political opinions, sexual orientation).</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>3. Lawful Bases Under GDPR</h2>
+    <p>We process your personal data on the following lawful bases:</p>
+    <ul>
+      <li><strong>Contract performance</strong> — processing necessary to provide you the AgoraIQ service under our Terms of Service.</li>
+      <li><strong>Legitimate interests</strong> — security monitoring, fraud prevention, product analytics, and improving service reliability, where these interests are not overridden by your rights.</li>
+      <li><strong>Consent</strong> — where you have explicitly opted in to marketing communications. You may withdraw consent at any time.</li>
+      <li><strong>Legal obligation</strong> — where we are required to process data to comply with applicable law.</li>
+    </ul>
+  </div>
+
+  <div class="doc-section">
+    <h2>4. How We Use Your Data</h2>
+    <ul>
+      <li>Providing, maintaining, and improving the AgoraIQ platform</li>
+      <li>Processing subscription payments via Stripe</li>
+      <li>Sending transactional emails (account confirmations, receipts, security alerts)</li>
+      <li>Responding to support requests</li>
+      <li>Detecting and preventing fraud, abuse, and security incidents</li>
+      <li>Complying with legal obligations and enforcing our Terms</li>
+      <li>Sending marketing communications where you have opted in</li>
+    </ul>
+    <p>We do not sell, rent, or trade your personal data to third parties for their own marketing purposes.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>5. Data Sharing</h2>
+    <p>We share data only where necessary with trusted sub-processors:</p>
+    <table class="data-table">
+      <thead>
+        <tr><th>Processor</th><th>Purpose</th><th>Location</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Stripe</td><td>Payment processing</td><td>USA (SCCs)</td></tr>
+        <tr><td>DigitalOcean</td><td>Cloud infrastructure and database hosting</td><td>USA / EU regions</td></tr>
+        <tr><td>Cloudflare</td><td>CDN, DDoS protection</td><td>USA (SCCs)</td></tr>
+        <tr><td>Postmark / SendGrid</td><td>Transactional email delivery</td><td>USA (SCCs)</td></tr>
+        <tr><td>Sentry</td><td>Error monitoring</td><td>USA (SCCs)</td></tr>
+      </tbody>
+    </table>
+    <p>Where data is transferred outside the EEA, we rely on Standard Contractual Clauses (SCCs) approved by the European Commission or equivalent safeguards.</p>
+    <p>We may disclose data to law enforcement or regulatory authorities when required by law or to protect our legal rights.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>6. Data Retention</h2>
+    <p>We retain personal data only as long as necessary for the purposes described in this policy:</p>
+    <ul>
+      <li><strong>Account data</strong> — retained for the duration of your account plus 12 months after closure, unless a longer period is required by law.</li>
+      <li><strong>Usage and technical logs</strong> — retained for up to 90 days.</li>
+      <li><strong>Payment records</strong> — retained for 7 years for tax and accounting compliance.</li>
+      <li><strong>Support communications</strong> — retained for 3 years.</li>
+      <li><strong>Marketing preferences</strong> — retained until you withdraw consent or close your account.</li>
+    </ul>
+  </div>
+
+  <div class="doc-section">
+    <h2>7. Your Rights Under GDPR</h2>
+    <p>If you are located in the EEA, UK (notwithstanding our exclusion of UK persons), or Switzerland, you have the following rights:</p>
+    <ul>
+      <li><strong>Access</strong> — request a copy of your personal data we hold.</li>
+      <li><strong>Rectification</strong> — request correction of inaccurate or incomplete data.</li>
+      <li><strong>Erasure</strong> — request deletion of your data ("right to be forgotten") where no legal basis remains.</li>
+      <li><strong>Portability</strong> — receive your data in a machine-readable format.</li>
+      <li><strong>Restriction</strong> — request we limit processing of your data in certain circumstances.</li>
+      <li><strong>Objection</strong> — object to processing based on legitimate interests, including direct marketing.</li>
+      <li><strong>Withdraw consent</strong> — where processing is based on consent, withdraw at any time without affecting prior processing.</li>
+    </ul>
+    <p>To exercise any right, email <a href="mailto:privacy@agoraiq.net">privacy@agoraiq.net</a>. We will respond within 30 days. We may need to verify your identity before acting on a request.</p>
+    <p>You also have the right to lodge a complaint with your local data protection authority. For EEA users, the relevant authority is determined by your country of residence.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>8. Cookies</h2>
+    <p>We use cookies and similar tracking technologies. For full details, see our <a href="/cookies">Cookie Policy</a>. You may manage cookie preferences at any time through your browser settings or our cookie consent tool.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>9. Security</h2>
+    <p>We implement appropriate technical and organisational measures to protect your personal data, including:</p>
+    <ul>
+      <li>TLS/HTTPS encryption for all data in transit</li>
+      <li>AES-256 encryption at rest for sensitive fields</li>
+      <li>HTTP-only, SameSite cookie flags for session tokens</li>
+      <li>Role-based access controls and Row-Level Security on our database</li>
+      <li>Regular security audits and vulnerability assessments</li>
+    </ul>
+    <p>No transmission over the internet is completely secure. If you believe your account has been compromised, contact us immediately at <a href="mailto:security@agoraiq.net">security@agoraiq.net</a>.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>10. Children</h2>
+    <p>AgoraIQ is not directed at persons under the age of 18. We do not knowingly collect personal data from minors. If we become aware that we have collected data from a minor, we will delete it promptly. If you believe a minor has registered, contact <a href="mailto:privacy@agoraiq.net">privacy@agoraiq.net</a>.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>11. Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. We will notify registered users of material changes by email and update the "Last updated" date at the top of this page. Continued use of AgoraIQ after changes take effect constitutes acceptance of the revised policy.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>12. Contact</h2>
+    <p>For any privacy-related questions, requests, or complaints:</p>
+    <p>
+      <strong>ChatLogic Insights LTD</strong><br/>
+      Data Protection enquiries: <a href="mailto:privacy@agoraiq.net">privacy@agoraiq.net</a><br/>
+      General: <a href="mailto:hello@agoraiq.net">hello@agoraiq.net</a>
+    </p>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="/" class="footer-logo"><svg width="18" height="18" viewBox="0 0 40 40" fill="none"><defs><linearGradient id="hg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="#00e5ff"/><stop offset="1" stop-color="#0066ff"/></linearGradient></defs><polygon points="20,2 38,11 38,29 20,38 2,29 2,11" fill="url(#hg)"/></svg><span class="logotext"><span class="agora">Agora</span><span class="iq">IQ</span></span></a>
+        <p>AI-powered signal intelligence. Track, score, and verify crypto trading signals with verifiable proof.</p>
+      </div>
+      <div class="footer-col">
+        <h4>About Us</h4>
+        <a href="/about">About</a>
+        <a href="/careers">Careers</a>
+        <a href="/announcements">Announcements</a>
+        <a href="/news">News</a>
+        <a href="/press">Press</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/cookies">Cookies</a>
+        <a href="/disclaimer">Disclaimer</a>
+        <a href="/trust">Building Trust</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="/blog">Blog</a>
+        <a href="/community">Community</a>
+        <a href="/risk-warning">Risk Warning</a>
+        <a href="/notices">Notices</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-disclaimer"><strong>⚠ Not for UK Persons.</strong> AgoraIQ is not authorised or regulated by the FCA. Not directed at UK persons. Nothing on this site constitutes financial advice. Past performance does not guarantee future results.</div>
+      <div class="footer-copy">© 2026 ChatLogic Insights LTD. All rights reserved.</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

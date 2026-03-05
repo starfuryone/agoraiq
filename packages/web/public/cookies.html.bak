@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#060a14"/>
+<title>Cookie Policy — AgoraIQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#060a14;--bg2:#0b1120;--bg3:#111827;--bg4:#1a2332;
+  --border:#1e293b;--border2:#334155;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --cyan:#38bdf8;--violet:#a78bfa;--green:#4ade80;--amber:#f59e0b;--red:#ff3b5c;
+  --mono:'JetBrains Mono',monospace;--sans:'DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+.nav{position:sticky;top:0;z-index:100;background:rgba(6,10,20,.82);backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid rgba(30,41,59,.5)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-weight:800;font-size:16px;letter-spacing:-.02em;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px}
+.nav-logo .agora{color:#a78bfa}
+.nav-logo .iq{color:#e2e8f0}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-links a{font-size:13px;font-weight:500;color:var(--text3);text-decoration:none;padding:6px 14px;border-radius:8px;transition:all .2s}
+.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.nav-cta{font-size:13px;font-weight:600;color:#fff;background:linear-gradient(135deg,var(--cyan),var(--violet));padding:7px 18px;border-radius:8px;text-decoration:none;transition:opacity .2s}
+.nav-cta:hover{opacity:.88}
+.page-wrap{max-width:800px;margin:0 auto;padding:64px 24px 96px}
+.page-header{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--border)}
+.page-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.15);border-radius:999px;padding:4px 14px;font-size:12px;font-weight:600;color:var(--violet);letter-spacing:.06em;text-transform:uppercase;margin-bottom:16px}
+.page-header h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.03em;line-height:1.15;margin-bottom:12px}
+.page-header p{font-size:14px;color:var(--text3)}
+.doc-section{margin-bottom:40px}
+.doc-section h2{font-size:17px;font-weight:700;color:var(--text);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.doc-section p{font-size:14px;color:var(--text2);line-height:1.8;margin-bottom:12px}
+.doc-section p:last-child{margin-bottom:0}
+.doc-section ul{padding-left:20px;margin-bottom:12px}
+.doc-section ul li{font-size:14px;color:var(--text2);line-height:1.8;margin-bottom:4px}
+.doc-section a{color:var(--cyan);text-decoration:none}
+.doc-section a:hover{text-decoration:underline}
+.cookie-table{width:100%;border-collapse:collapse;margin:16px 0 12px;font-size:13px}
+.cookie-table th{text-align:left;padding:10px 14px;background:var(--bg3);color:var(--text3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border2)}
+.cookie-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top;line-height:1.6}
+.cookie-table tr:last-child td{border-bottom:none}
+.cookie-table td:first-child{font-family:var(--mono);font-size:12px;color:var(--cyan);white-space:nowrap}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:5px;font-family:var(--mono)}
+.badge-green{background:rgba(74,222,128,.1);color:var(--green);border:1px solid rgba(74,222,128,.2)}
+.badge-amber{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.badge-red{background:rgba(255,59,92,.1);color:var(--red);border:1px solid rgba(255,59,92,.2)}
+.cookie-category{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:12px 0}
+.cookie-category-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cookie-category-title{font-size:14px;font-weight:700;color:var(--text)}
+.cookie-category p{font-size:13px;color:var(--text2);line-height:1.7;margin:0}
+.legal-footer{border-top:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.25)}
+.legal-footer-inner{max-width:1200px;margin:0 auto;padding:32px 24px 40px}
+.legal-disclaimer{font-size:11.5px;line-height:1.7;color:var(--text3);max-width:860px}
+.legal-links{display:flex;flex-wrap:wrap;gap:6px 4px;align-items:center;margin-top:20px}
+.legal-links a{font-size:12px;color:var(--text3);text-decoration:none;transition:color .2s}
+.legal-links a:hover{color:var(--cyan)}
+.legal-links a.active{color:var(--violet)}
+.legal-sep{color:rgba(255,255,255,.2);font-size:12px}
+
+.legal-copy{font-size:11px;color:rgba(255,255,255,.2);margin-top:12px}
+
+/* ── MEGA FOOTER ── */
+.site-footer{border-top:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.25)}
+.site-footer-inner{max-width:1200px;margin:0 auto;padding:40px 24px 48px}
+.footer-top{display:flex;flex-wrap:wrap;gap:40px 56px;margin-bottom:32px}
+.footer-brand{min-width:200px;max-width:260px}
+.footer-logo{display:flex;align-items:center;gap:6px;text-decoration:none;font-size:14px;font-weight:800;letter-spacing:-.02em;margin-bottom:12px}
+.footer-logo .agora{color:#a78bfa}
+.footer-logo .iq{color:#e2e8f0}
+.footer-logo svg{flex-shrink:0}
+.footer-brand p{font-size:12px;color:var(--text3);line-height:1.65}
+.footer-col h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:12px}
+.footer-col a{display:block;font-size:12.5px;color:var(--text3);text-decoration:none;padding:3px 0;transition:color .2s}
+.footer-col a:hover{color:var(--cyan)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.06);padding-top:20px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px}
+.footer-disclaimer{font-size:11px;line-height:1.6;color:var(--text3);max-width:640px}
+.footer-disclaimer strong{color:var(--red)}
+.footer-copy{font-size:11px;color:rgba(255,255,255,.2)}
+@media(max-width:600px){.footer-top{gap:28px}.footer-brand{max-width:100%}}
+
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/dashboard" class="logo">
+    <svg width="130" height="36" viewBox="0 0 130 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="AgoraIQ">
+      <defs>
+        <linearGradient id="aiqHex" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#55d0ff"/>
+          <stop offset="100%" stop-color="#1a6eff"/>
+        </linearGradient>
+      </defs>
+      <polygon points="18,3 30,10 30,26 18,33 6,26 6,10" fill="url(#aiqHex)"/>
+      <text x="40" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#e2e4ef">Agora</text>
+      <text x="101" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#00d4ff">IQ</text>
+    </svg>
+  </a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/proof">Proof</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/login">Log in</a>
+      <a href="/signup" class="nav-cta">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+  <div class="page-header">
+    <div class="page-tag">Legal</div>
+    <h1>Cookie Policy</h1>
+    <p>Last updated: 18 February 2026 &nbsp;·&nbsp; ChatLogic Insights LTD</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>1. What Are Cookies</h2>
+    <p>Cookies are small text files stored on your device when you visit a website. They help us remember your preferences, keep you logged in, understand how you use the platform, and improve your experience. We also use similar technologies including localStorage and session tokens.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>2. Cookie Categories</h2>
+
+    <div class="cookie-category">
+      <div class="cookie-category-header">
+        <span class="cookie-category-title">Strictly Necessary</span>
+        <span class="badge badge-green">Always Active</span>
+      </div>
+      <p>These cookies are essential for the platform to function. They include session authentication tokens (HTTP-only cookies), CSRF protection tokens, and load balancing cookies. You cannot opt out of these — without them the Service cannot operate.</p>
+    </div>
+
+    <div class="cookie-category">
+      <div class="cookie-category-header">
+        <span class="cookie-category-title">Functional / Preference</span>
+        <span class="badge badge-amber">Optional</span>
+      </div>
+      <p>These remember your settings such as dashboard layout, selected filters, timezone preference, and UI theme. Disabling them means your preferences will not be saved between sessions.</p>
+    </div>
+
+    <div class="cookie-category">
+      <div class="cookie-category-header">
+        <span class="cookie-category-title">Analytics</span>
+        <span class="badge badge-amber">Optional</span>
+      </div>
+      <p>We use privacy-focused analytics (no third-party advertising trackers) to understand how users navigate the platform, which features are used, and where errors occur. Data is aggregated and anonymised. We do not use Google Analytics.</p>
+    </div>
+
+    <div class="cookie-category">
+      <div class="cookie-category-header">
+        <span class="cookie-category-title">Marketing / Advertising</span>
+        <span class="badge badge-red">Not Used</span>
+      </div>
+      <p>We do not serve advertising and do not use advertising cookies or third-party marketing trackers on this platform.</p>
+    </div>
+  </div>
+
+  <div class="doc-section">
+    <h2>3. Specific Cookies We Set</h2>
+    <table class="cookie-table">
+      <thead>
+        <tr><th>Cookie Name</th><th>Purpose</th><th>Duration</th><th>Type</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>aiq_session</td>
+          <td>Authenticated session token (HTTP-only, Secure, SameSite=Strict)</td>
+          <td>7 days (sliding)</td>
+          <td><span class="badge badge-green">Necessary</span></td>
+        </tr>
+        <tr>
+          <td>aiq_refresh</td>
+          <td>Silent session refresh token (HTTP-only)</td>
+          <td>30 days</td>
+          <td><span class="badge badge-green">Necessary</span></td>
+        </tr>
+        <tr>
+          <td>aiq_csrf</td>
+          <td>Cross-site request forgery protection</td>
+          <td>Session</td>
+          <td><span class="badge badge-green">Necessary</span></td>
+        </tr>
+        <tr>
+          <td>aiq_prefs</td>
+          <td>Dashboard layout and UI preferences</td>
+          <td>1 year</td>
+          <td><span class="badge badge-amber">Functional</span></td>
+        </tr>
+        <tr>
+          <td>aiq_consent</td>
+          <td>Records your cookie consent choices</td>
+          <td>1 year</td>
+          <td><span class="badge badge-green">Necessary</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="doc-section">
+    <h2>4. Third-Party Cookies</h2>
+    <p>The following third-party services may set cookies when you interact with certain parts of the platform:</p>
+    <table class="cookie-table">
+      <thead>
+        <tr><th>Service</th><th>Purpose</th><th>Policy</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Stripe</td>
+          <td>Payment fraud prevention and checkout session</td>
+          <td><a href="https://stripe.com/privacy">stripe.com/privacy</a></td>
+        </tr>
+        <tr>
+          <td>Cloudflare</td>
+          <td>Security challenges, bot detection (__cf_bm)</td>
+          <td><a href="https://www.cloudflare.com/privacypolicy/">cloudflare.com/privacypolicy</a></td>
+        </tr>
+      </tbody>
+    </table>
+    <p>We do not use Facebook Pixel, Google Analytics, TikTok Pixel, or any advertising network cookies.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>5. Managing Cookies</h2>
+    <p>You can control cookies through:</p>
+    <ul>
+      <li><strong>Our consent banner</strong> — shown on first visit, accessible again via the cookie settings link in the page footer.</li>
+      <li><strong>Browser settings</strong> — all major browsers allow you to view, block, and delete cookies. Note that blocking strictly necessary cookies will prevent you from logging in.</li>
+      <li><strong>Browser extensions</strong> — tools such as uBlock Origin can block third-party cookies and trackers.</li>
+    </ul>
+    <p>Browser-specific guidance: <a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener">Chrome</a> &nbsp;·&nbsp; <a href="https://support.mozilla.org/en-US/kb/enhanced-tracking-protection-firefox-desktop" target="_blank" rel="noopener">Firefox</a> &nbsp;·&nbsp; <a href="https://support.apple.com/en-gb/guide/safari/sfri11471/mac" target="_blank" rel="noopener">Safari</a> &nbsp;·&nbsp; <a href="https://support.microsoft.com/en-us/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" target="_blank" rel="noopener">Edge</a></p>
+  </div>
+
+  <div class="doc-section">
+    <h2>6. Updates to This Policy</h2>
+    <p>We may update this Cookie Policy as our technology or legal requirements change. We will update the "Last updated" date and, for material changes, notify registered users by email.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>7. Contact</h2>
+    <p>For questions about cookies or tracking: <a href="mailto:privacy@agoraiq.net">privacy@agoraiq.net</a></p>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="/dashboard" class="logo">
+    <svg width="130" height="36" viewBox="0 0 130 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="AgoraIQ">
+      <defs>
+        <linearGradient id="aiqHex" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#55d0ff"/>
+          <stop offset="100%" stop-color="#1a6eff"/>
+        </linearGradient>
+      </defs>
+      <polygon points="18,3 30,10 30,26 18,33 6,26 6,10" fill="url(#aiqHex)"/>
+      <text x="40" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#e2e4ef">Agora</text>
+      <text x="101" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#00d4ff">IQ</text>
+    </svg>
+  </a>
+        <p>AI-powered signal intelligence. Track, score, and verify crypto trading signals with verifiable proof.</p>
+      </div>
+      <div class="footer-col">
+        <h4>About Us</h4>
+        <a href="/about">About</a>
+        <a href="/careers">Careers</a>
+        <a href="/announcements">Announcements</a>
+        <a href="/news">News</a>
+        <a href="/press">Press</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/cookies">Cookies</a>
+        <a href="/disclaimer">Disclaimer</a>
+        <a href="/trust">Building Trust</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="/blog">Blog</a>
+        <a href="/community">Community</a>
+        <a href="/risk-warning">Risk Warning</a>
+        <a href="/notices">Notices</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-disclaimer"><strong>⚠ Not for UK Persons.</strong> AgoraIQ is not authorised or regulated by the FCA. Not directed at UK persons. Nothing on this site constitutes financial advice. Past performance does not guarantee future results.</div>
+      <div class="footer-copy">© 2026 ChatLogic Insights LTD. All rights reserved.</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,15 @@
+[Unit]
+Description=AgoraIQ TA Engine
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/agoraiq/ta-engine
+ExecStart=/opt/agoraiq/ta-engine/venv/bin/uvicorn src.main:app --host 0.0.0.0 --port 3200
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=/opt/agoraiq/ta-engine/.env
+
+[Install]
+WantedBy=multi-user.target

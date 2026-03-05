@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgoraIQ — Live Signal Performance</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e17;
+      --bg-secondary: #111827;
+      --bg-card: #1a2332;
+      --bg-card-hover: #1f2b3d;
+      --border: #2a3548;
+      --text-primary: #e5e7eb;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --green: #22c55e;
+      --green-bg: rgba(34,197,94,0.1);
+      --red: #ef4444;
+      --red-bg: rgba(239,68,68,0.1);
+      --yellow: #eab308;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', monospace;
+      --radius: 8px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:var(--font); background:var(--bg-primary); color:var(--text-primary); line-height:1.6; }
+    a { color:var(--accent); text-decoration:none; }
+    a:hover { color:var(--accent-hover); }
+
+    .container { max-width:1200px; margin:0 auto; padding:0 24px; }
+
+    /* Header */
+    .header { background:var(--bg-secondary); border-bottom:1px solid var(--border); padding:16px 0; }
+    .header-inner { display:flex; align-items:center; justify-content:space-between; }
+    .logo { font-size:15px; font-weight:800; letter-spacing:-0.02em; display:flex; align-items:center; gap:6px; }
+    .logo .agora { color:#a78bfa; }
+    .logo .iq { color:#e2e8f0; }
+    .header-badge { background:var(--green-bg); color:var(--green); padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; }
+    .header-cta { background:var(--accent); color:#fff; padding:8px 20px; border-radius:var(--radius); font-weight:600; font-size:14px; border:none; cursor:pointer; }
+    .header-cta:hover { background:var(--accent-hover); color:#fff; }
+
+    /* Demo / Partial Data indicator */
+    .partial-data-banner { background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(56,189,248,.08)); border:1px solid rgba(167,139,250,.15); border-radius:var(--radius); padding:10px 16px; margin:16px 0 0; display:flex; align-items:center; gap:10px; font-size:12px; color:var(--text-secondary); }
+    .partial-data-banner .badge { background:rgba(167,139,250,.15); color:#a78bfa; padding:2px 8px; border-radius:4px; font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.5px; flex-shrink:0; }
+
+    /* Category Tabs */
+    .tabs { display:flex; gap:8px; margin:16px 0 16px; }
+    .tab { padding:8px 16px; border-radius:var(--radius); background:var(--bg-card); color:var(--text-secondary); cursor:pointer; font-size:13px; font-weight:500; border:1px solid var(--border); transition:all 0.2s; }
+    .tab.active, .tab:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+    /* KPI Cards */
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:16px; margin:16px 0 32px; }
+    .kpi-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; }
+    .kpi-label { font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
+    .kpi-value { font-size:28px; font-weight:700; font-family:var(--font-mono); }
+    .kpi-value.green { color:var(--green); }
+    .kpi-value.red { color:var(--red); }
+    .kpi-value.yellow { color:var(--yellow); }
+
+    /* Section Headers */
+    .section-title { font-size:18px; font-weight:600; margin:32px 0 16px; display:flex; align-items:center; gap:8px; }
+    .section-title .dot { width:8px; height:8px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+    /* Monthly Table */
+    .table-wrap { overflow-x:auto; margin-bottom:32px; }
+    table { width:100%; border-collapse:collapse; background:var(--bg-card); border-radius:var(--radius); overflow:hidden; }
+    th { background:var(--bg-secondary); padding:12px 16px; text-align:left; font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid var(--border); }
+    td { padding:12px 16px; border-bottom:1px solid var(--border); font-size:14px; font-family:var(--font-mono); }
+    tr:last-child td { border-bottom:none; }
+    tr:hover { background:var(--bg-card-hover); }
+    .positive { color:var(--green); }
+    .negative { color:var(--red); }
+
+    /* Feed */
+    .feed { display:flex; flex-direction:column; gap:8px; margin-bottom:32px; }
+    .feed-item { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; display:flex; align-items:center; gap:12px; transition:background 0.2s; }
+    .feed-item:hover { background:var(--bg-card-hover); }
+    .strength-badge { display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:rgba(167,139,250,.1);color:#a78bfa;border:1px solid rgba(167,139,250,.2);margin-left:6px;vertical-align:middle }
+    .locked-data { display:inline-block;font-size:10px;color:var(--text-muted);opacity:.6;margin-left:4px }
+    .feed-upgrade-cta { display:block;text-align:center;padding:16px 20px;margin-top:12px;background:linear-gradient(135deg,rgba(56,189,248,.05),rgba(167,139,250,.05));border:1px dashed rgba(167,139,250,.2);border-radius:var(--radius);color:var(--text-muted);font-size:12px;text-decoration:none;transition:all .2s;line-height:1.6 }
+    .feed-upgrade-cta:hover { border-color:rgba(167,139,250,.4);color:var(--text-primary) }
+    .feed-upgrade-cta span { display:block;color:#a78bfa;font-weight:600;margin-top:4px }
+    .feed-emoji { font-size:20px; flex-shrink:0; }
+    .feed-content { flex:1; }
+    .feed-symbol { font-weight:600; font-size:14px; }
+    .feed-meta { font-size:12px; color:var(--text-muted); }
+    .feed-result { font-family:var(--font-mono); font-weight:600; font-size:14px; text-align:right; }
+
+    /* Disclaimer */
+    .disclaimer { text-align:center; padding:32px 24px; font-size:12px; color:var(--text-muted); border-top:1px solid var(--border); margin-top:48px; }
+
+    /* Live indicator */
+    .live-dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--green); margin-right:6px; animation:pulse 2s infinite; }
+    .updated-at { font-size:11px; color:var(--text-muted); margin-top:4px; }
+
+    /* Loading */
+    .loading { text-align:center; padding:40px; color:var(--text-muted); }
+
+    
+  
+/* ── MEGA FOOTER ── */
+.site-footer{border-top:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.25)}
+.site-footer-inner{max-width:1200px;margin:0 auto;padding:40px 24px 48px}
+.footer-top{display:flex;flex-wrap:wrap;gap:40px 56px;margin-bottom:32px}
+.footer-brand{min-width:200px;max-width:260px}
+.footer-logo{display:flex;align-items:center;gap:6px;text-decoration:none;font-size:14px;font-weight:800;letter-spacing:-.02em;margin-bottom:12px}
+.footer-logo .agora{color:#a78bfa}
+.footer-logo .iq{color:#e2e8f0}
+.footer-logo svg{flex-shrink:0}
+.footer-brand p{font-size:12px;color:var(--text3);line-height:1.65}
+.footer-col h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:12px}
+.footer-col a{display:block;font-size:12.5px;color:var(--text3);text-decoration:none;padding:3px 0;transition:color .2s}
+.footer-col a:hover{color:var(--cyan)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.06);padding-top:20px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px}
+.footer-disclaimer{font-size:11px;line-height:1.6;color:var(--text3);max-width:640px}
+.footer-disclaimer strong{color:var(--red)}
+.footer-copy{font-size:11px;color:rgba(255,255,255,.2)}
+@media(max-width:600px){.footer-top{gap:28px}.footer-brand{max-width:100%}}
+
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap" rel="stylesheet">
+<style id="aiq-brand">
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--cyan,#00e5ff),#0066ff);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex:0 0 auto}
+.brand-text{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.5px;color:var(--text,#e2e8f0);white-space:nowrap;line-height:1}
+.brand-iq{color:var(--cyan,#00e5ff);margin-left:0}
+.brand-sm .brand-mark{width:20px;height:20px}
+.brand-sm .brand-text{font-size:14px}
+.brand-xs .brand-mark{width:18px;height:18px}
+.brand-xs .brand-text{font-size:14px}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="container header-inner">
+    <div class="logo"><div style="width:32px;height:32px;background:linear-gradient(135deg,#00e5ff,#0066ff);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex-shrink:0"></div><div style="font-family:Syne,Arial Black,sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.5px;color:#e2e8f0;white-space:nowrap">Agora<span style="color:#00e5ff">IQ</span></div></div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="header-badge"><span class="live-dot"></span> Live Tracking</div>
+      <a href="/login" class="header-cta">Get Full Access</a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Demo / Partial Data Banner -->
+  <div class="partial-data-banner">
+    <span class="badge">Demo · Partial Data</span>
+    This page shows aggregated performance metrics and limited recent activity. Entry prices, exact scores, and provider details are hidden. Subscribe for full signal intelligence.
+  </div>
+
+  <!-- Category Tabs -->
+  <div class="tabs">
+    <div class="tab active" data-cat="all">All</div>
+    <div class="tab" data-cat="spot">Spot</div>
+    <div class="tab" data-cat="futures-low">Futures (Low Lev)</div>
+    <div class="tab" data-cat="futures-high">Futures (High Lev)</div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid" id="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">Signals Tracked</div><div class="kpi-value" id="kpi-signals">—</div></div>
+    <div class="kpi-card"><div class="kpi-label">Win Rate (30d)</div><div class="kpi-value green" id="kpi-winrate">—</div></div>
+    <div class="kpi-card"><div class="kpi-label">Avg R:R (30d)</div><div class="kpi-value" id="kpi-rr">—</div></div>
+    <div class="kpi-card"><div class="kpi-label">Max Drawdown (30d)</div><div class="kpi-value red" id="kpi-dd">—</div></div>
+    <div class="kpi-card"><div class="kpi-label">Active Trades</div><div class="kpi-value yellow" id="kpi-active">—</div></div>
+    <div class="kpi-card"><div class="kpi-label">Closed (30d)</div><div class="kpi-value" id="kpi-closed">—</div></div>
+  </div>
+  <div class="updated-at" id="updated-at"></div>
+
+  <!-- Monthly Table -->
+  <div class="section-title"><div class="dot"></div> Monthly Performance</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Month</th><th>Signals</th><th>Wins</th><th>Losses</th><th>Expired</th><th>Win Rate</th><th>Avg R:R</th><th>Return</th></tr>
+      </thead>
+      <tbody id="monthly-body">
+        <tr><td colspan="8" class="loading">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Activity Feed -->
+  <div class="section-title"><div class="dot"></div> Recent Activity</div>
+  <div class="feed" id="feed">
+    <div class="loading">Loading…</div>
+  </div>
+</div>
+
+<!-- Disclaimer -->
+<div class="disclaimer">
+  <strong>Disclaimer:</strong> AgoraIQ is an informational tracking tool. Past performance does not guarantee future results. This is not financial advice.<br>
+  Data shown is partially redacted for security. Provider identities are masked. Prices and TP/SL levels are hidden.<br>
+  Active trades may be delayed up to 30 minutes. &copy; 2026 AgoraIQ
+</div>
+
+<script>
+const API = '/api/v1/proof';
+let currentCategory = 'all';
+
+// ── Tab Switching ─────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentCategory = tab.dataset.cat;
+    loadAll();
+  });
+});
+
+// ── Load Stats ────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const r = await fetch(`${API}/stats?category=${currentCategory}&public=1`);
+    const d = await r.json();
+    document.getElementById('kpi-signals').textContent = d.signalsTracked?.toLocaleString() || '—';
+    document.getElementById('kpi-winrate').textContent = d.winRate30d != null ? d.winRate30d + '%' : '—';
+    document.getElementById('kpi-rr').textContent = d.avgRR30d != null ? d.avgRR30d.toFixed(2) : '—';
+    document.getElementById('kpi-dd').textContent = d.maxDrawdown30d != null ? d.maxDrawdown30d.toFixed(1) + '%' : '—';
+    document.getElementById('kpi-active').textContent = d.activeTrades?.toLocaleString() || '—';
+    document.getElementById('kpi-closed').textContent = d.closedTrades30d?.toLocaleString() || '—';
+    if (d.lastUpdated) {
+      document.getElementById('updated-at').textContent = 'Last updated: ' + new Date(d.lastUpdated).toLocaleString();
+    }
+  } catch (e) { console.error('Stats load failed', e); }
+}
+
+// ── Load Monthly ──────────────────────────────────────────────
+async function loadMonthly() {
+  try {
+    const r = await fetch(`${API}/monthly?category=${currentCategory}&months=12&public=1`);
+    const d = await r.json();
+    const tbody = document.getElementById('monthly-body');
+    if (!d.months || d.months.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);">No data yet</td></tr>';
+      return;
+    }
+    tbody.innerHTML = d.months.map(m => `
+      <tr>
+        <td>${m.month}</td>
+        <td>${m.signals}</td>
+        <td class="positive">${m.wins}</td>
+        <td class="negative">${m.losses}</td>
+        <td>${m.expired}</td>
+        <td>${m.winRate}%</td>
+        <td>${m.avgRR}</td>
+        <td class="${m.totalReturn.startsWith('+') ? 'positive' : 'negative'}">${m.totalReturn}</td>
+      </tr>
+    `).join('');
+  } catch (e) { console.error('Monthly load failed', e); }
+}
+
+// ── Load Feed ─────────────────────────────────────────────────
+async function loadFeed() {
+  try {
+    const r = await fetch(`${API}/feed?category=${currentCategory}&public=1`);
+    const d = await r.json();
+    const el = document.getElementById('feed');
+    if (!d.feed || d.feed.length === 0) {
+      el.innerHTML = '<div class="loading">No recent activity</div>';
+      return;
+    }
+    const feedHtml = d.feed.map(f => {
+      const emoji = f.status === 'HIT_TP' ? '✅' : f.status === 'HIT_SL' ? '❌' : f.status === 'EXPIRED' ? '⏰' : '🔄';
+      const rText = f.rMultiple != null ? (f.rMultiple >= 0 ? '+' : '') + f.rMultiple.toFixed(2) + 'R' : '';
+      const pnlText = f.pnlPct != null ? (f.pnlPct >= 0 ? '+' : '') + f.pnlPct.toFixed(1) + '%' : '';
+      const resultClass = f.rMultiple != null ? (f.rMultiple >= 0 ? 'positive' : 'negative') : '';
+      // ITB partial data: show band strength label + indicator (no exact scores)
+      const strengthBadge = f.strength
+        ? `<span class="strength-badge">${f.strength.indicator} ${f.strength.label}</span>`
+        : '';
+      // Blurred score placeholder for public (upgrade CTA)
+      const lockedScore = f.status === 'ACTIVE'
+        ? '<span class="locked-data" title="Subscribe for full signal data">🔒 Score hidden</span>'
+        : '';
+      return `
+        <div class="feed-item">
+          <div class="feed-emoji">${emoji}</div>
+          <div class="feed-content">
+            <div class="feed-symbol">${f.symbol} · ${f.timeframe} · ${f.direction} ${strengthBadge}</div>
+            <div class="feed-meta">${f.provider} · ${f.status} · ${new Date(f.exitedAt || f.createdAt).toLocaleDateString()} ${lockedScore}</div>
+          </div>
+          <div class="feed-result ${resultClass}">${rText} ${pnlText}</div>
+        </div>`;
+    }).join('');
+
+    const upgradeCta = `
+      <a href="/pricing" class="feed-upgrade-cta">
+        🔓 Want full signal data? Entry prices, exact scores, band details, and real-time alerts.
+        <span>View Plans →</span>
+      </a>`;
+
+    el.innerHTML = feedHtml + upgradeCta;
+  } catch (e) { console.error('Feed load failed', e); }
+}
+
+// ── Load All ──────────────────────────────────────────────────
+function loadAll() { loadStats(); loadMonthly(); loadFeed(); }
+loadAll();
+
+// ── SSE Live Updates ──────────────────────────────────────────
+try {
+  const es = new EventSource(`${API}/stream?category=${currentCategory}&public=1`);
+  es.addEventListener('stats', (e) => {
+    const d = JSON.parse(e.data);
+    document.getElementById('kpi-signals').textContent = d.signalsTracked?.toLocaleString() || '—';
+    document.getElementById('kpi-winrate').textContent = d.winRate30d != null ? d.winRate30d + '%' : '—';
+    document.getElementById('kpi-rr').textContent = d.avgRR30d != null ? d.avgRR30d.toFixed(2) : '—';
+    document.getElementById('kpi-active').textContent = d.activeTrades?.toLocaleString() || '—';
+    document.getElementById('kpi-closed').textContent = d.closedTrades30d?.toLocaleString() || '—';
+    if (d.lastUpdated) {
+      document.getElementById('updated-at').textContent = 'Last updated: ' + new Date(d.lastUpdated).toLocaleString();
+    }
+  });
+} catch (e) { console.error('SSE failed', e); }
+</script>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="/dashboard" class="logo">
+    <svg width="130" height="36" viewBox="0 0 130 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="AgoraIQ">
+      <defs>
+        <linearGradient id="aiqHex" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#55d0ff"/>
+          <stop offset="100%" stop-color="#1a6eff"/>
+        </linearGradient>
+      </defs>
+      <polygon points="18,3 30,10 30,26 18,33 6,26 6,10" fill="url(#aiqHex)"/>
+      <text x="40" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#e2e4ef">Agora</text>
+      <text x="101" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#00d4ff">IQ</text>
+    </svg>
+  </a>
+        <p>AI-powered signal intelligence. Track, score, and verify crypto trading signals with verifiable proof.</p>
+      </div>
+      <div class="footer-col">
+        <h4>About Us</h4>
+        <a href="/about">About</a>
+        <a href="/careers">Careers</a>
+        <a href="/announcements">Announcements</a>
+        <a href="/news">News</a>
+        <a href="/press">Press</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/cookies">Cookies</a>
+        <a href="/disclaimer">Disclaimer</a>
+        <a href="/trust">Building Trust</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="/blog">Blog</a>
+        <a href="/community">Community</a>
+        <a href="/risk-warning">Risk Warning</a>
+        <a href="/notices">Notices</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-disclaimer"><strong>⚠ Not for UK Persons.</strong> AgoraIQ is not authorised or regulated by the FCA. Not directed at UK persons. Nothing on this site constitutes financial advice. Past performance does not guarantee future results.</div>
+      <div class="footer-copy">© 2026 ChatLogic Insights LTD. All rights reserved.</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

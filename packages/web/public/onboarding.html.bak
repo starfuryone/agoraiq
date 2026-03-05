@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AgoraIQ — Get Your Provider Scorecard</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--font:'IBM Plex Sans',sans-serif;--mono:'IBM Plex Mono',monospace;--bg:#060a14;--bg2:#0b0f1a;--bg3:#111827;--card:#0d1220;--border:#1a2236;--accent:#a78bfa;--accent-dim:rgba(167,139,250,.10);--green:#34d399;--green-dim:rgba(52,211,153,.10);--blue:#38bdf8;--blue-dim:rgba(56,189,248,.10);--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;--r:8px;--r-lg:12px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:15px;line-height:1.7;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+.container{max-width:720px;margin:0 auto;padding:60px 24px}
+.logo{font-size:18px;font-weight:700;margin-bottom:48px}
+.logo .a{color:var(--accent)}.logo .b{color:var(--text)}
+h1{font-size:32px;font-weight:700;line-height:1.2;margin-bottom:12px}
+h1 span{color:var(--accent)}
+.sub{font-size:16px;color:var(--text2);margin-bottom:48px}
+h2{font-size:20px;font-weight:700;margin:40px 0 16px}
+.benefit{display:flex;gap:16px;margin-bottom:20px;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg)}
+.benefit-icon{font-size:24px;flex-shrink:0;width:40px;text-align:center}
+.benefit-text h3{font-size:14px;font-weight:600;margin-bottom:4px}
+.benefit-text p{font-size:13px;color:var(--text2);margin:0}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:24px 0 40px}
+.step{text-align:center;padding:20px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg)}
+.step-num{font-size:28px;font-weight:700;color:var(--accent);font-family:var(--mono)}
+.step-title{font-size:13px;font-weight:600;margin:8px 0 4px}
+.step-desc{font-size:12px;color:var(--text3)}
+.form-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-lg);padding:32px;margin-top:40px}
+.form-section h2{margin-top:0}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:14px;font-family:var(--font)}
+.field textarea{resize:vertical;min-height:80px}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.submit-btn{width:100%;padding:14px;border-radius:var(--r);background:var(--accent);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;margin-top:8px;transition:opacity .15s}
+.submit-btn:hover{opacity:.9}
+#form-status{margin-top:12px;font-size:13px}
+.faq{margin-top:48px}
+.faq details{margin-bottom:12px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.faq summary{padding:12px 16px;background:var(--card);cursor:pointer;font-weight:600;font-size:14px}
+.faq details[open] summary{border-bottom:1px solid var(--border)}
+.faq .answer{padding:12px 16px;font-size:13px;color:var(--text2)}
+.footer{margin-top:60px;padding-top:24px;border-top:1px solid var(--border);text-align:center;color:var(--text3);font-size:12px}
+@media(max-width:640px){.steps{grid-template-columns:1fr}.row{grid-template-columns:1fr}}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+  <div class="logo" style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;background:linear-gradient(135deg,#00e5ff,#0066ff);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex-shrink:0"></div><div style="font-family:Syne,Arial Black,sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.5px;color:#e2e8f0;white-space:nowrap">Agora<span style="color:#00e5ff">IQ</span></div></div>
+
+  <h1>Get your <span>verified scorecard</span></h1>
+  <p class="sub">We track your signals in real time, compute auditable stats, and give you a public proof page that builds trust with your audience.</p>
+
+  <div class="benefit">
+    <div class="benefit-icon">📊</div>
+    <div class="benefit-text">
+      <h3>Verified Performance Stats</h3>
+      <p>Win rate, expectancy, vol-adjusted returns, profit factor — computed from real trades, not self-reported.</p>
+    </div>
+  </div>
+  <div class="benefit">
+    <div class="benefit-icon">🔒</div>
+    <div class="benefit-text">
+      <h3>SHA-256 Signal Hashing</h3>
+      <p>Every signal is hashed at ingestion. Anyone can verify your track record is immutable and unedited.</p>
+    </div>
+  </div>
+  <div class="benefit">
+    <div class="benefit-icon">🧪</div>
+    <div class="benefit-text">
+      <h3>Cherry-Pick Detection</h3>
+      <p>Our scoring engine detects deleted signals, retroactive edits, and selective reporting. Clean providers stand out.</p>
+    </div>
+  </div>
+  <div class="benefit">
+    <div class="benefit-icon">🌐</div>
+    <div class="benefit-text">
+      <h3>Public Proof Page</h3>
+      <p>Share your AgoraIQ scorecard with subscribers. Third-party verification beats screenshots every time.</p>
+    </div>
+  </div>
+
+  <h2>How it works</h2>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-title">Submit your channel</div><div class="step-desc">Fill out the form below with your Telegram or Discord link</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-title">We start tracking</div><div class="step-desc">Within 48 hours, your channel appears as "Beta" on the marketplace</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-title">Earn "Verified"</div><div class="step-desc">Hit 30+ trades with 60%+ data completeness to get ranked</div></div>
+  </div>
+
+  <div class="form-section">
+    <h2>Apply for tracking</h2>
+    <div class="field"><label>Channel Name *</label><input id="ob-name" placeholder="e.g. CryptoSignals VIP"></div>
+    <div class="field"><label>Channel URL *</label><input id="ob-url" placeholder="https://t.me/your_channel"></div>
+    <div class="row">
+      <div class="field"><label>Platform</label><select id="ob-type"><option value="telegram">Telegram</option><option value="discord">Discord</option></select></div>
+      <div class="field"><label>Market Type</label><select id="ob-market"><option value="">Select...</option><option>Spot</option><option>Futures</option><option>Mixed</option></select></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Trading Style</label><select id="ob-style"><option value="">Select...</option><option>Scalp</option><option>Day Trade</option><option>Swing</option><option>Position</option></select></div>
+      <div class="field"><label>Approx. Subscribers</label><input id="ob-subs" type="number" placeholder="e.g. 5000"></div>
+    </div>
+    <div class="field"><label>Contact Email *</label><input id="ob-email" type="email" placeholder="you@example.com"></div>
+    <div class="field"><label>Why should we track you?</label><textarea id="ob-desc" placeholder="Tell us about your track record, your audience, and what makes your signals unique."></textarea></div>
+    <button class="submit-btn" id="ob-btn" onclick="submitOnboarding()">Submit Application</button>
+    <div id="form-status"></div>
+  </div>
+
+  <div class="faq">
+    <h2>FAQ</h2>
+    <details><summary>Is it free to get listed?</summary><div class="answer">Yes. Getting tracked and listed on AgoraIQ is completely free. We make money from subscribers, not providers.</div></details>
+    <details><summary>What do I need to get "Verified" status?</summary><div class="answer">30+ tracked trades within 30 days, 60%+ data completeness (signals include entry, SL, TP), and no "Low" sample confidence rating.</div></details>
+    <details><summary>Can I get delisted?</summary><div class="answer">You can request removal at any time. We may also delist channels that stop posting or are found to be fraudulent.</div></details>
+    <details><summary>Do you modify or censor my signals?</summary><div class="answer">No. We ingest your signals as-is, hash them at the moment of ingestion, and track outcomes. We never modify signal content.</div></details>
+    <details><summary>What if my channel format is unusual?</summary><div class="answer">Our parser handles most common formats. Unusual formats may start with lower completeness but improve as we tune our parsers. We'll work with you.</div></details>
+  </div>
+
+  <div class="footer">AgoraIQ — Signal Intelligence Platform · <a href="/">Home</a> · <a href="/marketplace">Marketplace</a> · <a href="/privacy">Privacy</a></div>
+</div>
+
+<script>
+async function submitOnboarding() {
+  const btn = document.getElementById('ob-btn');
+  const status = document.getElementById('form-status');
+  const name = document.getElementById('ob-name').value.trim();
+  const url = document.getElementById('ob-url').value.trim();
+  const email = document.getElementById('ob-email').value.trim();
+  if (!name || !url || !email) {
+    status.innerHTML = '<span style="color:#f87171">Please fill in all required fields.</span>';
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'Submitting...';
+  try {
+    const r = await fetch('/api/v1/marketplace/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        channelName: name, channelUrl: url, email: email,
+        channelType: document.getElementById('ob-type').value,
+        marketType: document.getElementById('ob-market').value || null,
+        tradingStyle: document.getElementById('ob-style').value || null,
+        subscriberCount: document.getElementById('ob-subs').value || null,
+        description: document.getElementById('ob-desc').value.trim() || null,
+      }),
+    });
+    const d = await r.json();
+    if (d.submitted) {
+      status.innerHTML = '<span style="color:#34d399">Application submitted! We\'ll review your channel within 48 hours and email you at ' + email + '.</span>';
+      btn.textContent = 'Submitted';
+    } else if (d.error === 'ALREADY_SUBMITTED') {
+      status.innerHTML = '<span style="color:#fbbf24">This channel has already been submitted for review.</span>';
+      btn.disabled = false; btn.textContent = 'Submit Application';
+    } else {
+      status.innerHTML = '<span style="color:#f87171">' + (d.error || 'Something went wrong.') + '</span>';
+      btn.disabled = false; btn.textContent = 'Submit Application';
+    }
+  } catch(e) {
+    status.innerHTML = '<span style="color:#f87171">Network error. Please try again.</span>';
+    btn.disabled = false; btn.textContent = 'Submit Application';
+  }
+}
+</script>
+</body>
+</html>

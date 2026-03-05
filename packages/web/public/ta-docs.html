@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AgoraIQ · TA Engine API</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text1);font-family:var(--sans);line-height:1.6;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}a:hover{opacity:.85}
+
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.topbar-logo{font-weight:800;font-size:18px;letter-spacing:-.03em;background:linear-gradient(135deg,var(--cyan),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.topbar-sep{color:var(--text3);font-size:14px}
+.topbar-title{color:var(--text2);font-size:14px;font-weight:500}
+.topbar-badge{background:linear-gradient(135deg,var(--green),var(--cyan));color:#000;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.5px}
+.topbar-right{margin-left:auto;display:flex;gap:12px;align-items:center}
+.topbar-link{color:var(--text3);font-size:12px;font-weight:500;padding:6px 12px;border:1px solid var(--border);border-radius:var(--r);transition:all .15s}
+.topbar-link:hover{border-color:var(--border2);color:var(--text2)}
+
+.hero{padding:48px 32px 32px;max-width:1200px;margin:0 auto}
+.hero h1{font-size:28px;font-weight:800;letter-spacing:-.03em;margin-bottom:8px}
+.hero p{color:var(--text2);font-size:14px;max-width:600px}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:0 32px 32px;max-width:1200px;margin:0 auto}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 20px}
+.stat-label{color:var(--text3);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.stat-value{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:-.02em}
+.stat-value.green{color:var(--green)}.stat-value.cyan{color:var(--cyan)}.stat-value.amber{color:var(--amber)}.stat-value.violet{color:var(--violet)}
+
+.container{max-width:1200px;margin:0 auto;padding:0 32px 64px}
+.section-title{font-size:16px;font-weight:700;margin:32px 0 16px;display:flex;align-items:center;gap:8px}
+.section-title .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.dot.get{background:var(--green)}.dot.post{background:var(--amber)}
+
+.endpoint{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:12px;overflow:hidden;transition:border-color .2s}
+.endpoint:hover{border-color:var(--border2)}
+.endpoint-head{padding:16px 20px;cursor:pointer;display:flex;align-items:center;gap:12px}
+.endpoint-method{font-family:var(--mono);font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;letter-spacing:.06em;min-width:52px;text-align:center}
+.method-get{background:rgba(34,197,94,.12);color:var(--green)}
+.method-post{background:rgba(245,158,11,.12);color:var(--amber)}
+.endpoint-path{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text1)}
+.endpoint-desc{color:var(--text3);font-size:12px;margin-left:auto}
+.endpoint-chevron{color:var(--text3);font-size:14px;transition:transform .2s}
+.endpoint.open .endpoint-chevron{transform:rotate(90deg)}
+
+.endpoint-body{display:none;padding:0 20px 20px;border-top:1px solid var(--border)}
+.endpoint.open .endpoint-body{display:block}
+
+.param-table{width:100%;border-collapse:collapse;margin-top:12px}
+.param-table th{text-align:left;color:var(--text3);font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:8px 12px;border-bottom:1px solid var(--border)}
+.param-table td{padding:8px 12px;font-size:13px;border-bottom:1px solid rgba(148,163,184,.05)}
+.param-name{font-family:var(--mono);color:var(--cyan);font-weight:600}
+.param-type{font-family:var(--mono);color:var(--text3);font-size:11px}
+.param-req{color:var(--red);font-size:11px;font-weight:600}
+.param-opt{color:var(--text3);font-size:11px}
+
+.try-it{margin-top:16px}
+.try-btn{background:linear-gradient(135deg,var(--cyan),var(--violet));color:#fff;border:none;padding:8px 20px;border-radius:var(--r);font-weight:600;font-size:12px;cursor:pointer;transition:opacity .15s}
+.try-btn:hover{opacity:.85}
+.try-btn:disabled{opacity:.5;cursor:not-allowed}
+
+.response-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-top:12px;font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--text2);max-height:400px;overflow:auto;white-space:pre-wrap;word-break:break-all}
+.response-box.loading{color:var(--text3);font-style:italic}
+.response-box.error{border-color:rgba(239,68,68,.3);color:var(--red)}
+
+.response-meta{display:flex;gap:16px;margin-top:8px;font-size:11px;color:var(--text3)}
+.response-meta .status{font-weight:700}.status.ok{color:var(--green)}.status.err{color:var(--red)}
+
+.tag{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;letter-spacing:.04em}
+.tag-event{background:rgba(245,158,11,.12);color:var(--amber)}
+.tag-snapshot{background:rgba(6,182,212,.12);color:var(--cyan)}
+.tag-batch{background:rgba(124,58,237,.12);color:var(--violet)}
+.tag-meta{background:rgba(148,163,184,.1);color:var(--text3)}
+
+@media(max-width:768px){.stats{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:22px}.endpoint-desc{display:none}}
+</style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/agoraiq-design.css">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap" rel="stylesheet">
+<style id="aiq-brand">
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--cyan,#00e5ff),#0066ff);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex:0 0 auto}
+.brand-text{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.5px;color:var(--text,#e2e8f0);white-space:nowrap;line-height:1}
+.brand-iq{color:var(--cyan,#00e5ff);margin-left:0}
+.brand-sm .brand-mark{width:20px;height:20px}
+.brand-sm .brand-text{font-size:14px}
+.brand-xs .brand-mark{width:18px;height:18px}
+.brand-xs .brand-text{font-size:14px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-logo">AgoraIQ</div>
+  <div class="topbar-sep">·</div>
+  <div class="topbar-title">TA Engine API</div>
+  <div class="topbar-badge">LIVE</div>
+  <div class="topbar-right">
+    <a class="topbar-link" href="/ta/openapi.json" target="_blank">OpenAPI JSON</a>
+    <a class="topbar-link" href="/dashboard">Dashboard</a>
+    <a class="topbar-link" href="/marketplace">Marketplace</a>
+  </div>
+</div>
+
+<div class="hero">
+  <h1>Technical Analysis Engine</h1>
+  <p>Real-time indicators, market context, and event detection across 15 symbols &times; 4 timeframes. Powered by TA-Lib via CCXT.</p>
+</div>
+
+<div class="stats" id="live-stats">
+  <div class="stat"><div class="stat-label">Symbols Tracked</div><div class="stat-value cyan" id="s-symbols">—</div></div>
+  <div class="stat"><div class="stat-label">Timeframes</div><div class="stat-value violet" id="s-timeframes">—</div></div>
+  <div class="stat"><div class="stat-label">BTC/USDT</div><div class="stat-value green" id="s-btc">—</div></div>
+  <div class="stat"><div class="stat-label">BTC Trend</div><div class="stat-value amber" id="s-trend">—</div></div>
+</div>
+
+<div class="container">
+  <div class="section-title"><span class="dot get"></span> Snapshots &amp; Events</div>
+
+  <div class="endpoint" id="ep-snapshot">
+    <div class="endpoint-head" onclick="toggleEp('ep-snapshot')">
+      <span class="endpoint-method method-get">GET</span>
+      <span class="endpoint-path">/ta/snapshot</span>
+      <span class="tag tag-snapshot">SNAPSHOT</span>
+      <span class="endpoint-desc">Full TA snapshot for a symbol/timeframe</span>
+      <span class="endpoint-chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <table class="param-table">
+        <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr>
+        <tr><td class="param-name">symbol</td><td class="param-type">string</td><td class="param-req">required</td><td>Trading pair, e.g. BTC/USDT</td></tr>
+        <tr><td class="param-name">tf</td><td class="param-type">string</td><td class="param-opt">optional</td><td>Timeframe: 15m, 1h, 4h, 1d (default: 1h)</td></tr>
+        <tr><td class="param-name">exchange</td><td class="param-type">string</td><td class="param-opt">optional</td><td>Exchange override (default: kraken)</td></tr>
+      </table>
+      <div class="try-it">
+        <button class="try-btn" onclick="tryEndpoint('/ta/snapshot?symbol=BTC/USDT&tf=1h','ep-snapshot')">Try it — BTC/USDT 1h</button>
+        <button class="try-btn" onclick="tryEndpoint('/ta/snapshot?symbol=ETH/USDT&tf=4h','ep-snapshot')" style="background:var(--card2);border:1px solid var(--border)">ETH/USDT 4h</button>
+        <button class="try-btn" onclick="tryEndpoint('/ta/snapshot?symbol=SOL/USDT&tf=15m','ep-snapshot')" style="background:var(--card2);border:1px solid var(--border)">SOL/USDT 15m</button>
+      </div>
+      <div class="response-box" id="resp-ep-snapshot"></div>
+      <div class="response-meta" id="meta-ep-snapshot"></div>
+    </div>
+  </div>
+
+  <div class="endpoint" id="ep-events">
+    <div class="endpoint-head" onclick="toggleEp('ep-events')">
+      <span class="endpoint-method method-get">GET</span>
+      <span class="endpoint-path">/ta/events</span>
+      <span class="tag tag-event">EVENTS</span>
+      <span class="endpoint-desc">Detected TA events (RSI extremes, crosses, squeezes)</span>
+      <span class="endpoint-chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <table class="param-table">
+        <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr>
+        <tr><td class="param-name">symbol</td><td class="param-type">string</td><td class="param-req">required</td><td>Trading pair, e.g. BTC/USDT</td></tr>
+        <tr><td class="param-name">tf</td><td class="param-type">string</td><td class="param-opt">optional</td><td>Timeframe (default: 15m)</td></tr>
+        <tr><td class="param-name">since</td><td class="param-type">datetime</td><td class="param-opt">optional</td><td>ISO datetime filter</td></tr>
+      </table>
+      <div class="try-it">
+        <button class="try-btn" onclick="tryEndpoint('/ta/events?symbol=BTC/USDT&tf=1h','ep-events')">Try it — BTC/USDT</button>
+        <button class="try-btn" onclick="tryEndpoint('/ta/events?symbol=ETH/USDT&tf=1h','ep-events')" style="background:var(--card2);border:1px solid var(--border)">ETH/USDT</button>
+      </div>
+      <div class="response-box" id="resp-ep-events"></div>
+      <div class="response-meta" id="meta-ep-events"></div>
+    </div>
+  </div>
+
+  <div class="section-title"><span class="dot post"></span> Batch &amp; Metadata</div>
+
+  <div class="endpoint" id="ep-batch">
+    <div class="endpoint-head" onclick="toggleEp('ep-batch')">
+      <span class="endpoint-method method-post">POST</span>
+      <span class="endpoint-path">/ta/batch</span>
+      <span class="tag tag-batch">BATCH</span>
+      <span class="endpoint-desc">Compute TA for multiple symbols at once</span>
+      <span class="endpoint-chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <table class="param-table">
+        <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr>
+        <tr><td class="param-name">symbols</td><td class="param-type">string[]</td><td class="param-req">required</td><td>Array of trading pairs (max 50)</td></tr>
+        <tr><td class="param-name">timeframes</td><td class="param-type">string[]</td><td class="param-opt">optional</td><td>Array of timeframes (default: ["1h"], max 4)</td></tr>
+      </table>
+      <div class="try-it">
+        <button class="try-btn" onclick="tryBatch()">Try it — BTC + ETH + SOL (1h)</button>
+      </div>
+      <div class="response-box" id="resp-ep-batch"></div>
+      <div class="response-meta" id="meta-ep-batch"></div>
+    </div>
+  </div>
+
+  <div class="endpoint" id="ep-symbols">
+    <div class="endpoint-head" onclick="toggleEp('ep-symbols')">
+      <span class="endpoint-method method-get">GET</span>
+      <span class="endpoint-path">/ta/symbols</span>
+      <span class="tag tag-meta">META</span>
+      <span class="endpoint-desc">List configured symbols and timeframes</span>
+      <span class="endpoint-chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="try-it">
+        <button class="try-btn" onclick="tryEndpoint('/ta/symbols','ep-symbols')">Try it</button>
+      </div>
+      <div class="response-box" id="resp-ep-symbols"></div>
+      <div class="response-meta" id="meta-ep-symbols"></div>
+    </div>
+  </div>
+
+  <div class="endpoint" id="ep-health">
+    <div class="endpoint-head" onclick="toggleEp('ep-health')">
+      <span class="endpoint-method method-get">GET</span>
+      <span class="endpoint-path">/ta/health</span>
+      <span class="tag tag-meta">META</span>
+      <span class="endpoint-desc">Health check</span>
+      <span class="endpoint-chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="try-it">
+        <button class="try-btn" onclick="tryEndpoint('/ta/health','ep-health')">Try it</button>
+      </div>
+      <div class="response-box" id="resp-ep-health"></div>
+      <div class="response-meta" id="meta-ep-health"></div>
+    </div>
+  </div>
+
+  <div style="margin-top:48px;padding:24px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg)">
+    <div style="font-weight:700;font-size:14px;margin-bottom:8px">Event Types Detected</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--text2)">
+      <span style="background:rgba(239,68,68,.1);color:var(--red);padding:4px 10px;border-radius:6px">rsi_oversold</span>
+      <span style="background:rgba(239,68,68,.1);color:var(--red);padding:4px 10px;border-radius:6px">rsi_overbought</span>
+      <span style="background:rgba(34,197,94,.1);color:var(--green);padding:4px 10px;border-radius:6px">golden_cross</span>
+      <span style="background:rgba(239,68,68,.1);color:var(--red);padding:4px 10px;border-radius:6px">death_cross</span>
+      <span style="background:rgba(245,158,11,.1);color:var(--amber);padding:4px 10px;border-radius:6px">macd_bullish_cross</span>
+      <span style="background:rgba(245,158,11,.1);color:var(--amber);padding:4px 10px;border-radius:6px">macd_bearish_cross</span>
+      <span style="background:rgba(6,182,212,.1);color:var(--cyan);padding:4px 10px;border-radius:6px">bb_squeeze</span>
+      <span style="background:rgba(6,182,212,.1);color:var(--cyan);padding:4px 10px;border-radius:6px">bb_lower_touch</span>
+      <span style="background:rgba(6,182,212,.1);color:var(--cyan);padding:4px 10px;border-radius:6px">bb_upper_touch</span>
+      <span style="background:rgba(124,58,237,.1);color:var(--violet);padding:4px 10px;border-radius:6px">ichimoku_bullish_cross</span>
+      <span style="background:rgba(148,163,184,.1);color:var(--text3);padding:4px 10px;border-radius:6px">stoch_oversold</span>
+      <span style="background:rgba(148,163,184,.1);color:var(--text3);padding:4px 10px;border-radius:6px">stoch_overbought</span>
+      <span style="background:rgba(59,130,246,.1);color:var(--blue);padding:4px 10px;border-radius:6px">strong_trend</span>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;padding:24px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg)">
+    <div style="font-weight:700;font-size:14px;margin-bottom:8px">Indicators Computed</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:12px;color:var(--text2)">
+      <div><span style="color:var(--text3)">Momentum:</span> RSI(7,14), MACD, Stochastic, OBV</div>
+      <div><span style="color:var(--text3)">Trend:</span> EMA(9,21,50,200), SMA(50,200), ADX, Ichimoku</div>
+      <div><span style="color:var(--text3)">Volatility:</span> Bollinger Bands, ATR(14), VWAP</div>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:48px 0 0;color:var(--text3);font-size:12px">
+    AgoraIQ TA Engine v1.0.0 · Scanner interval: 5 min · Exchange: Kraken (Binance fallback via SOCKS5)
+  </div>
+</div>
+
+<script>
+function toggleEp(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+async function tryEndpoint(url, epId) {
+  var box = document.getElementById('resp-' + epId);
+  var meta = document.getElementById('meta-' + epId);
+  box.textContent = 'Loading...';
+  box.className = 'response-box loading';
+  meta.innerHTML = '';
+  var t0 = performance.now();
+  try {
+    var r = await fetch(url);
+    var elapsed = Math.round(performance.now() - t0);
+    var data = await r.json();
+    box.textContent = JSON.stringify(data, null, 2);
+    box.className = 'response-box' + (r.ok ? '' : ' error');
+    meta.innerHTML = '<span class="status ' + (r.ok ? 'ok' : 'err') + '">' + r.status + ' ' + r.statusText + '</span><span>' + elapsed + 'ms</span><span>' + JSON.stringify(data).length + ' bytes</span>';
+  } catch(e) {
+    box.textContent = 'Error: ' + e.message;
+    box.className = 'response-box error';
+  }
+}
+
+async function tryBatch() {
+  var box = document.getElementById('resp-ep-batch');
+  var meta = document.getElementById('meta-ep-batch');
+  box.textContent = 'Loading...';
+  box.className = 'response-box loading';
+  meta.innerHTML = '';
+  var t0 = performance.now();
+  try {
+    var r = await fetch('/ta/batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ symbols: ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'], timeframes: ['1h'] })
+    });
+    var elapsed = Math.round(performance.now() - t0);
+    var data = await r.json();
+    box.textContent = JSON.stringify(data, null, 2);
+    box.className = 'response-box' + (r.ok ? '' : ' error');
+    meta.innerHTML = '<span class="status ' + (r.ok ? 'ok' : 'err') + '">' + r.status + ' ' + r.statusText + '</span><span>' + elapsed + 'ms</span><span>' + JSON.stringify(data).length + ' bytes</span>';
+  } catch(e) {
+    box.textContent = 'Error: ' + e.message;
+    box.className = 'response-box error';
+  }
+}
+
+// Load live stats
+async function loadStats() {
+  try {
+    var [symR, btcR] = await Promise.all([
+      fetch('/ta/symbols'),
+      fetch('/ta/snapshot?symbol=BTC/USDT&tf=1h')
+    ]);
+    var sym = await symR.json();
+    var btc = await btcR.json();
+    document.getElementById('s-symbols').textContent = sym.symbols.length;
+    document.getElementById('s-timeframes').textContent = sym.timeframes.join(' · ');
+    document.getElementById('s-btc').textContent = '$' + btc.price.toLocaleString();
+    document.getElementById('s-trend').textContent = btc.context.trend + ' (' + btc.context.trend_strength + ')';
+  } catch(e) { console.warn('Stats load error:', e); }
+}
+loadStats();
+setInterval(loadStats, 30000);
+</script>
+</body>
+</html>

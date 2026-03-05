@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AgoraIQ — Live Signal Performance</title>
@@ -42,8 +44,12 @@
     .header-cta { background:var(--accent); color:#fff; padding:8px 20px; border-radius:var(--radius); font-weight:600; font-size:14px; border:none; cursor:pointer; }
     .header-cta:hover { background:var(--accent-hover); color:#fff; }
 
+    /* Demo / Partial Data indicator */
+    .partial-data-banner { background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(56,189,248,.08)); border:1px solid rgba(167,139,250,.15); border-radius:var(--radius); padding:10px 16px; margin:16px 0 0; display:flex; align-items:center; gap:10px; font-size:12px; color:var(--text-secondary); }
+    .partial-data-banner .badge { background:rgba(167,139,250,.15); color:#a78bfa; padding:2px 8px; border-radius:4px; font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.5px; flex-shrink:0; }
+
     /* Category Tabs */
-    .tabs { display:flex; gap:8px; margin:24px 0 16px; }
+    .tabs { display:flex; gap:8px; margin:16px 0 16px; }
     .tab { padding:8px 16px; border-radius:var(--radius); background:var(--bg-card); color:var(--text-secondary); cursor:pointer; font-size:13px; font-weight:500; border:1px solid var(--border); transition:all 0.2s; }
     .tab.active, .tab:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
 
@@ -118,13 +124,14 @@
 @media(max-width:600px){.footer-top{gap:28px}.footer-brand{max-width:100%}}
 
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap" rel="stylesheet">
 </head>
 <body>
 
 <!-- Header -->
 <div class="header">
   <div class="container header-inner">
-    <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logotext"><span class="agora">Agora</span><span class="iq">IQ</span></span></div>
+    <div class="logo"><div style="width:32px;height:32px;background:linear-gradient(135deg,#00e5ff,#0066ff);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex-shrink:0"></div><div style="font-family:Syne,Arial Black,sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.5px;color:#e2e8f0;white-space:nowrap">Agora<span style="color:#00e5ff">IQ</span></div></div>
     <div style="display:flex;align-items:center;gap:12px;">
       <div class="header-badge"><span class="live-dot"></span> Live Tracking</div>
       <a href="/login" class="header-cta">Get Full Access</a>
@@ -133,6 +140,12 @@
 </div>
 
 <div class="container">
+  <!-- Demo / Partial Data Banner -->
+  <div class="partial-data-banner">
+    <span class="badge">Demo · Partial Data</span>
+    This page shows aggregated performance metrics and limited recent activity. Entry prices, exact scores, and provider details are hidden. Subscribe for full signal intelligence.
+  </div>
+
   <!-- Category Tabs -->
   <div class="tabs">
     <div class="tab active" data-cat="all">All</div>
@@ -245,7 +258,7 @@ async function loadFeed() {
       el.innerHTML = '<div class="loading">No recent activity</div>';
       return;
     }
-    el.innerHTML = d.feed.map(f => {
+    const feedHtml = d.feed.map(f => {
       const emoji = f.status === 'HIT_TP' ? '✅' : f.status === 'HIT_SL' ? '❌' : f.status === 'EXPIRED' ? '⏰' : '🔄';
       const rText = f.rMultiple != null ? (f.rMultiple >= 0 ? '+' : '') + f.rMultiple.toFixed(2) + 'R' : '';
       const pnlText = f.pnlPct != null ? (f.pnlPct >= 0 ? '+' : '') + f.pnlPct.toFixed(1) + '%' : '';
@@ -267,12 +280,15 @@ async function loadFeed() {
           </div>
           <div class="feed-result ${resultClass}">${rText} ${pnlText}</div>
         </div>`;
-    }).join('') + `
+    }).join('');
+
+    const upgradeCta = `
       <a href="/pricing" class="feed-upgrade-cta">
         🔓 Want full signal data? Entry prices, exact scores, band details, and real-time alerts.
         <span>View Plans →</span>
       </a>`;
-    }).join('');
+
+    el.innerHTML = feedHtml + upgradeCta;
   } catch (e) { console.error('Feed load failed', e); }
 }
 
@@ -301,7 +317,19 @@ try {
   <div class="site-footer-inner">
     <div class="footer-top">
       <div class="footer-brand">
-        <a href="/" class="footer-logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logotext"><span class="agora">Agora</span><span class="iq">IQ</span></span></a>
+        <a href="/dashboard" class="logo">
+    <svg width="130" height="36" viewBox="0 0 130 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="AgoraIQ">
+      <defs>
+        <linearGradient id="aiqHex" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#55d0ff"/>
+          <stop offset="100%" stop-color="#1a6eff"/>
+        </linearGradient>
+      </defs>
+      <polygon points="18,3 30,10 30,26 18,33 6,26 6,10" fill="url(#aiqHex)"/>
+      <text x="40" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#e2e4ef">Agora</text>
+      <text x="101" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#00d4ff">IQ</text>
+    </svg>
+  </a>
         <p>AI-powered signal intelligence. Track, score, and verify crypto trading signals with verifiable proof.</p>
       </div>
       <div class="footer-col">

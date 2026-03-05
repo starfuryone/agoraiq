@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#060a14"/>
+<title>Terms of Service — AgoraIQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#060a14;--bg2:#0b1120;--bg3:#111827;--bg4:#1a2332;
+  --border:#1e293b;--border2:#334155;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --cyan:#38bdf8;--violet:#a78bfa;--green:#4ade80;--amber:#f59e0b;--red:#ff3b5c;
+  --mono:'JetBrains Mono',monospace;--sans:'DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+.nav{position:sticky;top:0;z-index:100;background:rgba(6,10,20,.82);backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid rgba(30,41,59,.5)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-weight:800;font-size:16px;letter-spacing:-.02em;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px}
+.nav-logo .agora{color:#a78bfa}
+.nav-logo .iq{color:#e2e8f0}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-links a{font-size:13px;font-weight:500;color:var(--text3);text-decoration:none;padding:6px 14px;border-radius:8px;transition:all .2s}
+.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.nav-cta{font-size:13px;font-weight:600;color:#fff;background:linear-gradient(135deg,var(--cyan),var(--violet));padding:7px 18px;border-radius:8px;text-decoration:none;transition:opacity .2s}
+.nav-cta:hover{opacity:.88}
+.page-wrap{max-width:800px;margin:0 auto;padding:64px 24px 96px}
+.page-header{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--border)}
+.page-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.15);border-radius:999px;padding:4px 14px;font-size:12px;font-weight:600;color:var(--violet);letter-spacing:.06em;text-transform:uppercase;margin-bottom:16px}
+.page-header h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.03em;line-height:1.15;margin-bottom:12px}
+.page-header p{font-size:14px;color:var(--text3)}
+.uk-banner{background:rgba(255,59,92,.06);border:1px solid rgba(255,59,92,.2);border-radius:12px;padding:16px 20px;margin-bottom:40px;font-size:13.5px;line-height:1.7;color:var(--text2)}
+.uk-banner strong{color:var(--red);display:block;margin-bottom:4px;font-size:14px}
+.doc-section{margin-bottom:40px}
+.doc-section h2{font-size:17px;font-weight:700;color:var(--text);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.doc-section h3{font-size:14px;font-weight:600;color:var(--cyan);margin:20px 0 8px}
+.doc-section p{font-size:14px;color:var(--text2);line-height:1.8;margin-bottom:12px}
+.doc-section p:last-child{margin-bottom:0}
+.doc-section ul,.doc-section ol{padding-left:20px;margin-bottom:12px}
+.doc-section ul li,.doc-section ol li{font-size:14px;color:var(--text2);line-height:1.8;margin-bottom:4px}
+.doc-section a{color:var(--cyan);text-decoration:none}
+.doc-section a:hover{text-decoration:underline}
+.highlight-box{background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:18px 20px;margin:16px 0}
+.highlight-box p{font-size:13.5px;color:var(--text2);line-height:1.75;margin:0}
+.highlight-box strong{color:var(--amber)}
+.legal-footer{border-top:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.25)}
+.legal-footer-inner{max-width:1200px;margin:0 auto;padding:32px 24px 40px}
+.legal-disclaimer{font-size:11.5px;line-height:1.7;color:var(--text3);max-width:860px}
+.legal-links{display:flex;flex-wrap:wrap;gap:6px 4px;align-items:center;margin-top:20px}
+.legal-links a{font-size:12px;color:var(--text3);text-decoration:none;transition:color .2s}
+.legal-links a:hover{color:var(--cyan)}
+.legal-links a.active{color:var(--violet)}
+.legal-sep{color:rgba(255,255,255,.2);font-size:12px}
+
+.legal-copy{font-size:11px;color:rgba(255,255,255,.2);margin-top:12px}
+
+/* ── MEGA FOOTER ── */
+.site-footer{border-top:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.25)}
+.site-footer-inner{max-width:1200px;margin:0 auto;padding:40px 24px 48px}
+.footer-top{display:flex;flex-wrap:wrap;gap:40px 56px;margin-bottom:32px}
+.footer-brand{min-width:200px;max-width:260px}
+.footer-logo{display:flex;align-items:center;gap:6px;text-decoration:none;font-size:14px;font-weight:800;letter-spacing:-.02em;margin-bottom:12px}
+.footer-logo .agora{color:#a78bfa}
+.footer-logo .iq{color:#e2e8f0}
+.footer-logo svg{flex-shrink:0}
+.footer-brand p{font-size:12px;color:var(--text3);line-height:1.65}
+.footer-col h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:12px}
+.footer-col a{display:block;font-size:12.5px;color:var(--text3);text-decoration:none;padding:3px 0;transition:color .2s}
+.footer-col a:hover{color:var(--cyan)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.06);padding-top:20px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px}
+.footer-disclaimer{font-size:11px;line-height:1.6;color:var(--text3);max-width:640px}
+.footer-disclaimer strong{color:var(--red)}
+.footer-copy{font-size:11px;color:rgba(255,255,255,.2)}
+@media(max-width:600px){.footer-top{gap:28px}.footer-brand{max-width:100%}}
+
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap" rel="stylesheet">
+<style id="aiq-brand">
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--cyan,#00e5ff),#0066ff);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex:0 0 auto}
+.brand-text{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.5px;color:var(--text,#e2e8f0);white-space:nowrap;line-height:1}
+.brand-iq{color:var(--cyan,#00e5ff);margin-left:0}
+.brand-sm .brand-mark{width:20px;height:20px}
+.brand-sm .brand-text{font-size:14px}
+.brand-xs .brand-mark{width:18px;height:18px}
+.brand-xs .brand-text{font-size:14px}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/dashboard" class="logo">
+    <svg width="130" height="36" viewBox="0 0 130 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="AgoraIQ">
+      <defs>
+        <linearGradient id="aiqHex" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#55d0ff"/>
+          <stop offset="100%" stop-color="#1a6eff"/>
+        </linearGradient>
+      </defs>
+      <polygon points="18,3 30,10 30,26 18,33 6,26 6,10" fill="url(#aiqHex)"/>
+      <text x="40" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#e2e4ef">Agora</text>
+      <text x="101" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#00d4ff">IQ</text>
+    </svg>
+  </a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/proof">Proof</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/login">Log in</a>
+      <a href="/signup" class="nav-cta">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+  <div class="page-header">
+    <div class="page-tag">Legal</div>
+    <h1>Terms of Service</h1>
+    <p>Last updated: 18 February 2026 &nbsp;·&nbsp; ChatLogic Insights LTD</p>
+  </div>
+
+  <div class="uk-banner">
+    <strong>⚠ Not Available to UK Persons — Please Read Carefully</strong>
+    AgoraIQ is not authorised or regulated by the Financial Conduct Authority (FCA) and is not available to persons located in the United Kingdom. By creating an account or using this service you expressly represent and warrant that you are not (a) a UK national, (b) resident in the United Kingdom, or (c) accessing this service from within the United Kingdom. ChatLogic Insights LTD reserves the right to immediately terminate any account found to belong to a UK person without refund.
+  </div>
+
+  <div class="doc-section">
+    <h2>1. Acceptance of Terms</h2>
+    <p>By registering for or using AgoraIQ (the "Service"), operated by ChatLogic Insights LTD ("Company", "we", "us"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree, do not use the Service.</p>
+    <p>These Terms form a legally binding agreement between you and ChatLogic Insights LTD. We may update these Terms from time to time. Continued use of the Service after changes are posted constitutes your acceptance of the revised Terms.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>2. Eligibility</h2>
+    <p>To use the Service, you must:</p>
+    <ul>
+      <li>Be at least 18 years of age (or the age of majority in your jurisdiction, whichever is greater)</li>
+      <li><strong>Not be located in, a resident of, or a national of the United Kingdom</strong></li>
+      <li>Not be located in a jurisdiction where the Service is prohibited by local law</li>
+      <li>Have the legal capacity to enter into binding contracts</li>
+      <li>Not be a person or entity subject to applicable sanctions lists</li>
+    </ul>
+    <p>By using the Service, you represent and warrant that you meet all eligibility requirements. We reserve the right to verify eligibility and refuse or revoke access at our sole discretion.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>3. Not Financial Advice</h2>
+    <div class="highlight-box">
+      <p><strong>⚠ Important:</strong> AgoraIQ provides informational data aggregation tools only. Nothing on this platform constitutes financial advice, investment advice, trading advice, or a recommendation to buy or sell any cryptocurrency, derivative, or other financial instrument. Past signal performance displayed on the platform is historical data and does not guarantee, predict, or imply future results. You are solely responsible for your own trading decisions and any resulting losses.</p>
+    </div>
+    <p>AgoraIQ is a data intelligence and analytics platform. We aggregate, track, and display signal performance data from third-party providers. We do not provide regulated financial services, portfolio management, or investment advisory services.</p>
+    <p>Always conduct your own research and consider seeking advice from a qualified, licensed financial adviser before making any trading or investment decision.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>4. The Service</h2>
+    <p>AgoraIQ provides the following features (subject to the subscription plan selected):</p>
+    <ul>
+      <li>Aggregation and display of trading signal data from third-party providers</li>
+      <li>Historical performance tracking and analytics</li>
+      <li>Signal quality scoring and provider comparison tools</li>
+      <li>Data export capabilities</li>
+      <li>Workspace management for teams</li>
+    </ul>
+    <p>We do not transmit trading signals directly to exchanges. We do not manage your funds, execute trades on your behalf, or hold any cryptocurrency or fiat assets.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>5. Accounts and Security</h2>
+    <p>You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account. You must notify us immediately at <a href="mailto:security@agoraiq.net">security@agoraiq.net</a> if you suspect any unauthorised access.</p>
+    <p>You must not share your account with others, create multiple accounts to circumvent restrictions, or use automated tools to access the Service in ways not permitted by these Terms.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>6. Subscriptions and Payment</h2>
+    <p>Paid subscriptions are billed in advance on a monthly or annual basis via Stripe. All fees are stated exclusive of applicable taxes. Prices may change with 30 days' notice to existing subscribers.</p>
+    <h3>Cancellation</h3>
+    <p>You may cancel your subscription at any time. Cancellation takes effect at the end of the current billing period. We do not provide refunds for unused portions of a billing period except where required by applicable law.</p>
+    <h3>Free Trial</h3>
+    <p>Free trials are offered at our discretion. Only one free trial per person or organisation. We reserve the right to terminate a trial at any time if we suspect abuse.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>7. Acceptable Use</h2>
+    <p>You must not use the Service to:</p>
+    <ul>
+      <li>Violate any applicable law or regulation</li>
+      <li>Circumvent geographic or access restrictions</li>
+      <li>Scrape, copy, or redistribute platform data without authorisation</li>
+      <li>Attempt to reverse-engineer, decompile, or extract source code</li>
+      <li>Interfere with or disrupt the Service or its infrastructure</li>
+      <li>Impersonate any person or entity or misrepresent your affiliation</li>
+      <li>Use the Service for money laundering, fraud, or other illegal financial activity</li>
+      <li>Resell or sublicense access to the Service without written consent</li>
+    </ul>
+  </div>
+
+  <div class="doc-section">
+    <h2>8. Intellectual Property</h2>
+    <p>All content, software, algorithms, designs, trademarks, and data compilations on the Service are the property of ChatLogic Insights LTD or its licensors and are protected by applicable intellectual property laws. These Terms grant you a limited, non-exclusive, non-transferable licence to use the Service for your personal or internal business purposes only.</p>
+    <p>Signal data sourced from third-party providers remains the property of those providers. AgoraIQ does not claim ownership over raw signal data.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>9. Disclaimer of Warranties</h2>
+    <p>The Service is provided "as is" and "as available" without warranties of any kind, express or implied. We do not warrant that the Service will be uninterrupted, error-free, or free from malicious code. Signal performance data may contain inaccuracies and should not be relied upon as the sole basis for any trading decision.</p>
+    <p>To the fullest extent permitted by applicable law, we disclaim all implied warranties including merchantability, fitness for a particular purpose, and non-infringement.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>10. Limitation of Liability</h2>
+    <p>To the maximum extent permitted by law, ChatLogic Insights LTD shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of profits, trading losses, or loss of data, arising from your use of the Service.</p>
+    <p>Our total aggregate liability to you for any claim arising from these Terms or your use of the Service shall not exceed the total fees you paid to us in the 12 months preceding the claim.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>11. Indemnification</h2>
+    <p>You agree to indemnify and hold harmless ChatLogic Insights LTD, its directors, employees, and agents from any claims, losses, damages, liabilities, and expenses (including reasonable legal fees) arising from your use of the Service, your violation of these Terms, or your violation of any third-party rights.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>12. Termination</h2>
+    <p>We may suspend or terminate your account at any time for breach of these Terms, suspected fraudulent activity, or at our sole discretion with reasonable notice. You may terminate your account at any time via account settings or by contacting <a href="mailto:hello@agoraiq.net">hello@agoraiq.net</a>.</p>
+    <p>Upon termination, your right to access the Service ceases immediately. Provisions that by their nature should survive termination (including Sections 3, 8, 9, 10, 11, and 13) shall survive.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>13. Governing Law and Disputes</h2>
+    <p>These Terms are governed by and construed in accordance with the laws applicable to ChatLogic Insights LTD's place of incorporation, without regard to conflict of law provisions. Any dispute arising from these Terms or use of the Service shall be subject to the exclusive jurisdiction of the competent courts of that jurisdiction.</p>
+    <p>Nothing in this clause limits your statutory rights as a consumer under applicable law in your country of residence (excluding the United Kingdom, which is excluded entirely).</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>14. Contact</h2>
+    <p>For any questions about these Terms:<br/>
+    <a href="mailto:legal@agoraiq.net">legal@agoraiq.net</a> &nbsp;·&nbsp; ChatLogic Insights LTD</p>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="/dashboard" class="logo">
+    <svg width="130" height="36" viewBox="0 0 130 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="AgoraIQ">
+      <defs>
+        <linearGradient id="aiqHex" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#55d0ff"/>
+          <stop offset="100%" stop-color="#1a6eff"/>
+        </linearGradient>
+      </defs>
+      <polygon points="18,3 30,10 30,26 18,33 6,26 6,10" fill="url(#aiqHex)"/>
+      <text x="40" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#e2e4ef">Agora</text>
+      <text x="101" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#00d4ff">IQ</text>
+    </svg>
+  </a>
+        <p>AI-powered signal intelligence. Track, score, and verify crypto trading signals with verifiable proof.</p>
+      </div>
+      <div class="footer-col">
+        <h4>About Us</h4>
+        <a href="/about">About</a>
+        <a href="/careers">Careers</a>
+        <a href="/announcements">Announcements</a>
+        <a href="/news">News</a>
+        <a href="/press">Press</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/cookies">Cookies</a>
+        <a href="/disclaimer">Disclaimer</a>
+        <a href="/trust">Building Trust</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="/blog">Blog</a>
+        <a href="/community">Community</a>
+        <a href="/risk-warning">Risk Warning</a>
+        <a href="/notices">Notices</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-disclaimer"><strong>⚠ Not for UK Persons.</strong> AgoraIQ is not authorised or regulated by the FCA. Not directed at UK persons. Nothing on this site constitutes financial advice. Past performance does not guarantee future results.</div>
+      <div class="footer-copy">© 2026 ChatLogic Insights LTD. All rights reserved.</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

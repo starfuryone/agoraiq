@@ -64,9 +64,7 @@ input, select { font-family:var(--font); }
   display:flex; align-items:center; gap:10px;
   padding:16px 20px; border-bottom:1px solid var(--border);
 }
-.sidebar-logo .mark { font-size:14px; font-weight:700; letter-spacing:-.02em; }
-.sidebar-logo .mark .a { color:var(--accent); }
-.sidebar-logo .mark .b { color:var(--text); }
+
 .sidebar-label {
   font-size:10px; font-weight:600; text-transform:uppercase;
   letter-spacing:.08em; color:var(--text3); padding:20px 20px 8px;
@@ -460,20 +458,34 @@ input, select { font-family:var(--font); }
 /* ── Loading ─────────────────────────────────────────────────── */
 .loading-row td { color:var(--text3); text-align:center; padding:40px; font-size:12px; }
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap" rel="stylesheet">
+<style id="aiq-brand">
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--cyan,#00e5ff),#0066ff);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex:0 0 auto}
+.brand-text{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.5px;color:var(--text,#e2e8f0);white-space:nowrap;line-height:1}
+.brand-iq{color:var(--cyan,#00e5ff);margin-left:0}
+.brand-sm .brand-mark{width:20px;height:20px}
+.brand-sm .brand-text{font-size:14px}
+.brand-xs .brand-mark{width:18px;height:18px}
+.brand-xs .brand-text{font-size:14px}
+</style>
 </head>
 <body>
 <div class="app">
 
   <!-- ── Sidebar ─────────────────────────────────────────────── -->
   <nav class="sidebar">
-    <a class="sidebar-logo" href="/dashboard">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/>
-        <path d="M2 17l10 5 10-5" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/>
-        <path d="M2 12l10 5 10-5" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round" opacity=".5"/>
-      </svg>
-      <div class="mark"><span class="a">Agora</span><span class="b">IQ</span></div>
-    </a>
+    <a href="/dashboard" class="logo">
+    <svg width="130" height="36" viewBox="0 0 130 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="AgoraIQ">
+      <defs><linearGradient id="aiqHex" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#55d0ff"/><stop offset="100%" stop-color="#1a6eff"/>
+      </linearGradient></defs>
+      <polygon points="18,3 30,10 30,26 18,33 6,26 6,10" fill="url(#aiqHex)"/>
+      <text x="40" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#e2e4ef">Agora</text>
+      <text x="101" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#00d4ff">IQ</text>
+    </svg>
+  </a>
 
     <div class="sidebar-label">Intelligence</div>
     <div class="sidebar-nav">
