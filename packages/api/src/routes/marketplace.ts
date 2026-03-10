@@ -37,7 +37,7 @@ export function createMarketplaceRoutes(db: PrismaClient): Router {
       if (tierFilter === 'VERIFIED') where.marketplaceTier = 'VERIFIED';
       else if (tierFilter === 'BETA') where.marketplaceTier = 'BETA';
       else if (tierFilter === 'PENDING') where.marketplaceTier = 'PENDING';
-      else where.marketplaceTier = { in: ['VERIFIED', 'BETA', 'PENDING'] };
+      else where.marketplaceTier = { in: ['VERIFIED', 'BETA', 'PENDING', 'ELITE'] };
       // Search filter
       const search = (req.query.search as string) || '';
       if (search.length >= 2) {
