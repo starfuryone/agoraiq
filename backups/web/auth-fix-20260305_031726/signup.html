@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgoraIQ — Sign Up</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+  .auth-wrap {
+    min-height: calc(100vh - 60px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 40px 24px; position: relative; z-index: 1;
+  }
+  .auth-card {
+    width: 100%; max-width: 420px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 36px 32px;
+    position: relative; overflow: hidden;
+  }
+  .auth-card::before {
+    content: '';
+    position: absolute; top: -80px; right: -80px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(0,212,255,.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .auth-title { font-family:'Syne',sans-serif; font-weight:800; font-size:20px; color:var(--text); text-align:center; margin-bottom:4px; }
+  .auth-sub { font-size:11px; color:var(--muted); text-align:center; margin-bottom:28px; }
+  .auth-footer { text-align:center; margin-top:20px; font-size:11px; color:var(--muted); }
+  .auth-footer a { color:var(--cyan); text-decoration:none; }
+  .perks { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:24px; }
+  .perk { font-size:10px; color:var(--muted); display:flex; align-items:center; gap:5px; }
+  .perk .check { color:var(--green); }
+  #signup-btn { width:100%; justify-content:center; padding:12px; font-size:12px; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="/" class="logo">
+    <div class="logo-mark"></div>
+    <div class="logo-text">Agora<span>IQ</span></div>
+  </a>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/marketplace">Marketplace</a>
+    <a href="/pricing">Pricing</a>
+  </nav>
+  <div class="header-right">
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <a href="/login" class="btn btn-ghost" style="font-size:11px">Login</a>
+  </div>
+</header>
+
+<div id="toast"></div>
+
+<div class="auth-wrap">
+  <div class="auth-card fade-up">
+    <div style="text-align:center;margin-bottom:20px">
+      <div class="logo-mark" style="margin:0 auto 12px"></div>
+    </div>
+    <div class="auth-title">Create your account</div>
+    <div class="auth-sub">Free forever. Upgrade anytime.</div>
+
+    <div class="perks">
+      <div class="perk"><span class="check">✓</span> 100+ signal providers</div>
+      <div class="perk"><span class="check">✓</span> Proof dashboard</div>
+      <div class="perk"><span class="check">✓</span> No credit card</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Name</label>
+      <input class="form-input" id="name" type="text" placeholder="Your name" autocomplete="name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="email" type="email" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="form-group" style="margin-bottom:20px">
+      <label class="form-label">Password</label>
+      <input class="form-input" id="password" type="password" placeholder="Min 8 characters" autocomplete="new-password">
+      <div class="form-hint">Minimum 8 characters.</div>
+    </div>
+
+    <button class="btn btn-cyan" id="signup-btn" onclick="doSignup()">Create Account →</button>
+
+    <div class="auth-footer">
+      Already have an account? <a href="/login">Sign in</a><br>
+      <span style="font-size:10px">By signing up you agree to our <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.</span>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/app.js"></script>
+<script>
+async function doSignup() {
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('signup-btn');
+
+  if (!name || !email || !password) { toast('Please fill in all fields.', 'error'); return; }
+  if (password.length < 8) { toast('Password must be at least 8 characters.', 'error'); return; }
+
+  btn.disabled = true; btn.textContent = 'Creating account…';
+
+  try {
+    await apiFetch('/api/v1/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ name, email, password }),
+    });
+    toast('Account created! Redirecting…', 'success');
+    setTimeout(() => { window.location.href = '/onboarding'; }, 800);
+  } catch (err) {
+    toast(err.message || 'Registration failed.', 'error');
+    btn.disabled = false; btn.textContent = 'Create Account →';
+  }
+}
+</script>
+</body>
+</html>

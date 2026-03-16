@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Market Intel — AgoraIQ</title>
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Variables ──────────────────────────────────────────── */
+    :root {
+      --bg:           #08090d;
+      --bg-card:      #0e1018;
+      --bg-elevated:  #131620;
+      --border:       #1e2235;
+      --border-glow:  #2a3055;
+      --text:         #e8eaf2;
+      --text-muted:   #5a6080;
+      --text-dim:     #8892b0;
+      --accent:       #3d6cff;
+      --accent-glow:  rgba(61,108,255,0.18);
+      --green:        #00e5a0;
+      --green-dim:    rgba(0,229,160,0.12);
+      --red:          #ff4d6a;
+      --red-dim:      rgba(255,77,106,0.12);
+      --amber:        #ffb547;
+      --amber-dim:    rgba(255,181,71,0.12);
+      --critical:     #ff4d6a;
+      --high:         #ff8c42;
+      --medium:       #ffb547;
+      --low:          #3d6cff;
+      --font-mono:    'IBM Plex Mono', monospace;
+      --font-display: 'Syne', sans-serif;
+      --radius:       6px;
+    }
+
+    /* ── Reset ───────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 14px; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Scanline overlay ────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.03) 2px,
+        rgba(0,0,0,0.03) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ── Sidebar nav ─────────────────────────────────────────── */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: 220px;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-logo {
+      padding: 0 20px 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .sidebar-logo .wordmark {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+    .sidebar-logo .wordmark span { color: var(--accent); }
+    .sidebar-logo .tagline {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .nav-section {
+      padding: 0 12px;
+      margin-bottom: 24px;
+    }
+    .nav-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      padding: 0 8px;
+      margin-bottom: 6px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: var(--radius);
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+    .nav-item:hover { background: var(--bg-elevated); color: var(--text); }
+    .nav-item.active {
+      background: var(--accent-glow);
+      color: var(--accent);
+      border: 1px solid rgba(61,108,255,0.25);
+    }
+    .nav-item .icon { font-size: 14px; width: 16px; text-align: center; }
+    .nav-badge {
+      margin-left: auto;
+      background: var(--accent);
+      color: white;
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+    .nav-badge.live {
+      background: var(--green);
+      color: #001a0e;
+      animation: pulse-badge 2s infinite;
+    }
+    @keyframes pulse-badge {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    /* ── Main layout ─────────────────────────────────────────── */
+    .main {
+      margin-left: 220px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Top bar ─────────────────────────────────────────────── */
+    .topbar {
+      height: 56px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 28px;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .topbar-title {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      flex: 1;
+    }
+    .topbar-title span { color: var(--accent); }
+    .topbar-badge {
+      background: var(--green-dim);
+      color: var(--green);
+      border: 1px solid rgba(0,229,160,0.25);
+      padding: 4px 10px;
+      border-radius: var(--radius);
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .dot-live {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+    .topbar-time {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .btn {
+      padding: 6px 14px;
+      border-radius: var(--radius);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+    .btn-primary:hover { background: #5580ff; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--border-glow); color: var(--text); }
+
+    /* ── Page content ────────────────────────────────────────── */
+    .content {
+      padding: 28px;
+      flex: 1;
+    }
+
+    /* ── Stats row ───────────────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      transition: border-color 0.2s;
+    }
+    .stat-card:hover { border-color: var(--border-glow); }
+    .stat-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-value.green { color: var(--green); }
+    .stat-value.blue  { color: var(--accent); }
+    .stat-value.amber { color: var(--amber); }
+    .stat-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* ── Two-column grid ─────────────────────────────────────── */
+    .dual-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    /* ── Panel ───────────────────────────────────────────────── */
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-title .icon { font-size: 14px; }
+    .panel-subtitle {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+    .panel-actions { display: flex; gap: 8px; align-items: center; }
+    .panel-body { padding: 0; }
+
+    /* ── Opportunities table ─────────────────────────────────── */
+    .opp-table { width: 100%; border-collapse: collapse; }
+    .opp-table th {
+      padding: 10px 18px;
+      text-align: left;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .opp-table td {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      vertical-align: middle;
+    }
+    .opp-table tr:last-child td { border-bottom: none; }
+    .opp-table tbody tr {
+      transition: background 0.12s;
+      cursor: pointer;
+    }
+    .opp-table tbody tr:hover { background: var(--bg-elevated); }
+
+    .sym-cell { display: flex; align-items: center; gap: 10px; }
+    .sym-icon {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      color: var(--accent);
+    }
+    .sym-name { font-weight: 600; font-size: 12px; }
+    .sym-base { font-size: 10px; color: var(--text-muted); }
+
+    .side-pill {
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .side-long  { background: var(--green-dim); color: var(--green); }
+    .side-short { background: var(--red-dim);   color: var(--red);   }
+
+    .prob-bar-wrap { display: flex; align-items: center; gap: 10px; }
+    .prob-bar {
+      flex: 1;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      max-width: 80px;
+    }
+    .prob-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.6s ease;
+    }
+    .prob-pct { font-weight: 600; min-width: 32px; }
+
+    .conf-pill {
+      padding: 3px 7px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .conf-high   { background: var(--green-dim); color: var(--green); }
+    .conf-med    { background: var(--amber-dim); color: var(--amber); }
+    .conf-low    { background: var(--red-dim);   color: var(--red);   }
+
+    .er-val { font-weight: 600; }
+    .er-pos  { color: var(--green); }
+    .ts-val  { font-size: 10px; color: var(--text-muted); }
+
+    /* ── Alert feed ──────────────────────────────────────────── */
+    .alerts-feed { max-height: 520px; overflow-y: auto; }
+    .alerts-feed::-webkit-scrollbar { width: 3px; }
+    .alerts-feed::-webkit-scrollbar-track { background: transparent; }
+    .alerts-feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .alert-item {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+    .alert-item:last-child { border-bottom: none; }
+    .alert-item:hover { background: var(--bg-elevated); }
+
+    .alert-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .alert-type-icon { font-size: 14px; }
+    .alert-type-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 700;
+    }
+    .alert-type-volatility { color: var(--amber); }
+    .alert-type-arbitrage  { color: var(--green); }
+
+    .alert-severity {
+      margin-left: auto;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .sev-critical { background: var(--red-dim);   color: var(--red);   }
+    .sev-high     { background: rgba(255,140,66,0.12); color: var(--high); }
+    .sev-medium   { background: var(--amber-dim); color: var(--amber); }
+    .sev-low      { background: var(--accent-glow); color: var(--accent); }
+
+    .alert-symbol {
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .alert-msg {
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.5;
+      white-space: pre-line;
+    }
+    .alert-time {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* ── Alerts type tabs ─────────────────────────────────────── */
+    .type-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .type-tab {
+      padding: 6px 12px;
+      border-radius: var(--radius) var(--radius) 0 0;
+      font-size: 11px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.15s;
+      border: 1px solid transparent;
+      border-bottom: none;
+      background: transparent;
+      font-family: var(--font-mono);
+    }
+    .type-tab:hover { color: var(--text-dim); }
+    .type-tab.active {
+      color: var(--text);
+      background: var(--bg-elevated);
+      border-color: var(--border);
+      border-bottom: 1px solid var(--bg-elevated);
+      position: relative;
+      bottom: -1px;
+    }
+
+    /* ── Footer row ──────────────────────────────────────────── */
+    .full-row { margin-bottom: 0; }
+
+    /* ── Loading + empty states ──────────────────────────────── */
+    .state-empty {
+      padding: 48px 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    .state-empty .icon { font-size: 28px; margin-bottom: 10px; opacity: 0.4; }
+
+    .skeleton {
+      background: linear-gradient(90deg, var(--border) 25%, var(--bg-elevated) 50%, var(--border) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 3px;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ── Toast ───────────────────────────────────────────────── */
+    .toast-container {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      display: flex; flex-direction: column; gap: 8px;
+      z-index: 1000;
+    }
+    .toast {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 11px;
+      max-width: 300px;
+      animation: slide-in 0.3s ease;
+    }
+    .toast.success { border-left: 3px solid var(--green); }
+    .toast.error   { border-left: 3px solid var(--red); }
+    @keyframes slide-in {
+      from { transform: translateX(20px); opacity: 0; }
+      to   { transform: translateX(0);    opacity: 1; }
+    }
+
+    /* ── Filter bar ──────────────────────────────────────────── */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .filter-select {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 5px 10px;
+      border-radius: var(--radius);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .filter-select:focus { outline: none; border-color: var(--accent); }
+
+    /* ── Responsive ──────────────────────────────────────────── */
+    @media (max-width: 1200px) {
+      .dual-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Sidebar ─────────────────────────────────────────────── -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="wordmark">Agora<span>IQ</span></div>
+    <div class="tagline">Market Intelligence</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Overview</div>
+    <a href="/dashboard" class="nav-item"><span class="icon">⎕</span> Dashboard</a>
+    <a href="/providers" class="nav-item"><span class="icon">◈</span> Providers</a>
+    <a href="/signals"   class="nav-item"><span class="icon">◎</span> Signals</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Market Intel</div>
+    <a href="/market-intel"   class="nav-item active"><span class="icon">◆</span> Overview <span class="nav-badge live">LIVE</span></a>
+    <a href="#scores"         class="nav-item" id="nav-scores"><span class="icon">◇</span> Score Engine</a>
+    <a href="#alerts"         class="nav-item" id="nav-alerts"><span class="icon">◉</span> Alerts Feed</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Analytics</div>
+    <a href="/analytics/duration"  class="nav-item"><span class="icon">▷</span> Duration</a>
+    <a href="/analytics/monthly"   class="nav-item"><span class="icon">▦</span> Monthly</a>
+  </div>
+</nav>
+
+<!-- ── Main ────────────────────────────────────────────────── -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-title">Market <span>Intel</span></div>
+    <div class="topbar-badge"><div class="dot-live"></div> Live Feed</div>
+    <div class="topbar-time" id="clock">--:--:--</div>
+    <button class="btn btn-ghost" onclick="refreshAll()">↻ Refresh</button>
+    <button class="btn btn-primary" onclick="triggerRecompute()">▶ Recompute</button>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Stats row -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Top Opportunity</div>
+        <div class="stat-value green" id="stat-top-sym">—</div>
+        <div class="stat-sub" id="stat-top-score">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">High Confidence Signals</div>
+        <div class="stat-value blue" id="stat-high-conf">—</div>
+        <div class="stat-sub">score ≥ 70%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Alerts</div>
+        <div class="stat-value amber" id="stat-alerts">—</div>
+        <div class="stat-sub">last 60 min</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Best Arbi Spread</div>
+        <div class="stat-value green" id="stat-arbi">—</div>
+        <div class="stat-sub" id="stat-arbi-pair">—</div>
+      </div>
+    </div>
+
+    <!-- Main dual-column -->
+    <div class="dual-grid">
+
+      <!-- Opportunities panel -->
+      <div class="panel" id="opportunities-panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title"><span class="icon">◆</span> Top Opportunities</div>
+            <div class="panel-subtitle">Ranked by AI trade probability score</div>
+          </div>
+          <div class="panel-actions">
+            <select class="filter-select" id="side-filter" onchange="renderScores()">
+              <option value="all">All sides</option>
+              <option value="LONG">LONG only</option>
+              <option value="SHORT">SHORT only</option>
+            </select>
+            <select class="filter-select" id="conf-filter" onchange="renderScores()">
+              <option value="all">All confidence</option>
+              <option value="HIGH">HIGH</option>
+              <option value="MED">MED</option>
+            </select>
+          </div>
+        </div>
+        <div class="panel-body">
+          <table class="opp-table">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Probability</th>
+                <th>Confidence</th>
+                <th>Exp. R</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
+            <tbody id="scores-tbody">
+              <tr><td colspan="6"><div class="state-empty"><div class="icon">◈</div>Loading scores…</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Alerts panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title"><span class="icon">◉</span> Alerts Feed</div>
+            <div class="panel-subtitle">Volatility + arbitrage signals</div>
+          </div>
+          <span id="alert-count-badge" style="font-size:10px;color:var(--text-muted)">—</span>
+        </div>
+        <div class="type-tabs">
+          <button class="type-tab active" data-tab="all"        onclick="switchAlertTab(this,'all')">All</button>
+          <button class="type-tab"        data-tab="volatility" onclick="switchAlertTab(this,'volatility')">⚡ Volatility</button>
+          <button class="type-tab"        data-tab="arbitrage"  onclick="switchAlertTab(this,'arbitrage')">⇄ Arbitrage</button>
+        </div>
+        <div class="alerts-feed" id="alerts-feed">
+          <div class="state-empty"><div class="icon">◉</div>Loading alerts…</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────
+const API = '/api/market-intel';
+let scoresData   = [];
+let alertsData   = [];
+let alertTabType = 'all';
+
+// ── Clock ─────────────────────────────────────────────────────
+function updateClock() {
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('en-US', { hour12: false });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── Fetch helpers ─────────────────────────────────────────────
+async function apiFetch(path) {
+  const res = await fetch(API + path, { credentials: 'include' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+// ── Load all data ─────────────────────────────────────────────
+async function loadOverview() {
+  try {
+    const data = await apiFetch('/overview?limit=20');
+    scoresData = data.data || [];
+    renderScores();
+    updateStats();
+  } catch(e) {
+    showToast('Failed to load scores: ' + e.message, 'error');
+    document.getElementById('scores-tbody').innerHTML =
+      `<tr><td colspan="6"><div class="state-empty"><div class="icon">⚠</div>Error loading data</div></td></tr>`;
+  }
+}
+
+async function loadAlerts(type = 'all') {
+  try {
+    const q    = type === 'all' ? '' : `&type=${type}`;
+    const data = await apiFetch(`/alerts?limit=50${q}`);
+    alertsData = data.data || [];
+    renderAlerts();
+    document.getElementById('alert-count-badge').textContent =
+      `${alertsData.length} alerts`;
+  } catch(e) {
+    document.getElementById('alerts-feed').innerHTML =
+      `<div class="state-empty"><div class="icon">⚠</div>Error loading alerts</div>`;
+  }
+}
+
+// ── Render scores table ───────────────────────────────────────
+function renderScores() {
+  const sideFilter = document.getElementById('side-filter').value;
+  const confFilter = document.getElementById('conf-filter').value;
+
+  const filtered = scoresData.filter(s =>
+    (sideFilter === 'all' || s.side === sideFilter) &&
+    (confFilter === 'all' || s.confidence === confFilter)
+  );
+
+  if (!filtered.length) {
+    document.getElementById('scores-tbody').innerHTML =
+      `<tr><td colspan="6"><div class="state-empty"><div class="icon">◇</div>No opportunities match filter</div></td></tr>`;
+    return;
+  }
+
+  const rows = filtered.map(s => {
+    const sym  = s.symbol.replace('USDT','');
+    const pct  = s.probabilityPct;
+    const color = pct >= 70 ? 'var(--green)' : pct >= 55 ? 'var(--amber)' : 'var(--text-muted)';
+    const ts   = new Date(s.createdAt);
+    const ago  = timeAgo(ts);
+
+    return `
+      <tr onclick="window.location='/market-intel/${s.symbol}'">
+        <td>
+          <div class="sym-cell">
+            <div class="sym-icon">${sym.slice(0,2)}</div>
+            <div>
+              <div class="sym-name">${s.symbol}</div>
+              <div class="sym-base">${sym}/USDT</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="side-pill side-${s.side.toLowerCase()}">${s.side}</span></td>
+        <td>
+          <div class="prob-bar-wrap">
+            <div class="prob-bar">
+              <div class="prob-bar-fill" style="width:${pct}%;background:${color}"></div>
+            </div>
+            <span class="prob-pct" style="color:${color}">${pct}%</span>
+          </div>
+        </td>
+        <td><span class="conf-pill conf-${s.confidence.toLowerCase()}">${s.confidence}</span></td>
+        <td><span class="er-val er-pos">${Number(s.expectedR).toFixed(1)}R</span></td>
+        <td><span class="ts-val">${ago}</span></td>
+      </tr>`;
+  }).join('');
+
+  document.getElementById('scores-tbody').innerHTML = rows;
+}
+
+// ── Render alerts ─────────────────────────────────────────────
+function renderAlerts() {
+  const feed = document.getElementById('alerts-feed');
+  if (!alertsData.length) {
+    feed.innerHTML = `<div class="state-empty"><div class="icon">◉</div>No alerts in this window</div>`;
+    return;
+  }
+
+  const icons = { volatility: '⚡', arbitrage: '⇄', regime: '◎' };
+  const html  = alertsData.map(a => `
+    <div class="alert-item">
+      <div class="alert-header">
+        <span class="alert-type-icon">${icons[a.type] || '●'}</span>
+        <span class="alert-type-label alert-type-${a.type}">${a.type}</span>
+        <span class="alert-severity sev-${a.severity}">${a.severity}</span>
+      </div>
+      <div class="alert-symbol">${a.symbol}${a.exchange ? ' · ' + a.exchange : ''}</div>
+      <div class="alert-msg">${escHtml(a.message)}</div>
+      <div class="alert-time">${timeAgo(new Date(a.createdAt))}</div>
+    </div>
+  `).join('');
+
+  feed.innerHTML = html;
+}
+
+// ── Stats update ──────────────────────────────────────────────
+function updateStats() {
+  if (scoresData.length) {
+    const top = scoresData[0];
+    document.getElementById('stat-top-sym').textContent   = top.symbol || '—';
+    document.getElementById('stat-top-score').textContent = `${top.probabilityPct}% · ${top.confidence} conf`;
+    const high = scoresData.filter(s => s.confidence === 'HIGH').length;
+    document.getElementById('stat-high-conf').textContent = high;
+  }
+
+  if (alertsData.length) {
+    document.getElementById('stat-alerts').textContent = alertsData.length;
+    const arbi = alertsData.filter(a => a.type === 'arbitrage')
+      .sort((a,b) => (b.metadata?.spreadPct||0) - (a.metadata?.spreadPct||0))[0];
+    if (arbi) {
+      const pct = ((arbi.metadata?.spreadPct || 0) * 100).toFixed(2);
+      document.getElementById('stat-arbi').textContent      = `+${pct}%`;
+      document.getElementById('stat-arbi-pair').textContent =
+        `${arbi.symbol} ${arbi.metadata?.buyExchange||''}→${arbi.metadata?.sellExchange||''}`;
+    }
+  }
+}
+
+// ── Tab switch ────────────────────────────────────────────────
+function switchAlertTab(el, type) {
+  document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  alertTabType = type;
+  loadAlerts(type);
+}
+
+// ── Refresh all ───────────────────────────────────────────────
+function refreshAll() {
+  loadOverview();
+  loadAlerts(alertTabType);
+  showToast('Data refreshed', 'success');
+}
+
+// ── Admin recompute ───────────────────────────────────────────
+async function triggerRecompute() {
+  try {
+    showToast('Triggering recompute…', 'success');
+    const res = await fetch(API + '/admin/recompute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ engines: ['volatility', 'arbitrage', 'scores'] }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showToast('Recompute complete ✓', 'success');
+      setTimeout(refreshAll, 1500);
+    } else {
+      showToast('Recompute failed: ' + data.error, 'error');
+    }
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+function timeAgo(date) {
+  const s = Math.floor((Date.now() - date) / 1000);
+  if (s < 60)   return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s/60)}m ago`;
+  return `${Math.floor(s/3600)}h ago`;
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+}
+
+function showToast(msg, type = 'success') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+// ── Auto-refresh every 60s ─────────────────────────────────────
+setInterval(refreshAll, 60_000);
+
+// ── Init ──────────────────────────────────────────────────────
+loadOverview();
+loadAlerts('all');
+</script>
+</body>
+</html>

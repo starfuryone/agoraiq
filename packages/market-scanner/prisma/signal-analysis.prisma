@@ -1,0 +1,62 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// AgoraIQ Signal Engine — Schema Extension (Phase 3)
+//
+// Add these models to the main AgoraIQ Prisma schema when ready.
+// Phase 1-2: engine data lives in Signal.meta and Signal.rawPayload.
+// Phase 3: migrate to dedicated tables for queryable analytics.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// First-party signal intelligence — one row per engine-generated signal.
+// Links to the existing Signal model via signalId.
+model SignalAnalysis {
+  id                    String    @id @default(cuid())
+  signalId              String    @unique
+  // signal             Signal    @relation(fields: [signalId], references: [id])
+
+  strategyType          String    // TREND_CONTINUATION, BREAKOUT_CONFIRMATION, MEAN_REVERSION, EVENT_DRIVEN
+  regime                String    // TRENDING_BULL, TRENDING_BEAR, RANGE_CHOP, HIGH_VOL_EVENT, LOW_LIQUIDITY, UNKNOWN
+
+  entryLow              Float
+  entryHigh             Float
+  expectedR             Float
+
+  technicalScore        Float
+  marketStructureScore  Float
+  newsScore             Float
+  providerScore         Float
+  riskPenalty           Float
+  finalScore            Float
+
+  reasonCodes           Json      // string[] — machine-readable reason codes
+  riskFlags             Json      // string[] — machine-readable risk flags
+
+  expiresAt             DateTime
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([strategyType])
+  @@index([regime])
+  @@index([finalScore])
+  @@index([expiresAt])
+  @@index([createdAt])
+}
+
+// Historical strategy performance — one row per (strategy, symbol, timeframe, regime) combo.
+// Updated nightly by the learning loop.
+model StrategyExpectancy {
+  id            String    @id @default(cuid())
+  strategyType  String
+  symbol        String
+  timeframe     String
+  regime        String
+
+  winRate       Float     // 0.0 to 1.0
+  avgR          Float     // average realized R multiple
+  sampleSize    Int       // number of closed signals in sample
+
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([strategyType, symbol, timeframe, regime])
+  @@index([strategyType, symbol])
+}

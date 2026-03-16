@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgoraIQ — Screener</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Albert+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+/* ── Screener-specific styles ─────────────────────────────── */
+.filter-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
+.filter-bar input { flex:1; min-width:180px; max-width:280px; }
+.filter-bar select { background:var(--surface); border:1px solid var(--border); color:var(--text); padding:8px 12px; border-radius:6px; font-size:11px; font-family:'DM Mono',monospace; cursor:pointer; }
+
+/* Preset chips */
+.preset-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+.preset-chip {
+  background:var(--surface); border:1px solid var(--border); color:var(--muted);
+  padding:5px 12px; border-radius:16px; font-size:10px; font-family:'DM Mono',monospace;
+  cursor:pointer; transition:all .15s; white-space:nowrap; user-select:none;
+}
+.preset-chip:hover { border-color:var(--cyan); color:var(--cyan); }
+.preset-chip.active { border-color:var(--cyan); color:var(--cyan); background:rgba(0,212,255,.06); }
+
+/* Auto-refresh */
+.refresh-group { display:flex; align-items:center; gap:8px; margin-left:auto; }
+.refresh-group select { padding:5px 8px; font-size:10px; }
+.refresh-countdown { font-size:10px; color:var(--muted); font-family:'DM Mono',monospace; min-width:60px; }
+
+/* Table enhancements */
+.screener-table { width:100%; border-collapse:collapse; }
+.screener-table th {
+  text-align:left; font-size:9px; color:var(--muted); text-transform:uppercase;
+  letter-spacing:.08em; padding:10px 8px; border-bottom:1px solid var(--border);
+  cursor:pointer; white-space:nowrap; user-select:none; transition:color .15s;
+}
+.screener-table th:hover { color:var(--cyan); }
+.screener-table th.sorted { color:var(--cyan); }
+.screener-table th .sort-arrow { font-size:8px; margin-left:3px; }
+.screener-table td { padding:8px; border-bottom:1px solid rgba(30,32,48,.5); font-size:12px; white-space:nowrap; }
+.screener-table tr { transition:background .1s; cursor:pointer; }
+.screener-table tbody tr:hover { background:rgba(0,212,255,.03); }
+
+.change-up { color:var(--green); }
+.change-down { color:var(--red); }
+.change-flat { color:var(--muted); }
+
+/* Volume bar */
+.vol-bar-wrap { width:60px; height:4px; background:rgba(255,255,255,.04); border-radius:2px; margin-top:2px; }
+.vol-bar { height:100%; background:var(--cyan); border-radius:2px; transition:width .3s; }
+
+/* Spread quality */
+.spread-tight { color:var(--green); }
+.spread-ok { color:var(--amber); }
+.spread-wide { color:var(--red); }
+
+/* Liquidity dots */
+.liq-dots { display:flex; gap:2px; }
+.liq-dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.08); }
+.liq-dot.filled { background:var(--cyan); }
+
+/* Drawer */
+.drawer-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:200; opacity:0; pointer-events:none; transition:opacity .2s; }
+.drawer-overlay.open { opacity:1; pointer-events:all; }
+.drawer {
+  position:fixed; top:0; right:-520px; width:500px; max-width:95vw;
+  height:100vh; background:var(--surface); border-left:1px solid var(--border);
+  z-index:201; transition:right .25s cubic-bezier(.4,0,.2,1);
+  overflow-y:auto; padding:28px 24px 48px;
+}
+.drawer.open { right:0; }
+.drawer-close { position:absolute; top:14px; right:14px; background:none; border:none; color:var(--muted); font-size:20px; cursor:pointer; padding:4px 8px; border-radius:4px; }
+.drawer-close:hover { color:var(--text); background:var(--card); }
+.drawer-section { margin-top:20px; }
+.drawer-section-title { font-size:9px; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; border-bottom:1px solid var(--border); padding-bottom:6px; margin-bottom:10px; }
+.drawer-row { display:flex; justify-content:space-between; padding:5px 0; font-size:11px; }
+.drawer-label { color:var(--muted); }
+.drawer-value { font-family:'DM Mono',monospace; color:var(--text); text-align:right; }
+.drawer-actions { display:flex; gap:8px; margin-top:16px; }
+.drawer-actions .btn { font-size:10px; padding:6px 14px; }
+
+/* Pagination */
+.pagination { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:20px; }
+.page-btn { background:var(--surface); border:1px solid var(--border); color:var(--text); padding:6px 12px; border-radius:6px; font-size:11px; font-family:'DM Mono',monospace; cursor:pointer; }
+.page-btn:hover:not(:disabled) { border-color:var(--cyan); color:var(--cyan); }
+.page-btn:disabled { opacity:.35; cursor:default; }
+.page-btn.active { border-color:var(--cyan); color:var(--cyan); background:rgba(0,212,255,.06); }
+.page-info { font-size:10px; color:var(--muted); font-family:'DM Mono',monospace; }
+</style>
+</head>
+<body>
+
+<div id="loading-screen">
+  <div class="loader-ring"></div>
+  <div class="loader-text">AUTHENTICATING</div>
+</div>
+
+<!-- Drawer -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <div id="drawer-content"></div>
+</div>
+
+<header>
+  <a href="/dashboard" class="logo">
+    <div class="logo-mark"></div>
+    <div class="logo-text">Agora<span>IQ</span></div>
+  </a>
+    <nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/tracking" style="font-weight:700;color:var(--green)">Watchlist</a>
+    <a href="/marketplace">Marketplace</a>
+    <a href="/screener" class="active">Screener</a>
+    <a href="/signals">Signals</a>
+    <a href="/scanner">Scanner</a>
+    <a href="/proof">Proof</a>
+    <a href="/news">News</a>
+  </nav>
+  <div class="header-right">
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <div class="user-badge"><div class="dot"></div><span id="username-badge">—</span></div>
+    <button class="btn-logout" onclick="logout()">LOGOUT</button>
+  </div>
+</header>
+
+<div id="toast"></div>
+
+<main>
+  <!-- Header -->
+  <div class="flex-between fade-up" style="margin-bottom:20px;flex-wrap:wrap;gap:10px">
+    <div>
+      <div class="section-header" style="margin-bottom:0"><h2>Screener</h2></div>
+      <p style="font-size:15px;color:var(--muted);margin:4px 0 0;font-weight:400">Scan live crypto markets across major exchanges. Filter for volume, liquidity, spread, and freshness.</p>
+    </div>
+    <div class="refresh-group">
+      <span id="last-updated" style="font-size:10px;color:var(--muted)"></span>
+      <select id="auto-refresh" onchange="setAutoRefresh()" style="font-size:10px">
+        <option value="0">Auto: Off</option>
+        <option value="15">15s</option>
+        <option value="30" selected>30s</option>
+        <option value="60">60s</option>
+      </select>
+      <span class="refresh-countdown" id="countdown"></span>
+      <button class="btn btn-ghost btn-sm" onclick="loadMarkets()" id="refresh-btn">↻ Refresh</button>
+    </div>
+  </div>
+
+  <!-- KPI Strip -->
+  <div class="stats-grid fade-up" style="margin-bottom:20px">
+    <div class="stat-card" style="cursor:pointer" onclick="applyPreset('all')">
+      <div class="stat-label">Tradable Pairs</div>
+      <div class="stat-value cyan" id="kpi-tradable">—</div>
+      <div class="stat-sub" id="kpi-tradable-sub">Online across all exchanges</div>
+    </div>
+    <div class="stat-card" style="cursor:pointer" onclick="applyPreset('all')">
+      <div class="stat-label">Exchanges</div>
+      <div class="stat-value" id="kpi-exchanges">—</div>
+      <div class="stat-sub" id="kpi-exchanges-sub">Data sources</div>
+    </div>
+    <div class="stat-card" style="cursor:pointer" onclick="applyPreset('tight-spread')">
+      <div class="stat-label">Avg Spread</div>
+      <div class="stat-value amber" id="kpi-spread">—</div>
+      <div class="stat-sub">Median spread (bps)</div>
+    </div>
+    <div class="stat-card" style="cursor:pointer" onclick="applyPreset('high-volume')">
+      <div class="stat-label">High Volume</div>
+      <div class="stat-value green" id="kpi-volume">—</div>
+      <div class="stat-sub">Pairs with 24h vol &gt; $1M</div>
+    </div>
+  </div>
+
+  <!-- Preset Chips -->
+  <div class="preset-bar fade-up" id="preset-bar">
+    <span class="preset-chip active" data-preset="all" onclick="applyPreset('all')">All Pairs</span>
+    <span class="preset-chip" data-preset="high-volume" onclick="applyPreset('high-volume')">🔥 High Volume</span>
+    <span class="preset-chip" data-preset="tight-spread" onclick="applyPreset('tight-spread')">⚡ Tight Spread</span>
+    <span class="preset-chip" data-preset="high-liquidity" onclick="applyPreset('high-liquidity')">💧 High Liquidity</span>
+    <span class="preset-chip" data-preset="volatile" onclick="applyPreset('volatile')">📈 Volatile</span>
+    <span class="preset-chip" data-preset="binance" onclick="applyPreset('binance')">Binance</span>
+    <span class="preset-chip" data-preset="kraken" onclick="applyPreset('kraken')">Kraken</span>
+    <span class="preset-chip" data-preset="bybit" onclick="applyPreset('bybit')">Bybit</span>
+    <span class="preset-chip" data-preset="coinbase" onclick="applyPreset('coinbase')">Coinbase</span>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar fade-up">
+    <input class="form-input" id="search" type="text" placeholder="Search pair or symbol…" oninput="filterMarkets()">
+    <select id="filter-exchange" onchange="filterMarkets()">
+      <option value="">All Exchanges</option>
+    </select>
+    <select id="filter-quote" onchange="filterMarkets()">
+      <option value="">All Quotes</option>
+      <option value="USDT">USDT</option>
+      <option value="USD">USD</option>
+      <option value="BTC">BTC</option>
+      <option value="ETH">ETH</option>
+    </select>
+    <select id="filter-status" onchange="filterMarkets()">
+      <option value="">All Status</option>
+      <option value="ONLINE">Online</option>
+      <option value="OFFLINE">Offline</option>
+    </select>
+    <span id="market-count" style="font-size:11px;color:var(--muted);margin-left:auto"></span>
+  </div>
+
+  <!-- Table -->
+  <div class="card fade-up">
+    <div class="table-wrap">
+      <table class="screener-table">
+        <thead>
+          <tr>
+            <th data-sort="symbol" onclick="sortBy('symbol')">Pair <span class="sort-arrow"></span></th>
+            <th data-sort="exchange" onclick="sortBy('exchange')">Exchange <span class="sort-arrow"></span></th>
+            <th data-sort="last" onclick="sortBy('last')">Last Price <span class="sort-arrow"></span></th>
+            <th data-sort="change24h" onclick="sortBy('change24h')">24h % <span class="sort-arrow"></span></th>
+            <th data-sort="volume24hUsd" onclick="sortBy('volume24hUsd')">Volume (24h) <span class="sort-arrow"></span></th>
+            <th data-sort="spreadBps" onclick="sortBy('spreadBps')">Spread <span class="sort-arrow"></span></th>
+            <th data-sort="liquidityScore" onclick="sortBy('liquidityScore')">Liquidity <span class="sort-arrow"></span></th>
+            <th data-sort="volatilityScore" onclick="sortBy('volatilityScore')">Volatility <span class="sort-arrow"></span></th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="markets-body">
+          <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted);font-size:11px">
+            <div class="skeleton" style="height:14px;width:200px;margin:0 auto"></div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div id="pagination" class="pagination"></div>
+</main>
+
+<script src="/assets/app.js"></script>
+<script src="/assets/auth.js"></script>
+<script>
+// ── State ─────────────────────────────────────────────────────
+let allMarkets = [];
+let cgData = {};
+let filteredList = [];
+let currentSort = { col: 'volume24hUsd', dir: 'desc' };
+let currentPreset = 'all';
+let refreshTimer = null;
+let countdownTimer = null;
+let countdownValue = 0;
+const PAGE_SIZE = 50;
+let currentPage = 1;
+
+// ── Init ──────────────────────────────────────────────────────
+async function pageInit(user) {
+  await Promise.all([loadMarkets(), loadCoinGecko()]);
+  setAutoRefresh();
+}
+
+// ── Data loading ──────────────────────────────────────────────
+async function loadMarkets() {
+  const btn = document.getElementById('refresh-btn');
+  btn.disabled = true; btn.textContent = '⟳';
+  try {
+    const resp = await apiFetch('/api/v1/markets?pageSize=2000');
+    allMarkets = resp?.data || (Array.isArray(resp) ? resp : []);
+
+    // Merge CoinGecko 24h change
+    mergeCgData();
+
+    // Exchanges from meta
+    let exchanges = [...new Set(allMarkets.map(m => m.exchange).filter(Boolean))];
+    try {
+      const metaResp = await apiFetch('/api/v1/markets/meta/exchanges');
+      (metaResp?.data || []).forEach(function(e) {
+        if (e.exchange && exchanges.indexOf(e.exchange) === -1) exchanges.push(e.exchange);
+      });
+    } catch(e) {}
+
+    // KPIs
+    const online = allMarkets.filter(m => m.status === 'ONLINE').length;
+    const spreads = allMarkets.map(m => parseFloat(m.spreadBps)).filter(n => n > 0 && n < 10000);
+    const medianSpread = spreads.length ? spreads.sort((a,b) => a-b)[Math.floor(spreads.length/2)] : 0;
+    const highVol = allMarkets.filter(m => parseFloat(m.volume24hUsd) > 1000000).length;
+
+    document.getElementById('kpi-tradable').textContent = online.toLocaleString();
+    document.getElementById('kpi-exchanges').textContent = exchanges.length;
+    document.getElementById('kpi-exchanges-sub').textContent = exchanges.map(e => e.charAt(0) + e.slice(1).toLowerCase()).join(' · ');
+    document.getElementById('kpi-spread').textContent = medianSpread > 0 ? medianSpread.toFixed(1) + ' bps' : '—';
+    document.getElementById('kpi-volume').textContent = highVol.toLocaleString();
+
+    // Populate exchange filter
+    const sel = document.getElementById('filter-exchange');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">All Exchanges</option>' +
+      exchanges.sort().map(e => '<option value="' + escapeHTML(e) + '">' + escapeHTML(e.charAt(0) + e.slice(1).toLowerCase()) + '</option>').join('');
+    sel.value = cur;
+
+    document.getElementById('last-updated').textContent = 'Updated ' + fmtRelative(new Date().toISOString());
+    resetCountdown();
+    filterMarkets();
+  } catch (err) {
+    console.error('markets error:', err);
+    document.getElementById('markets-body').innerHTML =
+      '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted);font-size:11px">Could not load — ' + escapeHTML(err.message) + '</td></tr>';
+  }
+  btn.disabled = false; btn.textContent = '↻ Refresh';
+}
+
+async function loadCoinGecko() {
+  try {
+    const data = await apiFetch('/api/v1/markets/coins?per_page=250&sparkline=true');
+    if (Array.isArray(data)) {
+      data.forEach(function(c) {
+        if (c.symbol) { c._sparkline = (c.sparkline_in_7d || {}).price || []; cgData[c.symbol.toUpperCase()] = c; }
+      });
+    }
+  } catch(e) { console.warn('CoinGecko unavailable:', e.message); }
+}
+
+function mergeCgData() {
+  allMarkets.forEach(function(m) {
+    const base = (m.baseCanonical || '').toUpperCase();
+    const cg = cgData[base];
+    if (cg) {
+      m.change24h = cg.price_change_percentage_24h || null;
+      m.marketCap = cg.market_cap || null;
+      if (!m.last && cg.current_price) m.cgPrice = cg.current_price;
+    } else {
+      m.change24h = null;
+      m.marketCap = null;
+    }
+  });
+}
+
+// ── Presets ────────────────────────────────────────────────────
+function applyPreset(preset) {
+  currentPreset = preset;
+  document.querySelectorAll('.preset-chip').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.preset === preset);
+  });
+  // Reset filter controls
+  document.getElementById('search').value = '';
+  document.getElementById('filter-exchange').value = '';
+  document.getElementById('filter-quote').value = '';
+  document.getElementById('filter-status').value = '';
+
+  // Apply preset-specific filters
+  if (preset === 'binance') document.getElementById('filter-exchange').value = 'BINANCE';
+  if (preset === 'kraken') document.getElementById('filter-exchange').value = 'KRAKEN';
+  if (preset === 'bybit') document.getElementById('filter-exchange').value = 'BYBIT';
+  if (preset === 'coinbase') document.getElementById('filter-exchange').value = 'COINBASE';
+
+  currentPage = 1;
+  filterMarkets();
+}
+
+// ── Filtering ─────────────────────────────────────────────────
+function filterMarkets() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const exchange = document.getElementById('filter-exchange').value;
+  const quote = document.getElementById('filter-quote').value;
+  const status = document.getElementById('filter-status').value;
+
+  filteredList = allMarkets.filter(function(m) {
+    var text = ((m.symbol || '') + ' ' + (m.pairId || '') + ' ' + (m.baseCanonical || '')).toLowerCase();
+    if (q && text.indexOf(q) === -1) return false;
+    if (exchange && m.exchange !== exchange) return false;
+    if (quote && m.quoteCanonical !== quote) return false;
+    if (status && m.status !== status) return false;
+
+    // Preset filters
+    if (currentPreset === 'high-volume' && !(parseFloat(m.volume24hUsd) > 1000000)) return false;
+    if (currentPreset === 'tight-spread' && !(parseFloat(m.spreadBps) > 0 && parseFloat(m.spreadBps) < 10)) return false;
+    if (currentPreset === 'high-liquidity' && !(parseInt(m.liquidityScore) >= 70)) return false;
+    if (currentPreset === 'volatile' && !(parseInt(m.volatilityScore) >= 60)) return false;
+
+    return true;
+  });
+
+  // Sort
+  doSort();
+
+  document.getElementById('market-count').textContent = filteredList.length.toLocaleString() + ' pair' + (filteredList.length !== 1 ? 's' : '');
+  renderPage();
+}
+
+// ── Sorting ───────────────────────────────────────────────────
+function sortBy(col) {
+  if (currentSort.col === col) {
+    currentSort.dir = currentSort.dir === 'desc' ? 'asc' : 'desc';
+  } else {
+    currentSort = { col: col, dir: 'desc' };
+  }
+  // Update header indicators
+  document.querySelectorAll('.screener-table th').forEach(function(th) {
+    th.classList.remove('sorted');
+    var arrow = th.querySelector('.sort-arrow');
+    if (arrow) arrow.textContent = '';
+  });
+  var active = document.querySelector('th[data-sort="' + col + '"]');
+  if (active) {
+    active.classList.add('sorted');
+    var arrow = active.querySelector('.sort-arrow');
+    if (arrow) arrow.textContent = currentSort.dir === 'desc' ? '▼' : '▲';
+  }
+  doSort();
+  currentPage = 1;
+  renderPage();
+}
+
+function doSort() {
+  var col = currentSort.col;
+  var dir = currentSort.dir === 'desc' ? -1 : 1;
+  filteredList.sort(function(a, b) {
+    var av, bv;
+    if (col === 'symbol') {
+      return dir * (a.symbol || a.pairId || '').localeCompare(b.symbol || b.pairId || '');
+    } else if (col === 'exchange') {
+      return dir * (a.exchange || '').localeCompare(b.exchange || '');
+    } else if (col === 'last') {
+      av = parseFloat(a.last) || 0; bv = parseFloat(b.last) || 0;
+    } else if (col === 'change24h') {
+      av = a.change24h || 0; bv = b.change24h || 0;
+    } else if (col === 'volume24hUsd') {
+      av = parseFloat(a.volume24hUsd) || 0; bv = parseFloat(b.volume24hUsd) || 0;
+    } else if (col === 'spreadBps') {
+      av = parseFloat(a.spreadBps) || 99999; bv = parseFloat(b.spreadBps) || 99999;
+      return dir * (av - bv); // Lower is better for spread
+    } else if (col === 'liquidityScore') {
+      av = parseInt(a.liquidityScore) || 0; bv = parseInt(b.liquidityScore) || 0;
+    } else if (col === 'volatilityScore') {
+      av = parseInt(a.volatilityScore) || 0; bv = parseInt(b.volatilityScore) || 0;
+    } else {
+      return 0;
+    }
+    return dir * (av - bv);
+  });
+}
+
+// ── Rendering ─────────────────────────────────────────────────
+function renderPage() {
+  var start = (currentPage - 1) * PAGE_SIZE;
+  var page = filteredList.slice(start, start + PAGE_SIZE);
+  renderTable(page);
+  renderPagination();
+}
+
+function renderTable(list) {
+  var tbody = document.getElementById('markets-body');
+  var maxVol = 0;
+  list.forEach(function(m) { var v = parseFloat(m.volume24hUsd) || 0; if (v > maxVol) maxVol = v; });
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted);font-size:12px">No pairs match your filters. Try broadening your search or resetting presets.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map(function(m) {
+    var price = m.last ? Number(m.last) : (m.cgPrice || null);
+    var priceStr = price ? fmtPrice(price, m.pairDecimals) : '<span style="color:var(--muted)">—</span>';
+
+    // 24h change
+    var chg = m.change24h;
+    var chgStr = '—';
+    var chgCls = 'change-flat';
+    if (chg != null) {
+      chgCls = chg > 0 ? 'change-up' : chg < 0 ? 'change-down' : 'change-flat';
+      chgStr = (chg > 0 ? '+' : '') + chg.toFixed(2) + '%';
+    }
+
+    // Volume
+    var vol = parseFloat(m.volume24hUsd) || 0;
+    var volStr = vol > 0 ? fmtVolume(vol) : '<span style="color:var(--muted)">—</span>';
+    var volPct = maxVol > 0 ? Math.min(100, (vol / maxVol) * 100) : 0;
+
+    // Spread
+    var spread = parseFloat(m.spreadBps);
+    var spreadStr = '—';
+    var spreadCls = '';
+    if (spread > 0) {
+      spreadStr = spread.toFixed(1) + ' bps';
+      spreadCls = spread < 10 ? 'spread-tight' : spread < 50 ? 'spread-ok' : 'spread-wide';
+    }
+
+    // Liquidity
+    var liq = parseInt(m.liquidityScore) || 0;
+    var liqDots = '';
+    for (var i = 0; i < 5; i++) {
+      liqDots += '<div class="liq-dot' + (i < Math.round(liq / 20) ? ' filled' : '') + '"></div>';
+    }
+
+    // Volatility
+    var vola = parseInt(m.volatilityScore) || 0;
+    var volaCls = vola >= 70 ? 'color:var(--red)' : vola >= 40 ? 'color:var(--amber)' : 'color:var(--muted)';
+
+    // Status
+    var isOn = m.status === 'ONLINE';
+
+    // Exchange display
+    var exName = m.exchangeDisplayName || (m.exchange ? m.exchange.charAt(0) + m.exchange.slice(1).toLowerCase() : '—');
+
+    return '<tr onclick="openDrawer(\'' + escapeHTML(m.exchange) + '\',\'' + escapeHTML(m.pairId) + '\')">' +
+      '<td><strong class="mono" style="font-size:12px">' + escapeHTML(m.symbol || m.pairId || '—') + '</strong>' +
+        (m.baseCanonical ? '<div style="font-size:9px;color:var(--muted)">' + escapeHTML(m.baseCanonical) + '/' + escapeHTML(m.quoteCanonical || '') + '</div>' : '') +
+      '</td>' +
+      '<td><span class="badge badge-muted" style="font-size:10px">' + escapeHTML(exName) + '</span></td>' +
+      '<td class="mono">' + priceStr + '</td>' +
+      '<td class="mono ' + chgCls + '" style="font-weight:600">' + chgStr + '</td>' +
+      '<td class="mono" style="font-size:11px">' + volStr +
+        '<div class="vol-bar-wrap"><div class="vol-bar" style="width:' + volPct.toFixed(0) + '%"></div></div>' +
+      '</td>' +
+      '<td class="mono ' + spreadCls + '" style="font-size:11px">' + spreadStr + '</td>' +
+      '<td><div class="liq-dots">' + liqDots + '</div><div style="font-size:9px;color:var(--muted);margin-top:1px">' + (liq > 0 ? liq : '—') + '</div></td>' +
+      '<td class="mono" style="font-size:11px;' + volaCls + '">' + (vola > 0 ? vola : '—') + '</td>' +
+      '<td><span class="badge ' + (isOn ? 'badge-green' : 'badge-muted') + '" style="font-size:9px">' + (m.status || '—') + '</span></td>' +
+    '</tr>';
+  }).join('');
+}
+
+function renderPagination() {
+  var total = Math.ceil(filteredList.length / PAGE_SIZE);
+  var cont = document.getElementById('pagination');
+  if (total <= 1) { cont.innerHTML = ''; return; }
+  var html = '<button class="page-btn" onclick="goPage(' + (currentPage-1) + ')" ' + (currentPage<=1?'disabled':'') + '>‹</button>';
+  var pages = [];
+  if (total <= 7) { for (var i=1;i<=total;i++) pages.push(i); }
+  else {
+    pages.push(1);
+    if (currentPage > 3) pages.push('…');
+    for (var i=Math.max(2,currentPage-1);i<=Math.min(total-1,currentPage+1);i++) pages.push(i);
+    if (currentPage < total-2) pages.push('…');
+    pages.push(total);
+  }
+  pages.forEach(function(p) {
+    if (p === '…') html += '<span class="page-info">…</span>';
+    else html += '<button class="page-btn ' + (p===currentPage?'active':'') + '" onclick="goPage(' + p + ')">' + p + '</button>';
+  });
+  html += '<button class="page-btn" onclick="goPage(' + (currentPage+1) + ')" ' + (currentPage>=total?'disabled':'') + '>›</button>';
+  html += '<span class="page-info">' + filteredList.length.toLocaleString() + ' pairs</span>';
+  cont.innerHTML = html;
+}
+
+function goPage(p) {
+  var total = Math.ceil(filteredList.length / PAGE_SIZE);
+  if (p < 1 || p > total) return;
+  currentPage = p;
+  renderPage();
+  window.scrollTo({ top: 300, behavior: 'smooth' });
+}
+
+// ── Drawer ────────────────────────────────────────────────────
+function openDrawer(exchange, pairId) {
+  var m = allMarkets.find(function(x) { return x.exchange === exchange && x.pairId === pairId; });
+  if (!m) return;
+
+  var price = m.last ? fmtPrice(Number(m.last), m.pairDecimals) : (m.cgPrice ? fmtPrice(m.cgPrice) : '—');
+  var chg = m.change24h;
+  var chgStr = chg != null ? ((chg > 0 ? '+' : '') + chg.toFixed(2) + '%') : '—';
+  var chgColor = chg > 0 ? 'var(--green)' : chg < 0 ? 'var(--red)' : 'var(--muted)';
+  var exName = m.exchangeDisplayName || m.exchange;
+
+  document.getElementById('drawer-content').innerHTML =
+    '<div style="padding-right:32px;margin-bottom:8px">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">' +
+        '<span style="font-family:Albert Sans,sans-serif;font-weight:800;font-size:22px;color:var(--text)">' + escapeHTML(m.symbol || m.pairId) + '</span>' +
+        '<span class="badge badge-muted">' + escapeHTML(exName) + '</span>' +
+        '<span class="badge ' + (m.status==='ONLINE'?'badge-green':'badge-muted') + '" style="font-size:9px">' + (m.status||'—') + '</span>' +
+      '</div>' +
+      '<div style="font-size:10px;color:var(--muted)">' + escapeHTML(m.baseCanonical||'') + '/' + escapeHTML(m.quoteCanonical||'') + ' · ' + escapeHTML(exName) + '</div>' +
+    '</div>' +
+
+    '<div class="drawer-section">' +
+      '<div class="drawer-section-title">7-Day Chart</div>' +
+      '<div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:12px 8px 8px">' +
+        renderSparkline((cgData[(m.baseCanonical||'').toUpperCase()] || {})._sparkline, 440, 100) +
+        '<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:4px;padding:0 2px"><span>7d ago</span><span>Now</span></div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="drawer-section">' +
+      '<div class="drawer-section-title">Price & Movement</div>' +
+      '<div class="drawer-row"><span class="drawer-label">Last Price</span><span class="drawer-value">' + price + '</span></div>' +
+      '<div class="drawer-row"><span class="drawer-label">24h Change</span><span class="drawer-value" style="color:' + chgColor + '">' + chgStr + '</span></div>' +
+      '<div class="drawer-row"><span class="drawer-label">Bid</span><span class="drawer-value">' + (m.bid ? fmtPrice(Number(m.bid), m.pairDecimals) : '—') + '</span></div>' +
+      '<div class="drawer-row"><span class="drawer-label">Ask</span><span class="drawer-value">' + (m.ask ? fmtPrice(Number(m.ask), m.pairDecimals) : '—') + '</span></div>' +
+    '</div>' +
+
+    '<div class="drawer-section">' +
+      '<div class="drawer-section-title">Market Quality</div>' +
+      '<div class="drawer-row"><span class="drawer-label">Spread</span><span class="drawer-value">' + (m.spreadBps ? parseFloat(m.spreadBps).toFixed(2) + ' bps' : '—') + '</span></div>' +
+      '<div class="drawer-row"><span class="drawer-label">Volume (24h)</span><span class="drawer-value">' + (m.volume24hUsd ? '$' + fmtVolume(parseFloat(m.volume24hUsd)) : '—') + '</span></div>' +
+      '<div class="drawer-row"><span class="drawer-label">Liquidity Score</span><span class="drawer-value">' + (m.liquidityScore || '—') + '</span></div>' +
+      '<div class="drawer-row"><span class="drawer-label">Volatility Score</span><span class="drawer-value">' + (m.volatilityScore || '—') + '</span></div>' +
+      (m.fundingRate ? '<div class="drawer-row"><span class="drawer-label">Funding Rate</span><span class="drawer-value">' + parseFloat(m.fundingRate).toFixed(4) + '%</span></div>' : '') +
+    '</div>' +
+
+    '<div class="drawer-section">' +
+      '<div class="drawer-section-title">Pair Info</div>' +
+      '<div class="drawer-row"><span class="drawer-label">Pair ID</span><span class="drawer-value" style="font-size:10px">' + escapeHTML(m.pairId||'—') + '</span></div>' +
+      '<div class="drawer-row"><span class="drawer-label">Tick Size</span><span class="drawer-value">' + (m.tickSize || '—') + '</span></div>' +
+      '<div class="drawer-row"><span class="drawer-label">Order Min</span><span class="drawer-value">' + (m.orderMin || '—') + '</span></div>' +
+      '<div class="drawer-row"><span class="drawer-label">Margin</span><span class="drawer-value">' + (m.marginAvailable ? '✓ Yes' : '✗ No') + '</span></div>' +
+      (m.tvSymbol ? '<div class="drawer-row"><span class="drawer-label">TradingView</span><span class="drawer-value" style="font-size:10px">' + escapeHTML(m.tvSymbol) + '</span></div>' : '') +
+      '<div class="drawer-row"><span class="drawer-label">Last Synced</span><span class="drawer-value">' + (m.lastSyncedAt ? fmtRelative(m.lastSyncedAt) : '—') + '</span></div>' +
+    '</div>' +
+
+    '<div class="drawer-actions">' +
+      '<a class="btn btn-sm" style="background:var(--green);color:#fff;border:1px solid var(--green);font-weight:600" href="/pair/' + encodeURIComponent(m.exchange) + '/' + encodeURIComponent(m.pairId) + '" target="_blank">Full Detail ↗</a>' +
+
+    '</div>';
+
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+}
+
+function closeDrawer() {
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('drawer').classList.remove('open');
+}
+
+// ── Auto-refresh ──────────────────────────────────────────────
+function setAutoRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  if (countdownTimer) clearInterval(countdownTimer);
+  var secs = parseInt(document.getElementById('auto-refresh').value) || 0;
+  if (secs > 0) {
+    countdownValue = secs;
+    refreshTimer = setInterval(function() { loadMarkets(); loadCoinGecko(); }, secs * 1000);
+    countdownTimer = setInterval(function() {
+      countdownValue--;
+      if (countdownValue <= 0) countdownValue = secs;
+      document.getElementById('countdown').textContent = countdownValue + 's';
+    }, 1000);
+    document.getElementById('countdown').textContent = secs + 's';
+  } else {
+    document.getElementById('countdown').textContent = '';
+  }
+}
+
+function resetCountdown() {
+  var secs = parseInt(document.getElementById('auto-refresh').value) || 0;
+  if (secs > 0) countdownValue = secs;
+}
+
+
+function renderSparkline(prices, width, height, color) {
+  if (!prices || prices.length < 2) return '<div style="text-align:center;padding:20px;color:var(--muted);font-size:10px">No chart data available</div>';
+  var mn = Math.min.apply(null, prices);
+  var mx = Math.max.apply(null, prices);
+  var range = mx - mn || 1;
+  var step = width / (prices.length - 1);
+  var pts = prices.map(function(p, i) {
+    var x = (i * step).toFixed(1);
+    var y = (height - ((p - mn) / range) * (height - 4) - 2).toFixed(1);
+    return x + ',' + y;
+  });
+  var isUp = prices[prices.length - 1] >= prices[0];
+  var c = color || (isUp ? 'var(--green)' : 'var(--red)');
+  var fillColor = isUp ? 'rgba(16,185,129,.08)' : 'rgba(239,68,68,.08)';
+  // Area fill
+  var areaPath = 'M0,' + height + ' L' + pts.join(' L') + ' L' + width + ',' + height + ' Z';
+  // Line
+  var linePath = 'M' + pts.join(' L');
+  // Current price dot
+  var lastPt = pts[pts.length - 1].split(',');
+  return '<svg viewBox="0 0 ' + width + ' ' + height + '" style="width:100%;height:' + height + 'px;display:block">' +
+    '<path d="' + areaPath + '" fill="' + fillColor + '"/>' +
+    '<path d="' + linePath + '" fill="none" stroke="' + c + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<circle cx="' + lastPt[0] + '" cy="' + lastPt[1] + '" r="2.5" fill="' + c + '"/>' +
+    '</svg>';
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+function fmtPrice(n, decimals) {
+  if (n == null) return '—';
+  if (n >= 1000) return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  if (n >= 1) return n.toLocaleString(undefined, { maximumFractionDigits: decimals || 4 });
+  return n.toLocaleString(undefined, { maximumFractionDigits: decimals || 8 });
+}
+
+function fmtVolume(v) {
+  if (v >= 1e9) return '$' + (v / 1e9).toFixed(2) + 'B';
+  if (v >= 1e6) return '$' + (v / 1e6).toFixed(2) + 'M';
+  if (v >= 1e3) return '$' + (v / 1e3).toFixed(1) + 'K';
+  return '$' + v.toFixed(0);
+}
+
+// Keyboard shortcut: Escape closes drawer
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeDrawer();
+});
+
+window.addEventListener('beforeunload', function() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  if (countdownTimer) clearInterval(countdownTimer);
+});
+</script>
+<footer style="border-top:1px solid var(--border);padding:24px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:40px"><p style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">© 2025 ChatLogic Insights LTD · AgoraIQ</p><div style="display:flex;gap:18px;flex-wrap:wrap"><a href="/terms" style="font-size:10px;color:#8b90a8;text-decoration:none">Terms</a><a href="/privacy" style="font-size:10px;color:#8b90a8;text-decoration:none">Privacy</a><a href="/disclaimer" style="font-size:10px;color:#8b90a8;text-decoration:none">Disclaimer</a><a href="/no-financial-advice" style="font-size:10px;color:#8b90a8;text-decoration:none">No Financial Advice</a><a href="/cookies" style="font-size:10px;color:#8b90a8;text-decoration:none">Cookies</a></div></footer></body>
+</html>

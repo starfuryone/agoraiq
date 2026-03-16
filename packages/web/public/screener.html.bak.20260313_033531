@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgoraIQ — Screener</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Albert+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+  .filter-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:20px; }
+  .filter-bar input  { flex:1; min-width:180px; max-width:280px; }
+  .filter-bar select { background:var(--surface); border:1px solid var(--border); color:var(--text); padding:8px 12px; border-radius:6px; font-size:11px; font-family:'DM Mono',monospace; }
+  .price-up   { color:var(--green); }
+  .price-down { color:var(--red); }
+  .refresh-btn { margin-left:auto; }
+  #last-updated { font-size:10px; color:var(--muted); }
+</style>
+</head>
+<body>
+
+<div id="loading-screen">
+  <div class="loader-ring"></div>
+  <div class="loader-text">AUTHENTICATING</div>
+</div>
+
+<header>
+  <a href="/dashboard" class="logo">
+    <div class="logo-mark"></div>
+    <div class="logo-text">Agora<span>IQ</span></div>
+  </a>
+  <nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/tracking" style="font-weight:700;color:var(--green)">Watchlist</a>
+    <a href="/marketplace">Marketplace</a>
+    <a href="/screener" class="active">Screener</a>
+    <a href="/proof">Proof</a>
+    <a href="/news">News</a>
+    
+  </nav>
+  <div class="header-right">
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <div class="user-badge"><div class="dot"></div><span id="username-badge">—</span></div>
+    <button class="btn-logout" onclick="logout()">LOGOUT</button>
+  </div>
+</header>
+
+<div id="toast"></div>
+
+<main>
+  <div class="flex-between fade-up" style="margin-bottom:20px;flex-wrap:wrap;gap:10px">
+    <div class="section-header" style="margin-bottom:0"><h2>Screener</h2></div>
+    <p style="font-size:16px;color:var(--muted);margin:0 0 8px;font-weight:400">Real-time coin scanner — spot top gainers, losers, and momentum shifts across major exchanges.</p>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span id="last-updated"></span>
+      <button class="btn btn-ghost btn-sm" onclick="loadMarkets()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <!-- Stats strip -->
+  <div class="stats-grid fade-up" style="margin-bottom:24px">
+    <div class="stat-card">
+      <div class="stat-label">Total Pairs</div>
+      <div class="stat-value cyan" id="stat-pairs">—</div>
+      <div class="stat-sub">Online</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Exchanges</div>
+      <div class="stat-value" id="stat-exchanges">—</div>
+      <div class="stat-sub">Data sources</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">With Price</div>
+      <div class="stat-value amber" id="stat-priced">—</div>
+      <div class="stat-sub">Live last price</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Last Sync</div>
+      <div class="stat-value" id="stat-sync" style="font-size:16px">—</div>
+      <div class="stat-sub">Most recent</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar fade-up">
+    <input class="form-input" id="search" type="text" placeholder="Search pair or symbol…" oninput="filterMarkets()">
+    <select id="filter-exchange" onchange="filterMarkets()">
+      <option value="">All Exchanges</option>
+    </select>
+    <select id="filter-status" onchange="filterMarkets()">
+      <option value="">All Status</option>
+      <option value="ONLINE">Online</option>
+      <option value="OFFLINE">Offline</option>
+    </select>
+    <select id="sort-by" onchange="filterMarkets()">
+      <option value="symbol">Sort: Symbol</option>
+      <option value="last">Sort: Price</option>
+      <option value="exchange">Sort: Exchange</option>
+      <option value="syncedAt">Sort: Last Synced</option>
+    </select>
+    <span id="market-count" style="font-size:11px;color:var(--muted)"></span>
+  </div>
+
+  <!-- Table -->
+  <div class="card fade-up">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Pair</th>
+            <th>Symbol</th>
+            <th>Last Price</th>
+            <th>Bid / Ask</th>
+            <th>Exchange</th>
+            <th>Status</th>
+            <th>Last Synced</th>
+          </tr>
+        </thead>
+        <tbody id="markets-body">
+          <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--muted);font-size:11px">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script src="/assets/app.js"></script>
+<script src="/assets/auth.js"></script>
+<script>
+let allMarkets = [];
+let refreshTimer = null;
+
+async function pageInit(user) {
+  await loadMarkets();
+  // Auto-refresh every 60s
+  refreshTimer = setInterval(loadMarkets, 60000);
+}
+
+async function loadMarkets() {
+  try {
+    // GET /api/v1/markets → { data: [...] }
+    const resp = await apiFetch('/api/v1/markets?pageSize=2000');
+    allMarkets = resp?.data || (Array.isArray(resp) ? resp : []);
+
+    // Stats
+    const online    = allMarkets.filter(m => m.status === 'ONLINE').length;
+    const exchanges = [...new Set(allMarkets.map(m => m.exchange).filter(Boolean))];
+    // Fetch full exchange list from meta endpoint
+    try {
+      const metaResp = await apiFetch('/api/v1/markets/meta/exchanges');
+      const metaExchanges = (metaResp?.data || []).map(e => e.exchange).filter(Boolean);
+      metaExchanges.forEach(function(e) { if (exchanges.indexOf(e) === -1) exchanges.push(e); });
+    } catch(e) {}
+    const priced    = allMarkets.filter(m => m.last || m.bid || m.ask).length;
+    const synced    = allMarkets
+      .map(m => m.lastSyncedAt)
+      .filter(Boolean)
+      .sort()
+      .pop();
+
+    document.getElementById('stat-pairs').textContent     = online;
+    document.getElementById('stat-exchanges').textContent = exchanges.length;
+    document.getElementById('stat-priced').textContent    = priced;
+    document.getElementById('stat-sync').textContent      = synced ? fmtRelative(synced) : '—';
+
+    // Populate exchange filter
+    const sel = document.getElementById('filter-exchange');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">All Exchanges</option>' +
+      exchanges.sort().map(e => `<option value="${escapeHTML(e)}">${escapeHTML(e)}</option>`).join('');
+    sel.value = cur;
+
+    document.getElementById('last-updated').textContent = 'Updated ' + fmtRelative(new Date().toISOString());
+
+    filterMarkets();
+
+  } catch (err) {
+    console.error('markets error:', err);
+    document.getElementById('markets-body').innerHTML =
+      `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--muted);font-size:11px">Could not load markets — ${escapeHTML(err.message)}</td></tr>`;
+  }
+}
+
+function filterMarkets() {
+  const q        = document.getElementById('search').value.toLowerCase();
+  const exchange = document.getElementById('filter-exchange').value;
+  const status   = document.getElementById('filter-status').value;
+  const sort     = document.getElementById('sort-by').value;
+
+  let list = allMarkets.filter(m => {
+    const sym = ((m.symbol || '') + ' ' + (m.pairId || '')).toLowerCase();
+    if (q && !sym.includes(q)) return false;
+    if (exchange && m.exchange !== exchange) return false;
+    if (status && m.status !== status) return false;
+    return true;
+  });
+
+  list.sort((a, b) => {
+    if (sort === 'last')      return (parseFloat(b.last) || 0) - (parseFloat(a.last) || 0);
+    if (sort === 'exchange')  return (a.exchange || '').localeCompare(b.exchange || '');
+    if (sort === 'syncedAt')  return (b.lastSyncedAt || '').localeCompare(a.lastSyncedAt || '');
+    return (a.symbol || a.pairId || '').localeCompare(b.symbol || b.pairId || '');
+  });
+
+  document.getElementById('market-count').textContent = list.length + ' pair' + (list.length !== 1 ? 's' : '');
+  renderMarkets(list);
+}
+
+function renderMarkets(list) {
+  const tbody = document.getElementById('markets-body');
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--muted);font-size:11px">No markets match your filters.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map(m => {
+    const last    = m.last  ? Number(m.last).toLocaleString(undefined, {maximumFractionDigits: m.pairDecimals ?? 6}) : null;
+    const bid     = m.bid   ? Number(m.bid).toLocaleString(undefined,  {maximumFractionDigits: m.pairDecimals ?? 6}) : null;
+    const ask     = m.ask   ? Number(m.ask).toLocaleString(undefined,  {maximumFractionDigits: m.pairDecimals ?? 6}) : null;
+    const isOn    = m.status === 'ONLINE';
+    const synced  = m.lastSyncedAt ? fmtRelative(m.lastSyncedAt) : '—';
+
+    return `
+      <tr>
+        <td><strong class="mono">${escapeHTML(m.pairId || '—')}</strong></td>
+        <td class="mono" style="color:var(--muted)">${escapeHTML(m.symbol || '—')}</td>
+        <td class="mono">${last || '<span style="color:var(--muted)">—</span>'}</td>
+        <td class="mono" style="font-size:10px;color:var(--muted)">
+          ${bid ? bid : '—'} / ${ask ? ask : '—'}
+        </td>
+        <td><span class="badge badge-muted">${escapeHTML(m.exchange || '—')}</span></td>
+        <td><span class="badge ${isOn ? 'badge-green' : 'badge-muted'}">${m.status || '—'}</span></td>
+        <td style="font-size:10px;color:var(--muted)">${synced}</td>
+      </tr>`;
+  }).join('');
+}
+
+window.addEventListener('beforeunload', () => {
+  if (refreshTimer) clearInterval(refreshTimer);
+});
+</script>
+<footer style="border-top:1px solid var(--border);padding:24px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:40px"><p style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">© 2025 ChatLogic Insights LTD · AgoraIQ</p><div style="display:flex;gap:18px;flex-wrap:wrap"><a href="/terms" style="font-size:10px;color:#8b90a8;text-decoration:none">Terms</a><a href="/privacy" style="font-size:10px;color:#8b90a8;text-decoration:none">Privacy</a><a href="/disclaimer" style="font-size:10px;color:#8b90a8;text-decoration:none">Disclaimer</a><a href="/no-financial-advice" style="font-size:10px;color:#8b90a8;text-decoration:none">No Financial Advice</a><a href="/cookies" style="font-size:10px;color:#8b90a8;text-decoration:none">Cookies</a></div></footer></body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgoraIQ — No Financial Advice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Albert+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #08090d; --surface: #0f1018; --card: #13141e; --border: #1e2030;
+    --cyan: #00d4ff; --amber: #f59e0b; --green: #10b981; --red: #ef4444;
+    --text: #e2e4ef; --muted: #5a5e7a; --radius: 10px;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Albert Sans', sans-serif; font-size: 14px; line-height: 1.7;
+    background-image: linear-gradient(rgba(0,212,255,.025) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0,212,255,.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* ── Header ── */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    height: 60px; padding: 0 32px;
+    background: rgba(8,9,13,.9); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
+  .logo-mark {
+    width: 28px; height: 28px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--cyan), rgba(0,212,255,.4));
+    clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  }
+  .logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; color: var(--text); white-space: nowrap; }
+  .logo-text span { color: var(--cyan); }
+  nav { display: flex; gap: 24px; }
+  nav a { font-size: 11px; color: var(--muted); text-decoration: none; letter-spacing: .06em; text-transform: uppercase; transition: color .15s; }
+  nav a:hover { color: var(--text); }
+  .btn-login {
+    font-size: 11px; font-family: 'DM Mono', monospace; letter-spacing: .06em;
+    padding: 7px 16px; border-radius: 6px;
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    text-decoration: none; transition: border-color .15s, color .15s;
+  }
+  .btn-login:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  /* ── Layout ── */
+  .page-wrap { max-width: 860px; margin: 0 auto; padding: 60px 32px 100px; position: relative; z-index: 1; }
+
+  /* ── Hero ── */
+  .doc-hero { margin-bottom: 48px; }
+  .doc-eyebrow { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--amber); margin-bottom: 12px; }
+  .doc-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 36px; color: var(--text); line-height: 1.1; margin-bottom: 16px; }
+  .doc-meta { display: flex; gap: 20px; flex-wrap: wrap; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+  .doc-meta span:not(:first-child)::before { content: '· '; }
+
+  /* ── Top callout ── */
+  .top-callout {
+    background: rgba(245,158,11,.06); border: 1px solid rgba(245,158,11,.2);
+    border-left: 3px solid var(--amber); border-radius: var(--radius);
+    padding: 20px 24px; margin-bottom: 40px;
+    font-size: 13px; color: #c4a052; line-height: 1.7;
+  }
+  .top-callout strong { color: var(--amber); font-family: 'Syne', sans-serif; font-size: 14px; display: block; margin-bottom: 8px; }
+
+  /* ── TOC ── */
+  .toc-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 28px; margin-bottom: 40px; }
+  .toc-title { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  .toc-list { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; }
+  .toc-list li a { font-size: 12px; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 8px; padding: 3px 0; transition: color .15s; }
+  .toc-list li a:hover { color: var(--amber); }
+  .toc-num { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--amber); width: 18px; flex-shrink: 0; }
+
+  /* ── Sections ── */
+  .doc-section { margin-bottom: 40px; scroll-margin-top: 80px; }
+  .section-num { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--amber); letter-spacing: .1em; margin-bottom: 6px; }
+  .section-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; color: var(--text); margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  .section-body { color: #b0b4cc; font-size: 13px; line-height: 1.75; }
+  .section-body p { margin-bottom: 12px; }
+  .section-body p:last-child { margin-bottom: 0; }
+  .section-body strong { color: var(--text); font-weight: 600; }
+
+  /* ── Callouts ── */
+  .callout { border-radius: 8px; padding: 14px 18px; margin: 16px 0; font-size: 12px; line-height: 1.6; display: flex; gap: 12px; align-items: flex-start; }
+  .callout-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .callout.warn  { background: rgba(245,158,11,.06); border: 1px solid rgba(245,158,11,.18); color: #d4a843; }
+  .callout.danger{ background: rgba(239,68,68,.06);  border: 1px solid rgba(239,68,68,.18);  color: #e06060; }
+  .callout.info  { background: rgba(0,212,255,.05);  border: 1px solid rgba(0,212,255,.15);  color: #6ecfdf; }
+
+  /* ── Lists ── */
+  .doc-list { list-style: none; padding: 0; margin: 12px 0; display: flex; flex-direction: column; gap: 6px; }
+  .doc-list li { font-size: 13px; color: #b0b4cc; line-height: 1.6; display: flex; align-items: flex-start; gap: 10px; }
+  .doc-list li::before { content: '—'; color: var(--muted); font-family: 'DM Mono', monospace; font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+
+  /* ── Risk grid ── */
+  .risk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+  .risk-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .risk-card-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--amber); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .risk-card-label span { background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.15); padding: 1px 6px; border-radius: 3px; }
+  .risk-card p { font-size: 11px; color: var(--muted); line-height: 1.6; margin: 0; }
+
+  /* ── Contact + footer ── */
+  .contact-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-top: 48px; }
+  .contact-card p { font-size: 12px; color: var(--muted); margin: 0; }
+  .contact-card a { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--cyan); text-decoration: none; letter-spacing: .04em; padding: 8px 16px; border: 1px solid rgba(0,212,255,.2); border-radius: 6px; transition: background .15s; }
+  .contact-card a:hover { background: rgba(0,212,255,.06); }
+  footer { border-top: 1px solid var(--border); padding: 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  footer p { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .footer-links { display: flex; gap: 20px; }
+  .footer-links a { font-size: 10px; color: var(--muted); text-decoration: none; transition: color .15s; }
+  .footer-links a:hover { color: var(--text); }
+
+  @media (max-width: 600px) {
+    nav { display: none; }
+    .doc-title { font-size: 26px; }
+    .toc-list { grid-template-columns: 1fr; }
+    .risk-grid { grid-template-columns: 1fr; }
+    .page-wrap { padding: 40px 20px 80px; }
+    header { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="/" class="logo">
+    <div class="logo-mark"></div>
+    <div class="logo-text">Agora<span>IQ</span></div>
+  </a>
+    <nav>
+    <a href="/">Home</a>
+    <a href="/marketplace">Marketplace</a>
+    <a href="/screener">Screener</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/about">About</a>
+  </nav>
+  <a href="https://app.agoraiq.net/login" class="btn-login">Sign In</a>
+</header>
+
+<div class="page-wrap">
+
+  <div class="doc-hero">
+    <div class="doc-eyebrow">Legal · ChatLogic Insights LTD</div>
+    <h1 class="doc-title">No Financial Advice</h1>
+    <div class="doc-meta">
+      <span>Last updated: March 2026</span>
+      <span>Entity: ChatLogic Insights LTD</span>
+      <span>Contact: legal@agoraiq.net</span>
+    </div>
+  </div>
+
+  <div class="top-callout">
+    <strong>⚡ Important Notice</strong>
+    AgoraIQ provides analytics, signal tracking, verification tooling, and informational content about cryptocurrency markets. Nothing on this website, application, API, emails, bots, or any other AgoraIQ channel constitutes financial advice, investment advice, or a recommendation to buy, sell, hold, or trade any asset.
+  </div>
+
+  <!-- TOC -->
+  <div class="toc-card">
+    <div class="toc-title">Contents</div>
+    <ol class="toc-list">
+      <li><a href="#s1"><span class="toc-num">01</span>No Investment or Financial Advice</a></li>
+      <li><a href="#s2"><span class="toc-num">02</span>No Fiduciary Relationship</a></li>
+      <li><a href="#s3"><span class="toc-num">03</span>Signals &amp; Scores Are Not Recommendations</a></li>
+      <li><a href="#s4"><span class="toc-num">04</span>Your Responsibility to Do Due Diligence</a></li>
+      <li><a href="#s5"><span class="toc-num">05</span>High Risk, Volatility &amp; Leverage</a></li>
+      <li><a href="#s6"><span class="toc-num">06</span>Hypothetical &amp; Backtested Results</a></li>
+      <li><a href="#s7"><span class="toc-num">07</span>Data Accuracy &amp; Third-Party Content</a></li>
+      <li><a href="#s8"><span class="toc-num">08</span>No Guarantees</a></li>
+      <li><a href="#s9"><span class="toc-num">09</span>Limitation of Liability</a></li>
+      <li><a href="#s10"><span class="toc-num">10</span>No Reliance</a></li>
+      <li><a href="#s11"><span class="toc-num">11</span>Compliance &amp; Local Laws</a></li>
+      <li><a href="#s12"><span class="toc-num">12</span>Contact</a></li>
+    </ol>
+  </div>
+
+  <div id="s1" class="doc-section">
+    <div class="section-num">§ 01</div>
+    <div class="section-title">No Investment or Financial Advice</div>
+    <div class="section-body">
+      <p>AgoraIQ and its owners, operators, affiliates, employees, contractors, and representatives do <strong>not</strong> provide investment, financial, legal, accounting, or tax advice. Any content, metrics, scores, labels, rankings, alerts, dashboards, messages, research summaries, or commentary provided by AgoraIQ is offered for <strong>general informational and educational purposes only</strong>.</p>
+      <p>You should not interpret any information on AgoraIQ as a recommendation, solicitation, endorsement, or offer to buy or sell any security, cryptocurrency, derivative, futures contract, option, or other financial instrument.</p>
+    </div>
+  </div>
+
+  <div id="s2" class="doc-section">
+    <div class="section-num">§ 02</div>
+    <div class="section-title">No Fiduciary Relationship</div>
+    <div class="section-body">
+      <p>Your use of AgoraIQ does not create any fiduciary, advisory, agency, or other special relationship between you and AgoraIQ. You remain <strong>solely responsible</strong> for your trading and investment decisions, and for determining whether any strategy, asset, or transaction is appropriate for you.</p>
+    </div>
+  </div>
+
+  <div id="s3" class="doc-section">
+    <div class="section-num">§ 03</div>
+    <div class="section-title">Signals &amp; Scores Are Not Recommendations</div>
+    <div class="section-body">
+      <p>AgoraIQ may display third-party signals, entries/exits, target levels, stop levels, probability scores, confidence labels, risk tags, provider statistics, performance tables, and verified or tracked outcomes. These are <strong>data representations and algorithmic outputs</strong> based on inputs that may be incomplete, delayed, or inaccurate.</p>
+      <ul class="doc-list">
+        <li>Any "probability," "confidence," "expectancy," or "edge" score is an estimate and may be wrong</li>
+        <li><strong>Past performance is not indicative of future results</strong></li>
+        <li>Verification or tracking does not guarantee profitability and does not eliminate risk</li>
+        <li>Provider rankings may change and may not reflect real-time conditions</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="s4" class="doc-section">
+    <div class="section-num">§ 04</div>
+    <div class="section-title">Your Responsibility to Do Due Diligence</div>
+    <div class="section-body">
+      <p>You are solely responsible for conducting your own research and due diligence, including verifying any information before acting on it. If you choose to trade, you should consider seeking advice from a <strong>licensed financial adviser</strong> in your jurisdiction.</p>
+      <div class="callout info">
+        <span class="callout-icon">ℹ</span>
+        <div>AgoraIQ is not a broker-dealer, investment adviser, commodity trading adviser, or financial institution, and does not provide regulated financial services.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="s5" class="doc-section">
+    <div class="section-num">§ 05</div>
+    <div class="section-title">High Risk, Volatility &amp; Leverage</div>
+    <div class="section-body">
+      <p>Cryptocurrency markets can be extremely volatile. Prices may move rapidly and unpredictably. Trading on margin or using leverage can amplify both gains and losses, and may result in losses exceeding your initial investment.</p>
+      <div class="risk-grid">
+        <div class="risk-card">
+          <div class="risk-card-label">Volatility <span>MARKET</span></div>
+          <p>Sudden price gaps, thin liquidity, and cascading liquidations can produce losses that occur too quickly to manage manually.</p>
+        </div>
+        <div class="risk-card">
+          <div class="risk-card-label">Leverage <span>DERIVATIVES</span></div>
+          <p>Leverage magnifies exposure. Even small adverse moves can trigger liquidation or significant drawdowns.</p>
+        </div>
+        <div class="risk-card">
+          <div class="risk-card-label">Execution <span>OPS</span></div>
+          <p>Slippage, latency, outages, API errors, exchange halts, and liquidation engines can materially change outcomes versus paper results.</p>
+        </div>
+        <div class="risk-card">
+          <div class="risk-card-label">Counterparty <span>EXCHANGE</span></div>
+          <p>Exchanges and custodians may fail, restrict withdrawals, become insolvent, be hacked, or be subject to enforcement actions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="s6" class="doc-section">
+    <div class="section-num">§ 06</div>
+    <div class="section-title">Hypothetical &amp; Backtested Results</div>
+    <div class="section-body">
+      <p>Some analytics may include hypothetical, simulated, estimated, reconstructed, or backtested outcomes. Such results have inherent limitations and may not reflect actual trading. They may be affected by assumptions, data quality, survivorship bias, selection bias, and model risk.</p>
+      <div class="callout warn">
+        <span class="callout-icon">⚠</span>
+        <div>Hypothetical or simulated performance results do not represent actual trading and may over- or understate what a real account would have achieved.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="s7" class="doc-section">
+    <div class="section-num">§ 07</div>
+    <div class="section-title">Data Accuracy &amp; Third-Party Content</div>
+    <div class="section-body">
+      <p>AgoraIQ may incorporate data from third parties, exchanges, providers, and public sources. We do not control third-party content and do not guarantee:</p>
+      <ul class="doc-list">
+        <li>Accuracy, completeness, or timeliness of data</li>
+        <li>Availability of providers or signals</li>
+        <li>Continued access to any exchange, channel, or data feed</li>
+        <li>That any signal was delivered, interpreted, or recorded without error</li>
+      </ul>
+      <p>You acknowledge that third-party data may be delayed, corrupted, missing, or inaccurate, and that system failures can occur.</p>
+    </div>
+  </div>
+
+  <div id="s8" class="doc-section">
+    <div class="section-num">§ 08</div>
+    <div class="section-title">No Guarantees</div>
+    <div class="section-body">
+      <p>AgoraIQ makes no representations or warranties of any kind regarding profitability, returns, or outcomes. We do not guarantee that you will achieve any specific results, that any strategy will be successful, or that any signal will perform as expected.</p>
+    </div>
+  </div>
+
+  <div id="s9" class="doc-section">
+    <div class="section-num">§ 09</div>
+    <div class="section-title">Limitation of Liability</div>
+    <div class="section-body">
+      <p>To the maximum extent permitted by applicable law, AgoraIQ shall not be liable for any direct, indirect, incidental, consequential, special, exemplary, or punitive damages, or any loss of profits, revenues, business, goodwill, data, or other losses arising out of or related to:</p>
+      <ul class="doc-list">
+        <li>Your use of (or inability to use) AgoraIQ</li>
+        <li>Any trading decision you make or action you take based on content from AgoraIQ</li>
+        <li>Errors, omissions, interruptions, delays, defects, or failures in data, systems, or communications</li>
+        <li>Third-party services, exchanges, providers, bots, APIs, or data sources</li>
+      </ul>
+      <p>In any event, AgoraIQ's aggregate liability for any claim shall be limited to the amount you paid to AgoraIQ in the <strong>three (3) months</strong> preceding the event giving rise to the claim, or the minimum allowed by law.</p>
+    </div>
+  </div>
+
+  <div id="s10" class="doc-section">
+    <div class="section-num">§ 10</div>
+    <div class="section-title">No Reliance</div>
+    <div class="section-body">
+      <p>You acknowledge that you do not rely on AgoraIQ as the basis for any investment or trading decision. Any actions you take are at your own risk, and you agree that AgoraIQ is not responsible for your decisions, trades, positions, or results.</p>
+    </div>
+  </div>
+
+  <div id="s11" class="doc-section">
+    <div class="section-num">§ 11</div>
+    <div class="section-title">Compliance &amp; Local Laws</div>
+    <div class="section-body">
+      <p>You are responsible for ensuring that your use of AgoraIQ complies with all applicable laws and regulations in your jurisdiction. Cryptocurrency trading may be restricted or prohibited in your country. It is your obligation to determine whether your use of AgoraIQ is lawful where you are located.</p>
+      <div class="callout danger">
+        <span class="callout-icon">⛔</span>
+        <div>AgoraIQ is <strong>not available to residents of the United Kingdom or Wales</strong>. See our <a href="/terms" style="color:var(--red)">Terms of Service</a> for full geographic restrictions.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="s12" class="doc-section">
+    <div class="section-num">§ 12</div>
+    <div class="section-title">Contact</div>
+    <div class="section-body">
+      <p>If you have questions about this notice, please contact our legal team. Continued use of AgoraIQ constitutes acceptance of the current version of this notice.</p>
+    </div>
+  </div>
+
+  <div class="contact-card">
+    <div>
+      <p style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px">Legal enquiries</p>
+      <p>Questions about this notice? Contact our legal team directly.</p>
+    </div>
+    <a href="mailto:legal@agoraiq.net">legal@agoraiq.net →</a>
+  </div>
+
+</div>
+
+<footer>
+  <p>© 2025 ChatLogic Insights LTD · AgoraIQ. All rights reserved.</p>
+  <div class="footer-links">
+    <a href="/terms">Terms</a>
+    <a href="/privacy">Privacy</a>
+    <a href="/disclaimer">Disclaimer</a>
+    <a href="/no-financial-advice">No Financial Advice</a>
+    <a href="/no-financial-advice">No Financial Advice</a>
+    <a href="/cookies">Cookies</a>
+  </div>
+</footer>
+
+</body>
+</html>

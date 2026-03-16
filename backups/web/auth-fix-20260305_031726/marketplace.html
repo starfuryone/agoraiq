@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgoraIQ — Marketplace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+  .providers-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  @media (max-width: 600px) { .providers-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div id="loading-screen">
+  <div class="loader-ring"></div>
+  <div class="loader-text">LOADING</div>
+</div>
+
+<header>
+  <a href="/dashboard" class="logo">
+    <div class="logo-mark"></div>
+    <div class="logo-text">Agora<span>IQ</span></div>
+  </a>
+  <nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/marketplace" class="active">Marketplace</a>
+    <a href="/markets">Markets</a>
+    <a href="/proof">Proof</a>
+    <a href="/news">News</a>
+    <a href="/member">Portal</a>
+  </nav>
+  <div class="header-right">
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <div class="user-badge"><div class="dot"></div><span id="username-badge">—</span></div>
+    <button class="btn-logout" onclick="logout()">LOGOUT</button>
+  </div>
+</header>
+
+<div id="toast"></div>
+
+<main>
+
+  <div class="section-header fade-up"><h2>Provider Marketplace</h2></div>
+
+  <!-- Stats -->
+  <div class="stats-grid fade-up" style="grid-template-columns:repeat(4,1fr)">
+    <div class="stat-card">
+      <div class="stat-label">Total Providers</div>
+      <div class="stat-value cyan" id="stat-total">—</div>
+      <div class="stat-sub">Tracked channels</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Verified</div>
+      <div class="stat-value amber" id="stat-verified">—</div>
+      <div class="stat-sub">With outcomes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Win Rate</div>
+      <div class="stat-value" id="stat-winrate">—</div>
+      <div class="stat-sub">Verified only</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Last Updated</div>
+      <div class="stat-value" style="font-size:14px" id="stat-updated">—</div>
+      <div class="stat-sub">Inference run</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-row fade-up">
+    <input class="search-input" id="search" type="text" placeholder="Search providers…" oninput="filterProviders()">
+    <select class="form-select" id="filter-tier" style="max-width:160px" onchange="filterProviders()">
+      <option value="">All tiers</option>
+      <option value="verified">Verified</option>
+      <option value="unverified">Unverified</option>
+    </select>
+    <select class="form-select" id="sort-by" style="max-width:180px" onchange="filterProviders()">
+      <option value="score">Sort: Score</option>
+      <option value="winrate">Sort: Win Rate</option>
+      <option value="signals">Sort: Signals</option>
+      <option value="name">Sort: Name</option>
+    </select>
+    <span id="result-count" style="font-size:11px;color:var(--muted);margin-left:auto"></span>
+  </div>
+
+  <!-- Provider grid -->
+  <div class="providers-grid fade-up" id="providers-grid">
+    <!-- Skeleton -->
+    <div class="provider-card"><div class="provider-avatar skeleton" style="background:var(--border)"></div><div style="flex:1"><div class="skeleton" style="height:14px;width:60%;margin-bottom:8px"></div><div class="skeleton" style="height:10px;width:40%"></div></div></div>
+    <div class="provider-card"><div class="provider-avatar skeleton" style="background:var(--border)"></div><div style="flex:1"><div class="skeleton" style="height:14px;width:70%;margin-bottom:8px"></div><div class="skeleton" style="height:10px;width:50%"></div></div></div>
+    <div class="provider-card"><div class="provider-avatar skeleton" style="background:var(--border)"></div><div style="flex:1"><div class="skeleton" style="height:14px;width:55%;margin-bottom:8px"></div><div class="skeleton" style="height:10px;width:45%"></div></div></div>
+    <div class="provider-card"><div class="provider-avatar skeleton" style="background:var(--border)"></div><div style="flex:1"><div class="skeleton" style="height:14px;width:65%;margin-bottom:8px"></div><div class="skeleton" style="height:10px;width:35%"></div></div></div>
+  </div>
+
+</main>
+
+<script src="/assets/app.js"></script>
+<script src="/assets/auth.js"></script>
+<script>
+let allProviders = [];
+
+async function pageInit() {
+  try {
+    const data = await apiFetch('/api/v1/providers');
+    allProviders = data?.providers || data || [];
+    document.getElementById('stat-total').textContent = allProviders.length;
+    const verified = allProviders.filter(p => p.verified || p.outcomes > 0);
+    document.getElementById('stat-verified').textContent = verified.length;
+    const avgWr = verified.length ? (verified.reduce((s,p) => s + (p.winRate || 0), 0) / verified.length).toFixed(1) + '%' : '—';
+    document.getElementById('stat-winrate').textContent = avgWr;
+    document.getElementById('stat-updated').textContent = fmtRelative(data?.updatedAt || new Date().toISOString());
+    renderProviders(allProviders);
+  } catch (err) {
+    toast('Could not load providers.', 'error');
+    renderProviders([]);
+  }
+}
+
+function filterProviders() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const tier = document.getElementById('filter-tier').value;
+  const sort = document.getElementById('sort-by').value;
+
+  let list = allProviders.filter(p => {
+    const name = (p.name || '').toLowerCase();
+    if (q && !name.includes(q)) return false;
+    if (tier === 'verified' && !p.verified && !(p.outcomes > 0)) return false;
+    if (tier === 'unverified' && (p.verified || p.outcomes > 0)) return false;
+    return true;
+  });
+
+  list.sort((a, b) => {
+    if (sort === 'winrate') return (b.winRate || 0) - (a.winRate || 0);
+    if (sort === 'signals') return (b.signalCount || 0) - (a.signalCount || 0);
+    if (sort === 'name') return (a.name || '').localeCompare(b.name || '');
+    return (b.score || b.volAdjScore || 0) - (a.score || a.volAdjScore || 0);
+  });
+
+  document.getElementById('result-count').textContent = `${list.length} provider${list.length !== 1 ? 's' : ''}`;
+  renderProviders(list);
+}
+
+function renderProviders(list) {
+  const grid = document.getElementById('providers-grid');
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔍</div><p>No providers match your filters.</p></div>';
+    return;
+  }
+  const colors = ['#00d4ff','#f59e0b','#10b981','#8b5cf6','#ef4444','#06b6d4'];
+  grid.innerHTML = list.map((p, i) => {
+    const initial = (p.name || '?')[0].toUpperCase();
+    const color = colors[i % colors.length];
+    const verified = p.verified || p.outcomes > 0;
+    return `
+      <div class="provider-card">
+        <div class="provider-avatar" style="background:linear-gradient(135deg,${color},${color}88)">${initial}</div>
+        <div style="flex:1;min-width:0">
+          <div class="flex-between" style="flex-wrap:wrap;gap:6px;margin-bottom:2px">
+            <div class="provider-name">${escapeHTML(p.name || '—')}</div>
+            ${verified ? '<span class="badge badge-cyan">VERIFIED</span>' : '<span class="badge badge-muted">UNVERIFIED</span>'}
+          </div>
+          <div class="provider-meta">${escapeHTML(p.exchange || p.platform || 'Telegram')} · ${p.signalCount || 0} signals</div>
+          <div class="provider-stats">
+            <div class="provider-stat"><span class="v">${p.winRate != null ? p.winRate.toFixed(1) + '%' : '—'}</span><span class="l">Win Rate</span></div>
+            <div class="provider-stat"><span class="v">${p.avgRR != null ? p.avgRR.toFixed(2) : '—'}</span><span class="l">Avg RR</span></div>
+            <div class="provider-stat"><span class="v">${p.score != null ? p.score.toFixed(1) : '—'}</span><span class="l">Score</span></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+</script>
+</body>
+</html>

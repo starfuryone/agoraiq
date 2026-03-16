@@ -1,178 +1,197 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>AgoraIQ — Get Your Provider Scorecard</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgoraIQ — Getting Started</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Albert+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
 <style>
-:root{--font:'IBM Plex Sans',sans-serif;--mono:'IBM Plex Mono',monospace;--bg:#060a14;--bg2:#0b0f1a;--bg3:#111827;--card:#0d1220;--border:#1a2236;--accent:#a78bfa;--accent-dim:rgba(167,139,250,.10);--green:#34d399;--green-dim:rgba(52,211,153,.10);--blue:#38bdf8;--blue-dim:rgba(56,189,248,.10);--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;--r:8px;--r-lg:12px}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);font-size:15px;line-height:1.7;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
-a{color:var(--accent);text-decoration:none}
-.container{max-width:720px;margin:0 auto;padding:60px 24px}
-.logo{font-size:18px;font-weight:700;margin-bottom:48px}
-.logo .a{color:var(--accent)}.logo .b{color:var(--text)}
-h1{font-size:32px;font-weight:700;line-height:1.2;margin-bottom:12px}
-h1 span{color:var(--accent)}
-.sub{font-size:16px;color:var(--text2);margin-bottom:48px}
-h2{font-size:20px;font-weight:700;margin:40px 0 16px}
-.benefit{display:flex;gap:16px;margin-bottom:20px;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg)}
-.benefit-icon{font-size:24px;flex-shrink:0;width:40px;text-align:center}
-.benefit-text h3{font-size:14px;font-weight:600;margin-bottom:4px}
-.benefit-text p{font-size:13px;color:var(--text2);margin:0}
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:24px 0 40px}
-.step{text-align:center;padding:20px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg)}
-.step-num{font-size:28px;font-weight:700;color:var(--accent);font-family:var(--mono)}
-.step-title{font-size:13px;font-weight:600;margin:8px 0 4px}
-.step-desc{font-size:12px;color:var(--text3)}
-.form-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-lg);padding:32px;margin-top:40px}
-.form-section h2{margin-top:0}
-.field{margin-bottom:16px}
-.field label{display:block;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-.field input,.field select,.field textarea{width:100%;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:14px;font-family:var(--font)}
-.field textarea{resize:vertical;min-height:80px}
-.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent)}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.submit-btn{width:100%;padding:14px;border-radius:var(--r);background:var(--accent);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;margin-top:8px;transition:opacity .15s}
-.submit-btn:hover{opacity:.9}
-#form-status{margin-top:12px;font-size:13px}
-.faq{margin-top:48px}
-.faq details{margin-bottom:12px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
-.faq summary{padding:12px 16px;background:var(--card);cursor:pointer;font-weight:600;font-size:14px}
-.faq details[open] summary{border-bottom:1px solid var(--border)}
-.faq .answer{padding:12px 16px;font-size:13px;color:var(--text2)}
-.footer{margin-top:60px;padding-top:24px;border-top:1px solid var(--border);text-align:center;color:var(--text3);font-size:12px}
-@media(max-width:640px){.steps{grid-template-columns:1fr}.row{grid-template-columns:1fr}}
-</style>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap" rel="stylesheet">
-<style id="aiq-brand">
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
-.brand-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--cyan,#00e5ff),#0066ff);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex:0 0 auto}
-.brand-text{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.5px;color:var(--text,#e2e8f0);white-space:nowrap;line-height:1}
-.brand-iq{color:var(--cyan,#00e5ff);margin-left:0}
-.brand-sm .brand-mark{width:20px;height:20px}
-.brand-sm .brand-text{font-size:14px}
-.brand-xs .brand-mark{width:18px;height:18px}
-.brand-xs .brand-text{font-size:14px}
+  .progress-bar {
+    height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 32px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--cyan), #0066ff);
+    border-radius: 2px; transition: width .5s ease;
+  }
 </style>
 </head>
 <body>
-<div class="container">
-  <div class="logo" style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;background:linear-gradient(135deg,#00e5ff,#0066ff);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex-shrink:0"></div><div style="font-family:Syne,Arial Black,sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.5px;color:#e2e8f0;white-space:nowrap">Agora<span style="color:#00e5ff">IQ</span></div></div>
 
-  <h1>Get your <span>verified scorecard</span></h1>
-  <p class="sub">We track your signals in real time, compute auditable stats, and give you a public proof page that builds trust with your audience.</p>
-
-  <div class="benefit">
-    <div class="benefit-icon">📊</div>
-    <div class="benefit-text">
-      <h3>Verified Performance Stats</h3>
-      <p>Win rate, expectancy, vol-adjusted returns, profit factor — computed from real trades, not self-reported.</p>
-    </div>
-  </div>
-  <div class="benefit">
-    <div class="benefit-icon">🔒</div>
-    <div class="benefit-text">
-      <h3>SHA-256 Signal Hashing</h3>
-      <p>Every signal is hashed at ingestion. Anyone can verify your track record is immutable and unedited.</p>
-    </div>
-  </div>
-  <div class="benefit">
-    <div class="benefit-icon">🧪</div>
-    <div class="benefit-text">
-      <h3>Cherry-Pick Detection</h3>
-      <p>Our scoring engine detects deleted signals, retroactive edits, and selective reporting. Clean providers stand out.</p>
-    </div>
-  </div>
-  <div class="benefit">
-    <div class="benefit-icon">🌐</div>
-    <div class="benefit-text">
-      <h3>Public Proof Page</h3>
-      <p>Share your AgoraIQ scorecard with subscribers. Third-party verification beats screenshots every time.</p>
-    </div>
-  </div>
-
-  <h2>How it works</h2>
-  <div class="steps">
-    <div class="step"><div class="step-num">1</div><div class="step-title">Submit your channel</div><div class="step-desc">Fill out the form below with your Telegram or Discord link</div></div>
-    <div class="step"><div class="step-num">2</div><div class="step-title">We start tracking</div><div class="step-desc">Within 48 hours, your channel appears as "Beta" on the marketplace</div></div>
-    <div class="step"><div class="step-num">3</div><div class="step-title">Earn "Verified"</div><div class="step-desc">Hit 30+ trades with 60%+ data completeness to get ranked</div></div>
-  </div>
-
-  <div class="form-section">
-    <h2>Apply for tracking</h2>
-    <div class="field"><label>Channel Name *</label><input id="ob-name" placeholder="e.g. CryptoSignals VIP"></div>
-    <div class="field"><label>Channel URL *</label><input id="ob-url" placeholder="https://t.me/your_channel"></div>
-    <div class="row">
-      <div class="field"><label>Platform</label><select id="ob-type"><option value="telegram">Telegram</option><option value="discord">Discord</option></select></div>
-      <div class="field"><label>Market Type</label><select id="ob-market"><option value="">Select...</option><option>Spot</option><option>Futures</option><option>Mixed</option></select></div>
-    </div>
-    <div class="row">
-      <div class="field"><label>Trading Style</label><select id="ob-style"><option value="">Select...</option><option>Scalp</option><option>Day Trade</option><option>Swing</option><option>Position</option></select></div>
-      <div class="field"><label>Approx. Subscribers</label><input id="ob-subs" type="number" placeholder="e.g. 5000"></div>
-    </div>
-    <div class="field"><label>Contact Email *</label><input id="ob-email" type="email" placeholder="you@example.com"></div>
-    <div class="field"><label>Why should we track you?</label><textarea id="ob-desc" placeholder="Tell us about your track record, your audience, and what makes your signals unique."></textarea></div>
-    <button class="submit-btn" id="ob-btn" onclick="submitOnboarding()">Submit Application</button>
-    <div id="form-status"></div>
-  </div>
-
-  <div class="faq">
-    <h2>FAQ</h2>
-    <details><summary>Is it free to get listed?</summary><div class="answer">Yes. Getting tracked and listed on AgoraIQ is completely free. We make money from subscribers, not providers.</div></details>
-    <details><summary>What do I need to get "Verified" status?</summary><div class="answer">30+ tracked trades within 30 days, 60%+ data completeness (signals include entry, SL, TP), and no "Low" sample confidence rating.</div></details>
-    <details><summary>Can I get delisted?</summary><div class="answer">You can request removal at any time. We may also delist channels that stop posting or are found to be fraudulent.</div></details>
-    <details><summary>Do you modify or censor my signals?</summary><div class="answer">No. We ingest your signals as-is, hash them at the moment of ingestion, and track outcomes. We never modify signal content.</div></details>
-    <details><summary>What if my channel format is unusual?</summary><div class="answer">Our parser handles most common formats. Unusual formats may start with lower completeness but improve as we tune our parsers. We'll work with you.</div></details>
-  </div>
-
-  <div class="footer">AgoraIQ — Signal Intelligence Platform · <a href="/">Home</a> · <a href="/marketplace">Marketplace</a> · <a href="/privacy">Privacy</a></div>
+<div id="loading-screen">
+  <div class="loader-ring"></div>
+  <div class="loader-text">LOADING</div>
 </div>
 
+<header>
+  <a href="/dashboard" class="logo">
+    <div class="logo-mark"></div>
+    <div class="logo-text">Agora<span>IQ</span></div>
+  </a>
+    <nav>
+    <a href="/dashboard" class="active">Dashboard</a>
+    <a href="/tracking" style="font-weight:700;color:var(--green)">Watchlist</a>
+    <a href="/marketplace">Marketplace</a>
+    <a href="/screener">Screener</a>
+    <a href="/signals">Signals</a>
+    <a href="/scanner">Scanner</a>
+    <a href="/proof">Proof</a>
+    <a href="/news">News</a>
+  </nav>
+  <div class="header-right">
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <div class="user-badge"><div class="dot"></div><span id="username-badge">—</span></div>
+    <button class="btn-logout" onclick="logout()">LOGOUT</button>
+  </div>
+</header>
+
+<div id="toast"></div>
+
+<main class="narrow">
+
+  <div style="text-align:center;padding:32px 0 24px" class="fade-up">
+    <div class="badge badge-cyan" style="margin-bottom:12px">SETUP</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:24px;color:var(--text);margin-bottom:6px">Welcome to AgoraIQ</div>
+    <div style="font-size:12px;color:var(--muted)">Complete these steps to get the most out of the platform.</div>
+  </div>
+
+  <div class="progress-bar fade-up">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+
+  <div class="section-header fade-up"><h2>Getting Started</h2></div>
+
+  <div id="steps-container" class="fade-up">
+
+    <div class="step-card active" id="step-1">
+      <div class="step-num active">1</div>
+      <div class="step-content">
+        <div class="step-title">Verify Your Email</div>
+        <div class="step-desc">Check your inbox for a verification link. This secures your account and unlocks all features.</div>
+        <div style="margin-top:12px">
+          <button class="btn btn-cyan btn-sm" onclick="resendVerification()">Resend Email</button>
+        </div>
+      </div>
+      <div id="step-1-status" class="badge badge-muted">Pending</div>
+    </div>
+
+    <div class="step-card" id="step-2">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Explore the Marketplace</div>
+        <div class="step-desc">Browse 100+ signal providers. Filter by win rate, RR, and verified status.</div>
+        <div style="margin-top:12px">
+          <a href="/marketplace" class="btn btn-outline btn-sm">Browse Providers →</a>
+        </div>
+      </div>
+      <div id="step-2-status" class="badge badge-muted">Pending</div>
+    </div>
+
+    <div class="step-card" id="step-3">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Link Your Discord</div>
+        <div class="step-desc">Connect Discord to gain access to our private signal channels and community.</div>
+        <div style="margin-top:12px">
+          <button class="btn btn-outline btn-sm" onclick="linkDiscord()">Connect Discord →</button>
+        </div>
+      </div>
+      <div id="step-3-status" class="badge badge-muted">Pending</div>
+    </div>
+
+    <div class="step-card" id="step-4">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Choose a Plan</div>
+        <div class="step-desc">Upgrade to PRO or ELITE to unlock real-time signals, API access, and advanced analytics.</div>
+        <div style="margin-top:12px">
+          <a href="/pricing" class="btn btn-amber btn-sm">View Plans →</a>
+        </div>
+      </div>
+      <div id="step-4-status" class="badge badge-muted">Optional</div>
+    </div>
+
+    <div class="step-card" id="step-5">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <div class="step-title">Submit Exchange UID</div>
+        <div class="step-desc">Register your exchange UID to participate in Trade-to-Earn and earn free Premium months.</div>
+        <div style="margin-top:12px">
+          <a href="/member#uid-section" class="btn btn-outline btn-sm">Submit UID →</a>
+        </div>
+      </div>
+      <div id="step-5-status" class="badge badge-muted">Optional</div>
+    </div>
+
+  </div>
+
+  <div style="text-align:center;margin-top:32px" class="fade-up">
+    <a href="/dashboard" class="btn btn-cyan">Go to Dashboard →</a>
+    <div style="font-size:10px;color:var(--muted);margin-top:12px">You can always come back to this page from your profile.</div>
+  </div>
+
+</main>
+
+<script src="/assets/app.js"></script>
+<script src="/assets/auth.js"></script>
 <script>
-async function submitOnboarding() {
-  const btn = document.getElementById('ob-btn');
-  const status = document.getElementById('form-status');
-  const name = document.getElementById('ob-name').value.trim();
-  const url = document.getElementById('ob-url').value.trim();
-  const email = document.getElementById('ob-email').value.trim();
-  if (!name || !url || !email) {
-    status.innerHTML = '<span style="color:#f87171">Please fill in all required fields.</span>';
-    return;
+async function pageInit(user) {
+  let completed = 0;
+  const total = 5;
+
+  // Check email verification
+  if (user?.emailVerified) {
+    markStep(1, true); completed++;
   }
-  btn.disabled = true; btn.textContent = 'Submitting...';
+
+  // Check portal entitlements
   try {
-    const r = await fetch('/api/v1/marketplace/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        channelName: name, channelUrl: url, email: email,
-        channelType: document.getElementById('ob-type').value,
-        marketType: document.getElementById('ob-market').value || null,
-        tradingStyle: document.getElementById('ob-style').value || null,
-        subscriberCount: document.getElementById('ob-subs').value || null,
-        description: document.getElementById('ob-desc').value.trim() || null,
-      }),
-    });
-    const d = await r.json();
-    if (d.submitted) {
-      status.innerHTML = '<span style="color:#34d399">Application submitted! We\'ll review your channel within 48 hours and email you at ' + email + '.</span>';
-      btn.textContent = 'Submitted';
-    } else if (d.error === 'ALREADY_SUBMITTED') {
-      status.innerHTML = '<span style="color:#fbbf24">This channel has already been submitted for review.</span>';
-      btn.disabled = false; btn.textContent = 'Submit Application';
-    } else {
-      status.innerHTML = '<span style="color:#f87171">' + (d.error || 'Something went wrong.') + '</span>';
-      btn.disabled = false; btn.textContent = 'Submit Application';
-    }
-  } catch(e) {
-    status.innerHTML = '<span style="color:#f87171">Network error. Please try again.</span>';
-    btn.disabled = false; btn.textContent = 'Submit Application';
+    const ent = await apiFetch('/api/v1/portal/entitlements');
+    if (ent?.discordLinked) { markStep(3, true); completed++; }
+    if (ent?.subscriptionActive) { markStep(4, true); completed++; }
+  } catch (_) {}
+
+  try {
+    const uids = await apiFetch('/api/v1/portal/affiliate-uids');
+    if (uids?.length > 0) { markStep(5, true); completed++; }
+  } catch (_) {}
+
+  // Step 2: marketplace visit (use localStorage as proxy, not strict)
+  if (document.referrer.includes('/marketplace') || sessionStorage.getItem('visited_marketplace')) {
+    markStep(2, true); completed++;
+    sessionStorage.setItem('visited_marketplace', '1');
+  }
+
+  const pct = Math.round((completed / total) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+function markStep(num, done) {
+  const card = document.getElementById(`step-${num}`);
+  const badge = document.getElementById(`step-${num}-status`);
+  const numEl = card?.querySelector('.step-num');
+  if (done) {
+    card?.classList.add('done');
+    card?.classList.remove('active');
+    if (numEl) { numEl.textContent = '✓'; numEl.className = 'step-num done'; }
+    if (badge) { badge.textContent = 'Done'; badge.className = 'badge badge-green'; }
+  }
+}
+
+function linkDiscord() {
+  const API = window.AGORAIQ_API_URL || 'https://api.agoraiq.net';
+  window.location.href = `${API}/api/v1/auth/discord?redirect=${encodeURIComponent(window.location.href)}`;
+}
+
+async function resendVerification() {
+  try {
+    await apiFetch('/api/v1/auth/resend-verification', { method: 'POST' });
+    toast('Verification email sent!');
+  } catch (err) {
+    toast(err.message || 'Could not resend email.', 'error');
   }
 }
 </script>
-</body>
+<footer style="border-top:1px solid var(--border);padding:24px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:40px"><p style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">© 2025 ChatLogic Insights LTD · AgoraIQ</p><div style="display:flex;gap:18px;flex-wrap:wrap"><a href="/terms" style="font-size:10px;color:#8b90a8;text-decoration:none">Terms</a><a href="/privacy" style="font-size:10px;color:#8b90a8;text-decoration:none">Privacy</a><a href="/disclaimer" style="font-size:10px;color:#8b90a8;text-decoration:none">Disclaimer</a><a href="/no-financial-advice" style="font-size:10px;color:#8b90a8;text-decoration:none">No Financial Advice</a><a href="/cookies" style="font-size:10px;color:#8b90a8;text-decoration:none">Cookies</a></div></footer></body>
 </html>

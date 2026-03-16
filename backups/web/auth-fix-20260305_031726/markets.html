@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgoraIQ — Markets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+
+<div id="loading-screen">
+  <div class="loader-ring"></div>
+  <div class="loader-text">LOADING</div>
+</div>
+
+<header>
+  <a href="/dashboard" class="logo">
+    <div class="logo-mark"></div>
+    <div class="logo-text">Agora<span>IQ</span></div>
+  </a>
+  <nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/marketplace">Marketplace</a>
+    <a href="/markets" class="active">Markets</a>
+    <a href="/proof">Proof</a>
+    <a href="/news">News</a>
+    <a href="/member">Portal</a>
+  </nav>
+  <div class="header-right">
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <div class="user-badge"><div class="dot"></div><span id="username-badge">—</span></div>
+    <button class="btn-logout" onclick="logout()">LOGOUT</button>
+  </div>
+</header>
+
+<div id="toast"></div>
+
+<main>
+
+  <div class="section-header fade-up"><h2>Live Markets</h2></div>
+
+  <div class="stats-grid fade-up">
+    <div class="stat-card">
+      <div class="stat-label">Tracked Pairs</div>
+      <div class="stat-value cyan" id="stat-pairs">—</div>
+      <div class="stat-sub">Across all exchanges</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Gainers (24h)</div>
+      <div class="stat-value green" id="stat-gainers">—</div>
+      <div class="stat-sub">Price up</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Losers (24h)</div>
+      <div class="stat-value red" id="stat-losers">—</div>
+      <div class="stat-sub">Price down</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Volume</div>
+      <div class="stat-value" id="stat-volume">—</div>
+      <div class="stat-sub">24h across exchanges</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-row fade-up">
+    <input class="search-input" id="search" type="text" placeholder="Search pairs…" oninput="filterMarkets()">
+    <select class="form-select" id="filter-exchange" style="max-width:180px" onchange="filterMarkets()">
+      <option value="">All exchanges</option>
+      <option value="binance">Binance</option>
+      <option value="bybit">Bybit</option>
+      <option value="kraken">Kraken</option>
+      <option value="coinbase">Coinbase</option>
+    </select>
+    <select class="form-select" id="sort-by" style="max-width:180px" onchange="filterMarkets()">
+      <option value="volume">Sort: Volume</option>
+      <option value="change_asc">Sort: Change ↑</option>
+      <option value="change_desc">Sort: Change ↓</option>
+      <option value="price">Sort: Price</option>
+    </select>
+    <button class="btn btn-ghost btn-sm" onclick="pageInit()">↺ Refresh</button>
+    <span id="result-count" style="font-size:11px;color:var(--muted);margin-left:auto"></span>
+  </div>
+
+  <div class="card fade-up">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Pair</th>
+            <th>Exchange</th>
+            <th>Price (USD)</th>
+            <th>24h Change</th>
+            <th>24h High</th>
+            <th>24h Low</th>
+            <th>Volume</th>
+          </tr>
+        </thead>
+        <tbody id="markets-body">
+          <tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted);font-size:11px">Loading market data…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="font-size:10px;color:var(--muted);margin-top:8px;text-align:right">
+    Auto-refreshes every 30s · Sources: Binance, Bybit, Kraken, Coinbase
+  </div>
+
+</main>
+
+<script src="/assets/app.js"></script>
+<script src="/assets/auth.js"></script>
+<script>
+let allMarkets = [];
+
+async function pageInit() {
+  try {
+    const data = await apiFetch('/api/v1/markets');
+    allMarkets = data?.markets || data || [];
+    const pairs = allMarkets.length;
+    const gainers = allMarkets.filter(m => (m.change24h || 0) > 0).length;
+    const losers = allMarkets.filter(m => (m.change24h || 0) < 0).length;
+    const totalVol = allMarkets.reduce((s, m) => s + (m.volume || 0), 0);
+    document.getElementById('stat-pairs').textContent = pairs;
+    document.getElementById('stat-gainers').textContent = gainers;
+    document.getElementById('stat-losers').textContent = losers;
+    document.getElementById('stat-volume').textContent = fmtNum(totalVol);
+    filterMarkets();
+  } catch (err) {
+    toast('Could not load market data.', 'error');
+    renderMarkets([], []);
+  }
+}
+
+function filterMarkets() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const exchange = document.getElementById('filter-exchange').value;
+  const sort = document.getElementById('sort-by').value;
+
+  let list = allMarkets.filter(m => {
+    const pair = (m.pair || m.symbol || '').toLowerCase();
+    if (q && !pair.includes(q)) return false;
+    if (exchange && (m.exchange || '').toLowerCase() !== exchange) return false;
+    return true;
+  });
+
+  list.sort((a, b) => {
+    if (sort === 'change_asc') return (a.change24h || 0) - (b.change24h || 0);
+    if (sort === 'change_desc') return (b.change24h || 0) - (a.change24h || 0);
+    if (sort === 'price') return (b.price || 0) - (a.price || 0);
+    return (b.volume || 0) - (a.volume || 0);
+  });
+
+  document.getElementById('result-count').textContent = `${list.length} pairs`;
+  renderMarkets(list);
+}
+
+function renderMarkets(list) {
+  const tbody = document.getElementById('markets-body');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted);font-size:11px">No markets found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map((m, i) => {
+    const ch = m.change24h || 0;
+    const cls = ch >= 0 ? 'green' : 'red';
+    return `
+      <tr>
+        <td style="color:var(--muted)">${i+1}</td>
+        <td><strong>${escapeHTML(m.pair || m.symbol || '—')}</strong></td>
+        <td><span class="badge badge-muted">${escapeHTML(m.exchange || '—')}</span></td>
+        <td class="mono">${m.price ? '$' + Number(m.price).toLocaleString(undefined,{maximumFractionDigits:6}) : '—'}</td>
+        <td><span class="text-${cls}">${fmtPct(ch)}</span></td>
+        <td class="mono" style="color:var(--muted)">${m.high24h ? '$' + Number(m.high24h).toLocaleString(undefined,{maximumFractionDigits:6}) : '—'}</td>
+        <td class="mono" style="color:var(--muted)">${m.low24h ? '$' + Number(m.low24h).toLocaleString(undefined,{maximumFractionDigits:6}) : '—'}</td>
+        <td class="mono" style="color:var(--muted)">${fmtNum(m.volume)}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Auto-refresh every 30s
+setInterval(() => {
+  if (document.visibilityState === 'visible') pageInit();
+}, 30000);
+</script>
+</body>
+</html>

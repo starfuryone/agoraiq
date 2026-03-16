@@ -1,0 +1,55 @@
+// ============================================================
+// AgoraIQ Market Intel — Prisma Schema Additions
+// Append these models to your existing prisma/schema.prisma
+// ============================================================
+
+model MarketIntelScore {
+  id             String   @id @default(uuid())
+  symbol         String   @db.VarChar(20)
+  side           String   @db.VarChar(5)
+  score          Decimal  @db.Decimal(6, 4)
+  probabilityPct Int      @db.SmallInt
+  confidence     String   @db.VarChar(4)
+  expectedR      Decimal  @db.Decimal(5, 2)
+  rawInputs      Json     @default("{}")
+  createdAt      DateTime @default(now()) @db.Timestamptz
+
+  @@index([symbol])
+  @@index([createdAt(sort: Desc)])
+  @@index([score(sort: Desc)])
+  @@index([symbol, createdAt(sort: Desc)])
+  @@map("market_intel_scores")
+}
+
+model MarketIntelAlert {
+  id        String   @id @default(uuid())
+  type      String   @db.VarChar(15)   // volatility | arbitrage | regime
+  severity  String   @db.VarChar(10)   // critical | high | medium | low
+  symbol    String   @db.VarChar(20)
+  exchange  String?  @db.VarChar(60)
+  message   String
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  @@index([type])
+  @@index([symbol])
+  @@index([createdAt(sort: Desc)])
+  @@index([severity])
+  @@index([type, createdAt(sort: Desc)])
+  @@map("market_intel_alerts")
+}
+
+model MarketIntelSnapshot {
+  id             String   @id @default(uuid())
+  symbol         String   @db.VarChar(20)
+  exchange       String   @db.VarChar(20)
+  rawData        Json     @default("{}")
+  normalizedData Json     @default("{}")
+  createdAt      DateTime @default(now()) @db.Timestamptz
+
+  @@unique([symbol, exchange, createdAt])
+  @@index([symbol])
+  @@index([exchange])
+  @@index([createdAt(sort: Desc)])
+  @@map("market_intel_snapshots")
+}

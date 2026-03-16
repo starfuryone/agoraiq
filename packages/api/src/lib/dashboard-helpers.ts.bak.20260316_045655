@@ -1,0 +1,26 @@
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+
+export async function getMarketRegime() {
+  return { label: 'Neutral', confidence: 50, changedAgo: '—' };
+}
+
+export async function getMarketBreadth() {
+  return 0;
+}
+
+export async function getTopProvider(range: string) {
+  try {
+    const row: any[] = await (prisma as any).$queryRawUnsafe(
+      "SELECT p.name, pss.win_rate FROM providers p INNER JOIN provider_stats_snapshot pss ON pss.provider_id = p.id AND pss.period = '30d' WHERE p.\"isActive\" = true AND pss.trade_count >= 20 ORDER BY pss.win_rate DESC LIMIT 1"
+    );
+    return row[0] ? { name: row[0].name, winRate: Number(row[0].win_rate) || 0 } : { name: '—', winRate: 0 };
+  } catch { return { name: '—', winRate: 0 }; }
+}
+
+export async function generateExplainers(...args: any[]) { return []; }
+export function flushDashboardCache(...args: any[]) { return; }
+
+export async function getMarketPulseData() {
+  return [];
+}

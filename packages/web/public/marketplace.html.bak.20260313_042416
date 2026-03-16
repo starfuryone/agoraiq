@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgoraIQ — Marketplace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Albert+Sans:wght@400;500;600;700;800;900&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+/* ── Provider grid ── */
+.providers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+.provider-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px 24px;
+  transition: border-color .2s, transform .15s;
+  display: flex; flex-direction: column; gap: 14px;
+  cursor: pointer;
+}
+.provider-card:hover { border-color: rgba(0,212,255,.25); transform: translateY(-1px); }
+.prov-header  { display: flex; align-items: flex-start; gap: 12px; }
+.prov-avatar  {
+  width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(0,212,255,.12), rgba(245,158,11,.08));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Albert Sans', sans-serif; font-weight: 800; font-size: 16px; color: var(--cyan);
+  border: 1px solid var(--border);
+}
+.prov-name    { font-family: 'Albert Sans', sans-serif; font-weight: 700; font-size: 13px; color: var(--text); margin-bottom: 4px; }
+.prov-badges  { display: flex; gap: 5px; flex-wrap: wrap; }
+.prov-desc    { font-size: 10px; color: var(--muted); line-height: 1.5; }
+.prov-stats   { display: flex; gap: 20px; }
+.prov-stat-val { font-family: 'Albert Sans', sans-serif; font-weight: 800; font-size: 18px; color: var(--text); line-height: 1; }
+.prov-stat-lbl { font-size: 9px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 3px; }
+.prov-footer  { display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--border); }
+.prov-meta    { font-size: 10px; color: var(--muted); }
+
+/* ── Filter bar ── */
+.filter-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
+.filter-bar input  { flex: 1; min-width: 180px; max-width: 260px; }
+.filter-bar select {
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); padding: 8px 12px; border-radius: 6px;
+  font-size: 11px; font-family: 'DM Mono', monospace;
+  cursor: pointer;
+}
+
+/* ── Detail panel (slide-in) ── */
+.panel-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.55);
+  z-index: 200; opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.panel-overlay.open { opacity: 1; pointer-events: all; }
+.detail-panel {
+  position: fixed; top: 0; right: -480px; width: 460px; max-width: 95vw;
+  height: 100vh; background: var(--surface); border-left: 1px solid var(--border);
+  z-index: 201; transition: right .25s cubic-bezier(.4,0,.2,1);
+  overflow-y: auto; padding: 28px 28px 48px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.detail-panel.open { right: 0; }
+.panel-close {
+  position: absolute; top: 16px; right: 16px;
+  background: none; border: none; color: var(--muted);
+  font-size: 20px; cursor: pointer; padding: 4px 8px;
+  line-height: 1; border-radius: 4px;
+}
+.panel-close:hover { color: var(--text); background: var(--card); }
+.panel-section { display: flex; flex-direction: column; gap: 8px; }
+.panel-section-title {
+  font-size: 9px; color: var(--muted); letter-spacing: .1em;
+  text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 6px;
+}
+.panel-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.panel-stat {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 14px;
+}
+.panel-stat-val { font-family: 'Albert Sans', sans-serif; font-weight: 800; font-size: 20px; color: var(--text); }
+.panel-stat-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
+.confidence-bar { height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; margin-top: 6px; }
+.confidence-fill { height: 100%; border-radius: 2px; background: var(--cyan); transition: width .4s; }
+.signal-list { display: flex; flex-direction: column; gap: 0; }
+</style>
+</head>
+<body>
+
+<div id="loading-screen">
+  <div class="loader-ring"></div>
+  <div class="loader-text">AUTHENTICATING</div>
+</div>
+
+<!-- Slide-in detail panel -->
+<div class="panel-overlay" id="panel-overlay" onclick="closePanel()"></div>
+<div class="detail-panel" id="detail-panel">
+  <button class="panel-close" onclick="closePanel()">✕</button>
+  <div id="panel-content">
+    <div class="skeleton" style="height:20px;width:60%;margin-bottom:12px"></div>
+    <div class="skeleton" style="height:12px;width:80%"></div>
+  </div>
+</div>
+
+<header>
+  <a href="/dashboard" class="logo">
+    <div class="logo-mark"></div>
+    <div class="logo-text">Agora<span>IQ</span></div>
+  </a>
+    <nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/tracking" style="font-weight:700;color:var(--green)">Watchlist</a>
+    <a href="/marketplace" class="active">Marketplace</a>
+    <a href="/screener">Screener</a>
+    <a href="/signals">Signals</a>
+    <a href="/proof">Proof</a>
+    <a href="/news">News</a>
+  </nav>
+  <div class="header-right">
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <div class="user-badge"><div class="dot"></div><span id="username-badge">—</span></div>
+    <button class="btn-logout" onclick="logout()">LOGOUT</button>
+  </div>
+</header>
+
+<div id="toast"></div>
+
+<main>
+  <div class="flex-between fade-up" style="margin-bottom:20px">
+    <div class="section-header" style="margin-bottom:0"><h2>Marketplace</h2></div>
+    <span id="provider-count" style="font-size:11px;color:var(--muted)"></span>
+  </div>
+
+  <!-- Stats strip -->
+  <div class="stats-grid fade-up" style="margin-bottom:24px">
+    <div class="stat-card">
+      <div class="stat-label">Total Providers</div>
+      <div class="stat-value cyan" id="stat-total">—</div>
+      <div class="stat-sub">Tracked channels</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Verified</div>
+      <div class="stat-value green" id="stat-verified">—</div>
+      <div class="stat-sub">Outcome confirmed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Best Win Rate</div>
+      <div class="stat-value amber" id="stat-best-wr">—</div>
+      <div class="stat-sub">Top performer (30d)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Best Expectancy</div>
+      <div class="stat-value" id="stat-best-rr">—</div>
+      <div class="stat-sub">Highest R (30d)</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar fade-up">
+    <input class="form-input" id="search" type="text" placeholder="Search providers…" oninput="filterProviders()">
+    <select id="filter-tier" onchange="filterProviders()">
+      <option value="">All Tiers</option>
+      <option value="VERIFIED">Verified</option>
+      <option value="RANKED">Ranked</option>
+      <option value="BASIC">Basic</option>
+    </select>
+    <select id="filter-cherry" onchange="filterProviders()">
+      <option value="">All</option>
+      <option value="Clean">Clean only</option>
+    </select>
+    <select id="sort-by" onchange="filterProviders()">
+      <option value="winRate">Sort: Win Rate</option>
+      <option value="expectancy">Sort: Expectancy R</option>
+      <option value="trades">Sort: Signal Count</option>
+      <option value="name">Sort: Name</option>
+    </select>
+  </div>
+
+  <!-- Grid -->
+  <div class="providers-grid fade-up" id="providers-grid">
+    <div class="provider-card"><div class="prov-header"><div class="prov-avatar skeleton" style="background:var(--surface)"></div><div style="flex:1"><div class="skeleton" style="height:13px;width:140px;margin-bottom:8px"></div><div class="skeleton" style="height:10px;width:60px"></div></div></div><div class="skeleton" style="height:10px;width:90%"></div></div>
+    <div class="provider-card"><div class="prov-header"><div class="prov-avatar skeleton" style="background:var(--surface)"></div><div style="flex:1"><div class="skeleton" style="height:13px;width:120px;margin-bottom:8px"></div><div class="skeleton" style="height:10px;width:50px"></div></div></div><div class="skeleton" style="height:10px;width:80%"></div></div>
+    <div class="provider-card"><div class="prov-header"><div class="prov-avatar skeleton" style="background:var(--surface)"></div><div style="flex:1"><div class="skeleton" style="height:13px;width:100px;margin-bottom:8px"></div><div class="skeleton" style="height:10px;width:70px"></div></div></div><div class="skeleton" style="height:10px;width:70%"></div></div>
+  </div>
+  <div id="empty-state" class="empty-state" style="display:none">
+    <div class="icon">🔍</div><p>No providers match your filters.</p>
+  </div>
+</main>
+
+<script src="/assets/app.js"></script>
+<script src="/assets/auth.js"></script>
+<script>
+let allProviders = [];
+
+async function pageInit(user) {
+  await loadProviders();
+}
+
+async function loadProviders() {
+  try {
+    const data = await apiFetch('/api/v1/marketplace/providers');
+    allProviders = data?.providers || [];
+
+    // Stats strip
+    const total    = allProviders.length;
+    const verified = allProviders.filter(p => p.isVerified || p.tier === 'VERIFIED').length;
+
+    // stats30d.winRate is 0–1 decimal
+    const wrs  = allProviders.map(p => p.stats30d?.winRate).filter(v => v != null);
+    const rrs  = allProviders.map(p => p.stats30d?.expectancyR).filter(v => v != null);
+    const bestWR = wrs.length ? Math.max(...wrs) * 100 : null;
+    const bestRR = rrs.length ? Math.max(...rrs) : null;
+
+    document.getElementById('stat-total').textContent    = total;
+    document.getElementById('stat-verified').textContent = verified;
+    document.getElementById('stat-best-wr').textContent  = bestWR != null ? bestWR.toFixed(1) + '%' : '—';
+    document.getElementById('stat-best-rr').textContent  = bestRR != null ? bestRR.toFixed(2) + 'R' : '—';
+
+    filterProviders();
+  } catch (err) {
+    console.error('providers error:', err);
+    document.getElementById('providers-grid').innerHTML =
+      '<div class="empty-state" style="grid-column:1/-1"><div class="icon">⚠</div><p>Could not load providers.</p></div>';
+  }
+}
+
+function filterProviders() {
+  const q      = document.getElementById('search').value.toLowerCase();
+  const tier   = document.getElementById('filter-tier').value;
+  const cherry = document.getElementById('filter-cherry').value;
+  const sort   = document.getElementById('sort-by').value;
+
+  let list = allProviders.filter(p => {
+    const text = ((p.name || '') + ' ' + (p.description || '')).toLowerCase();
+    if (q && !text.includes(q)) return false;
+    if (tier && (p.tier || '').toUpperCase() !== tier.toUpperCase()) return false;
+    if (cherry === 'Clean' && (p.stats30d?.cherryLabel || '').toLowerCase() !== 'clean') return false;
+    return true;
+  });
+
+  list.sort((a, b) => {
+    const as = a.stats30d || {}, bs = b.stats30d || {};
+    if (sort === 'winRate')    return (bs.winRate     ?? 0) - (as.winRate     ?? 0);
+    if (sort === 'expectancy') return (bs.expectancyR ?? 0) - (as.expectancyR ?? 0);
+    if (sort === 'trades')     return (bs.trades      ?? 0) - (as.trades      ?? 0);
+    return (a.name || '').localeCompare(b.name || '');
+  });
+
+  document.getElementById('provider-count').textContent =
+    list.length + ' provider' + (list.length !== 1 ? 's' : '');
+  renderProviders(list);
+}
+
+function renderProviders(list) {
+  const grid  = document.getElementById('providers-grid');
+  const empty = document.getElementById('empty-state');
+  if (!list.length) { grid.innerHTML = ''; empty.style.display = 'flex'; return; }
+  empty.style.display = 'none';
+
+  grid.innerHTML = list.map(p => {
+    const s      = p.stats30d || {};
+    // winRate is 0–1 decimal → multiply by 100
+    const wr     = s.winRate     != null ? (s.winRate * 100).toFixed(1) + '%' : '—';
+    const rr     = s.expectancyR != null ? s.expectancyR.toFixed(2) + 'R' : '—';
+    const trades = s.trades      != null ? fmtNum(s.trades) : '0';
+    const wrNum  = s.winRate     != null ? s.winRate * 100 : null;
+    const wrCls  = wrNum == null ? '' : wrNum >= 60 ? 'green' : wrNum >= 45 ? 'amber' : 'red';
+    const isVer  = p.isVerified || p.tier === 'VERIFIED';
+    const cherry = s.cherryLabel || null;
+    const conf   = s.sampleConfidence || null;
+    const initial = (p.name || '?')[0].toUpperCase();
+    const slug   = p.slug || p.id;
+
+    return `
+      <div class="provider-card" onclick="openPanel('${escapeHTML(slug)}')">
+        <div class="prov-header">
+          <div class="prov-avatar">${escapeHTML(initial)}</div>
+          <div>
+            <div class="prov-name">${escapeHTML(p.name || '—')}</div>
+            <div class="prov-badges">
+              ${isVer ? '<span class="badge badge-cyan">VERIFIED</span>' : ''}
+              ${isVer ? '<span class="badge badge-green">✓ VERIFIED</span>' : ''}
+              ${cherry === 'Clean' ? '<span class="badge badge-green">Clean</span>' : ''}
+              ${conf === 'high' ? '<span class="badge badge-muted">High Conf</span>' : ''}
+            </div>
+          </div>
+        </div>
+        ${p.description ? `<div class="prov-desc">${escapeHTML(p.description)}</div>` : ''}
+        <div class="prov-stats">
+          <div>
+            <div class="prov-stat-val ${wrCls}">${wr}</div>
+            <div class="prov-stat-lbl">Win Rate</div>
+          </div>
+          <div>
+            <div class="prov-stat-val">${rr}</div>
+            <div class="prov-stat-lbl">Expectancy R</div>
+          </div>
+          <div>
+            <div class="prov-stat-val">${trades}</div>
+            <div class="prov-stat-lbl">Signals</div>
+          </div>
+        </div>
+        <div class="prov-footer">
+          <span class="prov-meta">${escapeHTML(p.channelType || p.tags?.market || '—')}</span>
+          <span class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openPanel('${escapeHTML(slug)}')">View →</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Detail panel ──────────────────────────────────────────────
+function openPanel(slug) {
+  document.getElementById('panel-overlay').classList.add('open');
+  document.getElementById('detail-panel').classList.add('open');
+  document.getElementById('panel-content').innerHTML =
+    '<div class="skeleton" style="height:20px;width:60%;margin-bottom:12px"></div><div class="skeleton" style="height:12px;width:80%"></div>';
+  loadPanelData(slug);
+}
+function closePanel() {
+  document.getElementById('panel-overlay').classList.remove('open');
+  document.getElementById('detail-panel').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+
+async function loadPanelData(slug) {
+  // Use marketplace provider data we already have — no extra request needed
+  const p = allProviders.find(x => (x.slug || x.id) === slug);
+  if (!p) {
+    document.getElementById('panel-content').innerHTML =
+      '<p style="color:var(--muted);font-size:12px">Provider not found.</p>';
+    return;
+  }
+
+  const s      = p.stats30d || {};
+  const wr     = s.winRate     != null ? (s.winRate * 100).toFixed(1) + '%' : '—';
+  const rr     = s.expectancyR != null ? s.expectancyR.toFixed(2) + 'R' : '—';
+  const volAdj = s.volAdjExpectancy != null ? s.volAdjExpectancy.toFixed(2) + 'R' : '—';
+  const maxDD  = s.maxDD  != null ? s.maxDD.toFixed(2) + 'R' : '—';
+  const trades = s.trades != null ? s.trades : '—';
+  const completeness = s.dataCompleteness != null ? (s.dataCompleteness * 100).toFixed(0) : null;
+  const cherryScore  = s.cherryPickScore  != null ? (s.cherryPickScore  * 100).toFixed(1) : null;
+  const wrNum  = s.winRate != null ? s.winRate * 100 : null;
+  const wrCls  = wrNum == null ? '' : wrNum >= 60 ? 'var(--green)' : wrNum >= 45 ? 'var(--amber)' : 'var(--red)';
+
+  document.getElementById('panel-content').innerHTML = `
+    <!-- Header -->
+    <div style="display:flex;align-items:flex-start;gap:14px;padding-right:32px">
+      <div class="prov-avatar" style="width:48px;height:48px;font-size:20px">${escapeHTML((p.name||'?')[0].toUpperCase())}</div>
+      <div>
+        <div style="font-family:'Albert Sans',sans-serif;font-weight:800;font-size:18px;color:var(--text);margin-bottom:6px">${escapeHTML(p.name||'—')}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          ${p.tier ? `<span class="badge ${p.tier==='VERIFIED'?'badge-cyan':'badge-muted'}">${p.tier}</span>` : ''}
+          ${p.isVerified ? '<span class="badge badge-green">✓ VERIFIED</span>' : ''}
+          ${s.cherryLabel === 'Clean' ? '<span class="badge badge-green">🛡 Clean</span>' : ''}
+        </div>
+      </div>
+    </div>
+
+    ${p.description ? `<p style="font-size:11px;color:var(--muted);line-height:1.6;margin:0">${escapeHTML(p.description)}</p>` : ''}
+
+    <!-- 30d stats grid -->
+    <div class="panel-section">
+      <div class="panel-section-title">30-Day Performance</div>
+      <div class="panel-stat-grid">
+        <div class="panel-stat">
+          <div class="panel-stat-val" style="color:${wrCls}">${wr}</div>
+          <div class="panel-stat-lbl">Win Rate</div>
+        </div>
+        <div class="panel-stat">
+          <div class="panel-stat-val">${rr}</div>
+          <div class="panel-stat-lbl">Expectancy R</div>
+        </div>
+        <div class="panel-stat">
+          <div class="panel-stat-val" style="color:var(--cyan)">${volAdj}</div>
+          <div class="panel-stat-lbl">Vol-Adj Expectancy</div>
+        </div>
+        <div class="panel-stat">
+          <div class="panel-stat-val" style="color:var(--red)">${maxDD}</div>
+          <div class="panel-stat-lbl">Max Drawdown</div>
+        </div>
+        <div class="panel-stat">
+          <div class="panel-stat-val">${trades}</div>
+          <div class="panel-stat-lbl">Total Signals</div>
+        </div>
+        <div class="panel-stat">
+          <div class="panel-stat-val" style="color:var(--amber)">${s.rStddev != null ? s.rStddev.toFixed(2) : '—'}</div>
+          <div class="panel-stat-lbl">R Std Dev</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data quality -->
+    <div class="panel-section">
+      <div class="panel-section-title">Data Quality</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${completeness != null ? `
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px">
+              <span style="color:var(--muted)">Data Completeness</span>
+              <span style="color:var(--text)">${completeness}%</span>
+            </div>
+            <div class="confidence-bar"><div class="confidence-fill" style="width:${completeness}%;background:${completeness>=80?'var(--green)':completeness>=60?'var(--amber)':'var(--red)'}"></div></div>
+          </div>` : ''}
+        ${cherryScore != null ? `
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px">
+              <span style="color:var(--muted)">Cherry-Pick Score</span>
+              <span style="color:${cherryScore<=5?'var(--green)':cherryScore<=15?'var(--amber)':'var(--red)'}">${cherryScore}% — ${s.cherryLabel||'—'}</span>
+            </div>
+            <div class="confidence-bar"><div class="confidence-fill" style="width:${Math.min(cherryScore,100)}%;background:${cherryScore<=5?'var(--green)':cherryScore<=15?'var(--amber)':'var(--red)'}"></div></div>
+          </div>` : ''}
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          ${s.sampleConfidence ? `<div><span class="badge ${s.sampleConfidence==='high'?'badge-green':s.sampleConfidence==='medium'?'badge-amber':'badge-muted'}">${s.sampleConfidence} confidence</span></div>` : ''}
+          ${p.channelType ? `<span style="font-size:10px;color:var(--muted)">via ${escapeHTML(p.channelType)}</span>` : ''}
+          ${p.trackedSince ? `<span style="font-size:10px;color:var(--muted)">tracked ${daysSince(p.trackedSince)}</span>` : ''}
+        </div>
+      </div>
+    </div>
+
+    <!-- Lifecycle coverage -->
+    ${s.lifecycle ? `
+    <div class="panel-section">
+      <div class="panel-section-title">Signal Coverage</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        ${[['Entry', s.lifecycle.withEntry],['Stop Loss', s.lifecycle.withSL],['Take Profit', s.lifecycle.withTP],['Outcome', s.lifecycle.withOutcome]].map(([lbl, val]) => `
+          <div style="display:flex;justify-content:space-between;font-size:10px;padding:6px 10px;background:var(--card);border-radius:6px;border:1px solid var(--border)">
+            <span style="color:var(--muted)">${lbl}</span>
+            <span style="color:${val>=0.9?'var(--green)':val>=0.7?'var(--amber)':'var(--red)'}">${val!=null?(val*100).toFixed(0)+'%':'—'}</span>
+          </div>`).join('')}
+      </div>
+    </div>` : ''}
+
+    <!-- Tags -->
+    ${p.tags ? `
+    <div class="panel-section">
+      <div class="panel-section-title">Details</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${Object.entries(p.tags).filter(([,v])=>v).map(([k,v])=>`<span class="badge badge-muted">${escapeHTML(k)}: ${escapeHTML(String(v))}</span>`).join('')}
+        ${p.language ? `<span class="badge badge-muted">lang: ${escapeHTML(p.language)}</span>` : ''}
+      </div>
+    </div>` : ''}
+  `;
+}
+</script>
+<footer style="border-top:1px solid var(--border);padding:24px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:40px"><p style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">© 2025 ChatLogic Insights LTD · AgoraIQ</p><div style="display:flex;gap:18px;flex-wrap:wrap"><a href="/terms" style="font-size:10px;color:#8b90a8;text-decoration:none">Terms</a><a href="/privacy" style="font-size:10px;color:#8b90a8;text-decoration:none">Privacy</a><a href="/disclaimer" style="font-size:10px;color:#8b90a8;text-decoration:none">Disclaimer</a><a href="/no-financial-advice" style="font-size:10px;color:#8b90a8;text-decoration:none">No Financial Advice</a><a href="/cookies" style="font-size:10px;color:#8b90a8;text-decoration:none">Cookies</a></div></footer></body>
+</html>

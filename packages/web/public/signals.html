@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgoraIQ — Signals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+  :root {
+    --bg:#08090d;--bg-card:#0e1017;--bg-surface:#111320;
+    --border:#1a1d2e;--border-active:#2a2f45;
+    --cyan:#00d4ff;--green:#10b981;--red:#ef4444;--amber:#f59e0b;--purple:#a78bfa;
+    --text:#e2e8f0;--text-dim:#64748b;--text-muted:#475569;
+    --font-display:'Syne',sans-serif;--font-mono:'DM Mono',monospace;
+  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:var(--bg);color:var(--text);font-family:var(--font-mono);font-size:13px;line-height:1.5;min-height:100vh;-webkit-font-smoothing:antialiased;}
+  #sig-root{max-width:1320px;margin:0 auto;padding:24px 28px 48px;}
+  @keyframes sig-fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes sig-shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+  .sig-fadeUp{animation:sig-fadeUp 0.4s ease-out both;}
+  .sig-skel{background:linear-gradient(90deg,var(--bg-card) 25%,#1a1d2e 50%,var(--bg-card) 75%);background-size:200% 100%;animation:sig-shimmer 1.4s ease-in-out infinite;border-radius:4px;display:inline-block;}
+  .sig-skel-row{width:100%;height:44px;margin-bottom:1px;}
+
+  /* ── Nav ── */
+  .sig-nav{position:sticky;top:0;z-index:100;background:rgba(8,9,13,0.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:56px;margin:-24px -28px 24px;width:calc(100% + 56px);}
+  .sig-nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+  .sig-nav-brand .bm{width:28px;height:28px;background:linear-gradient(135deg,var(--cyan),#0066ff);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex:0 0 auto;}
+  .sig-nav-brand .bt{font-family:var(--font-display);font-weight:800;font-size:16px;letter-spacing:-0.5px;color:var(--text);line-height:1;}
+  .sig-nav-brand .biq{color:var(--cyan);}
+  .sig-nav-links{display:flex;align-items:center;gap:4px;}
+  .sig-nav-links a{color:var(--text-dim);text-decoration:none;font-size:11.5px;padding:6px 12px;border-radius:6px;transition:all 0.2s;white-space:nowrap;}
+  .sig-nav-links a:hover{color:var(--text);background:rgba(255,255,255,0.04);}
+  .sig-nav-links a.active{color:var(--cyan);background:rgba(0,212,255,0.08);}
+  .sig-nav-links a.nav-locked{color:var(--text-muted);opacity:0.45;cursor:pointer;}
+  .sig-nav-links a.nav-locked:hover{color:var(--text-muted);background:none;opacity:0.55;}
+  .sig-nav-links a.nav-locked::after{content:'🔒';font-size:8px;margin-left:3px;position:relative;top:-1px;}
+  .sig-nav-r{display:flex;align-items:center;gap:10px;}
+  .sig-nav-user{font-size:11px;color:var(--text-muted);}
+  .sig-nav-out{color:var(--text-muted);text-decoration:none;font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid var(--border);transition:all 0.2s;}
+  .sig-nav-out:hover{color:var(--red);border-color:var(--red);}
+  .sig-ham{display:none;background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;}
+  @media(max-width:900px){.sig-nav-links{display:none;}.sig-nav-links.open{display:flex;flex-direction:column;position:absolute;top:56px;left:0;right:0;background:var(--bg-card);border-bottom:1px solid var(--border);padding:8px 0;}.sig-nav-links.open a{padding:10px 28px;border-radius:0;}.sig-ham{display:block;}.sig-nav{padding:0 16px;}.sig-nav-user{display:none;}}
+
+  /* ── Header ── */
+  .sig-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
+  .sig-hdr h1{font-family:var(--font-display);font-size:22px;font-weight:700;letter-spacing:-0.5px;}
+  .sig-hdr-sub{color:var(--text-dim);font-size:12px;margin-top:3px;}
+  .sig-ts{font-size:10px;color:var(--text-muted);}
+  .sig-ts::before{content:'●';color:var(--green);margin-right:4px;font-size:7px;position:relative;top:-1px;}
+
+  /* ── KPI Strip ── */
+  .sig-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px;}
+  .sig-kpi{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color 0.2s;}
+  .sig-kpi:hover{border-color:var(--border-active);}
+  .sig-kpi-l{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+  .sig-kpi-v{font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-0.3px;}
+  .sig-kpi-m{font-size:11px;color:var(--text-dim);margin-top:2px;}
+  .vgreen{color:var(--green);}.vred{color:var(--red);}.vcyan{color:var(--cyan);}
+
+  /* ── Insight Bar ── */
+  .sig-insight{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:12px;color:var(--text-dim);line-height:1.6;}
+  .sig-insight strong{color:var(--cyan);font-weight:500;}
+
+  /* ── Card Shell ── */
+  .sig-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  .sig-card-hd{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);}
+  .sig-card-t{font-family:var(--font-display);font-size:13.5px;font-weight:600;}
+
+  /* ── Filters ── */
+  .sig-filters{display:flex;gap:8px;padding:12px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;}
+  .sig-sel{background:var(--bg);color:var(--text-dim);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:11px;font-family:var(--font-mono);cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23475569'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px;transition:all 0.2s;}
+  .sig-sel:hover{border-color:var(--border-active);color:var(--text);}
+  .sig-sel:focus{outline:none;border-color:var(--cyan);}
+  .sig-srch{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:11px;font-family:var(--font-mono);width:140px;transition:all 0.2s;}
+  .sig-srch::placeholder{color:var(--text-muted);}
+  .sig-srch:focus{outline:none;border-color:var(--cyan);width:180px;}
+  .sig-spacer{flex:1;}
+  .sig-vtog{display:flex;gap:2px;background:var(--bg);border-radius:6px;padding:2px;}
+  .sig-vbtn{font-size:11px;font-family:var(--font-mono);padding:4px 10px;border-radius:4px;background:transparent;color:var(--text-muted);border:none;cursor:pointer;transition:all 0.2s;}
+  .sig-vbtn.active{background:var(--bg-card);color:var(--text);}
+  .sig-exp{background:transparent;border:1px solid var(--border);color:var(--text-dim);font-size:11px;font-family:var(--font-mono);padding:5px 12px;border-radius:6px;cursor:pointer;text-decoration:none;transition:all 0.2s;}
+  .sig-exp:hover{border-color:var(--cyan);color:var(--cyan);}
+
+  /* ── Table ── */
+  .sig-tbl{display:block;}
+  .sig-tbl.hidden{display:none;}
+  .sig-tr{display:grid;grid-template-columns:110px 64px 130px 72px 80px 90px 64px 80px;align-items:center;gap:8px;padding:11px 18px;border-bottom:1px solid var(--border);font-size:12px;transition:background 0.15s;cursor:pointer;}
+  .sig-tr:hover{background:#13151e;}
+  .sig-tr.hdr{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;background:var(--bg);font-weight:500;cursor:default;}
+  .sig-tr.hdr:hover{background:var(--bg);}
+  .sig-pair{font-family:var(--font-display);font-weight:600;font-size:12.5px;}
+  .sig-pair-tf{font-size:9px;color:var(--text-muted);display:block;margin-top:1px;}
+  .sig-dir{font-size:10px;font-weight:500;padding:2px 8px;border-radius:3px;text-align:center;text-transform:uppercase;letter-spacing:0.5px;display:inline-block;}
+  .sig-dir.long{background:rgba(16,185,129,0.1);color:var(--green);}
+  .sig-dir.short{background:rgba(239,68,68,0.1);color:var(--red);}
+  .sig-prov{color:var(--text-dim);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sig-pill{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;}
+  .sig-pill.high{background:rgba(16,185,129,0.1);color:var(--green);}
+  .sig-pill.med{background:rgba(245,158,11,0.1);color:var(--amber);}
+  .sig-pill.low{background:rgba(239,68,68,0.1);color:var(--red);}
+  .sig-pill.none{background:rgba(100,116,139,0.08);color:var(--text-muted);}
+  .sig-oc{font-size:10px;padding:2px 8px;border-radius:3px;text-align:center;font-weight:500;letter-spacing:0.3px;text-transform:uppercase;display:inline-block;}
+  .sig-oc.tp{background:rgba(16,185,129,0.1);color:var(--green);}
+  .sig-oc.sl{background:rgba(239,68,68,0.1);color:var(--red);}
+  .sig-oc.active{background:rgba(0,212,255,0.1);color:var(--cyan);}
+  .sig-oc.expired{background:rgba(100,116,139,0.08);color:var(--text-muted);}
+  .sig-rm{font-variant-numeric:tabular-nums;}
+  .sig-rm.pos{color:var(--green);}
+  .sig-rm.neg{color:var(--red);}
+  .sig-time{color:var(--text-muted);font-size:11px;}
+
+  /* ── Expanded Detail ── */
+  .sig-det{display:none;padding:14px 18px 14px 36px;border-bottom:1px solid var(--border);background:var(--bg-surface);font-size:11.5px;color:var(--text-dim);line-height:1.7;}
+  .sig-det.open{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;animation:sig-fadeUp 0.2s ease-out;}
+  .sig-det-l{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;}
+  .sig-det-v{color:var(--text);font-variant-numeric:tabular-nums;}
+
+  /* ── Cards ── */
+  .sig-cards{display:none;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;padding:16px 18px;}
+  .sig-cards.show{display:grid;}
+  .sig-scard{background:var(--bg-surface);border:1px solid var(--border);border-radius:10px;padding:16px;transition:border-color 0.2s;cursor:pointer;}
+  .sig-scard:hover{border-color:var(--border-active);}
+  .sig-sc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .sig-sc-pair{font-family:var(--font-display);font-weight:700;font-size:16px;}
+  .sig-sc-mid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+  .sig-sc-ml{color:var(--text-muted);font-size:9px;text-transform:uppercase;letter-spacing:0.5px;}
+  .sig-sc-mv{color:var(--text);margin-top:2px;font-size:12px;font-variant-numeric:tabular-nums;}
+  .sig-sc-bot{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border);}
+  .sig-sc-prov{color:var(--text-dim);font-size:11px;}
+  .sig-sc-time{color:var(--text-muted);font-size:10px;}
+
+  /* ── Pagination ── */
+  .sig-pag{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-top:1px solid var(--border);}
+  .sig-pag-info{font-size:11px;color:var(--text-muted);}
+  .sig-pag-btns{display:flex;gap:4px;}
+  .sig-pbtn{background:var(--bg);border:1px solid var(--border);color:var(--text-dim);font-size:11px;font-family:var(--font-mono);padding:4px 10px;border-radius:4px;cursor:pointer;transition:all 0.2s;}
+  .sig-pbtn:hover{border-color:var(--cyan);color:var(--cyan);}
+  .sig-pbtn.off{opacity:0.3;pointer-events:none;}
+
+  /* ── Footer ── */
+  .sig-foot{margin-top:40px;padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);}
+  .sig-foot a{color:var(--text-muted);text-decoration:none;margin-left:16px;transition:color 0.2s;}
+  .sig-foot a:hover{color:var(--text-dim);}
+
+  @media(max-width:1200px){.sig-kpis{grid-template-columns:repeat(3,1fr);}}
+  @media(max-width:768px){.sig-kpis{grid-template-columns:1fr 1fr;}.sig-tr{font-size:11px;overflow-x:auto;}.sig-det.open{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div id="sig-root">
+
+  <!-- Nav -->
+  <nav class="sig-nav">
+    <a href="/dashboard" class="sig-nav-brand"><span class="bm" aria-hidden="true"></span><span class="bt">Agora<span class="biq">IQ</span></span></a>
+    <div class="sig-nav-links" id="sig-nl">
+      <a href="/dashboard">Dashboard</a><a href="/tracking">Watchlist</a>
+      <a href="/marketplace" data-pro>Marketplace</a><a href="/screener" data-pro>Screener</a>
+      <a href="/signals" class="active">Signals</a><a href="/scanner" data-pro>Scanner</a>
+      <a href="/proof">Proof</a><a href="/news">News</a>
+    </div>
+    <div class="sig-nav-r">
+      <span class="sig-nav-user" id="sig-email">—</span>
+      <a href="#" class="sig-nav-out" id="sig-out">LOGOUT</a>
+      <button class="sig-ham" id="sig-ham">☰</button>
+    </div>
+  </nav>
+
+  <!-- Header -->
+  <div class="sig-hdr sig-fadeUp">
+    <div>
+      <h1>Signals</h1>
+      <div class="sig-hdr-sub">Live signal intelligence across providers · <span class="sig-ts" id="sig-upd">Updated —</span></div>
+    </div>
+    <div style="text-align:right;">
+      <span id="sig-open-ct" style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--cyan);">—</span>
+      <div style="font-size:10px;color:var(--text-muted);">open now</div>
+    </div>
+  </div>
+
+  <!-- Blurb -->
+  <div class="sig-insight sig-fadeUp" style="margin-bottom:20px;border-left:2px solid var(--cyan);padding-left:18px;">
+    <strong>Signals</strong> is your live feed of every trade tracked across all connected providers. It shows what was called, who called it, and whether it paid — in real time. Each signal displays the pair, direction, entry price, confidence score, outcome (TP hit, SL hit, active, or expired), and R-multiple. Filter by direction, outcome, provider, or pair to zero in on what matters. Expand any row for the full trade breakdown. KPIs at the top give you an instant read on overall win rate, average R, and how many trades are open right now. Think of it as the scoreboard that holds every provider accountable — no screenshots, no selective memory, just outcomes.
+  </div>
+
+  <!-- KPIs -->
+  <div class="sig-kpis sig-fadeUp">
+    <div class="sig-kpi"><div class="sig-kpi-l">Total Trades</div><div class="sig-kpi-v" id="k-total">—</div><div class="sig-kpi-m">all time</div></div>
+    <div class="sig-kpi"><div class="sig-kpi-l">Win Rate</div><div class="sig-kpi-v vgreen" id="k-wr">—</div><div class="sig-kpi-m">resolved trades</div></div>
+    <div class="sig-kpi"><div class="sig-kpi-l">Avg R-Multiple</div><div class="sig-kpi-v" id="k-avgr">—</div><div class="sig-kpi-m">risk-adjusted</div></div>
+    <div class="sig-kpi"><div class="sig-kpi-l">Open Now</div><div class="sig-kpi-v vcyan" id="k-open">—</div><div class="sig-kpi-m">active trades</div></div>
+    <div class="sig-kpi"><div class="sig-kpi-l">TP Hits</div><div class="sig-kpi-v vgreen" id="k-tp">—</div><div class="sig-kpi-m">profitable</div></div>
+    <div class="sig-kpi"><div class="sig-kpi-l">SL Hits</div><div class="sig-kpi-v vred" id="k-sl">—</div><div class="sig-kpi-m">stopped out</div></div>
+  </div>
+
+  <!-- Insight -->
+  <div class="sig-insight sig-fadeUp" id="sig-ins">Loading signal intelligence...</div>
+
+  <!-- Main -->
+  <div class="sig-card sig-fadeUp">
+    <div class="sig-card-hd">
+      <span class="sig-card-t">⚡ Signal Feed</span>
+      <span class="sig-ts" id="sig-ct-label">—</span>
+    </div>
+    <div class="sig-filters">
+      <select class="sig-sel" id="f-dir"><option value="">All Directions</option><option value="LONG">Long</option><option value="SHORT">Short</option></select>
+      <select class="sig-sel" id="f-oc"><option value="">All Outcomes</option><option value="HIT_TP">TP Hit</option><option value="HIT_SL">SL Hit</option><option value="ACTIVE">Open</option><option value="EXPIRED">Expired</option></select>
+      <select class="sig-sel" id="f-prov"><option value="">All Providers</option></select>
+      <input type="text" class="sig-srch" id="f-srch" placeholder="🔍 Search pair...">
+      <div class="sig-spacer"></div>
+      <select class="sig-sel" id="f-lim" style="width:80px;"><option value="20">20 / pg</option><option value="50">50 / pg</option><option value="100">100 / pg</option></select>
+      <div class="sig-vtog" id="sig-vtog">
+        <button class="sig-vbtn active" data-v="table">☰ Table</button>
+        <button class="sig-vbtn" data-v="cards">▦ Cards</button>
+      </div>
+      <a href="/api/v1/dashboard/exports/csv" class="sig-exp">⬇ CSV</a>
+    </div>
+
+    <!-- Table -->
+    <div class="sig-tbl" id="sig-tbl">
+      <div class="sig-tr hdr"><div>Pair</div><div>Dir</div><div>Provider</div><div>Score</div><div>Confidence</div><div>Outcome</div><div>R×</div><div>Time</div></div>
+      <div id="sig-tbody"><div class="sig-skel sig-skel-row"></div><div class="sig-skel sig-skel-row"></div><div class="sig-skel sig-skel-row"></div><div class="sig-skel sig-skel-row"></div><div class="sig-skel sig-skel-row"></div></div>
+    </div>
+
+    <!-- Cards -->
+    <div class="sig-cards" id="sig-cds"></div>
+
+    <!-- Pagination -->
+    <div class="sig-pag">
+      <div class="sig-pag-info" id="sig-pinfo">—</div>
+      <div class="sig-pag-btns">
+        <button class="sig-pbtn" id="sig-prev">← Prev</button>
+        <button class="sig-pbtn" id="sig-next">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sig-foot">
+    <span>© 2026 ChatLogic Insights LTD · AgoraIQ</span>
+    <span><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/disclaimer">Disclaimer</a><a href="/proof">Proof</a></span>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const API='/api/v1',TK=localStorage.getItem('iq_token');
+  if(!TK){window.location.href='/login';return;}
+
+  async function f(p){
+    try{const r=await fetch(API+p,{headers:{'Authorization':'Bearer '+TK,'Content-Type':'application/json'}});if(r.status===401){window.location.href='/login';return null;}if(!r.ok)return null;return await r.json();}catch(e){console.error('[Sig]',p,e);return null;}
+  }
+  function ago(d){if(!d)return'—';const m=Math.floor((Date.now()-new Date(d))/6e4);if(m<1)return'now';if(m<60)return m+'m';const h=Math.floor(m/60);if(h<24)return h+'h';return Math.floor(h/24)+'d';}
+  function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+  function scCls(v){return v>=75?'high':v>=50?'med':v>0?'low':'none';}
+  function ocCls(s){return s==='HIT_TP'||s==='tp'?'tp':s==='HIT_SL'||s==='stopped'?'sl':s==='ACTIVE'||s==='active'?'active':'expired';}
+  function ocLbl(s){return s==='HIT_TP'||s==='tp'?'TP Hit':s==='HIT_SL'||s==='stopped'?'SL Hit':s==='ACTIVE'||s==='active'?'Active':s==='EXPIRED'||s==='expired'?'Expired':'—';}
+  function fmtR(r){if(r==null)return'—';const v=parseFloat(r);return(v>=0?'+':'')+v.toFixed(2);}
+  function fmtPrice(p){if(!p)return'—';const v=parseFloat(p);if(v>=1)return v.toLocaleString(undefined,{maximumFractionDigits:2});return v.toLocaleString(undefined,{maximumFractionDigits:6});}
+
+  let plan='free',allTrades=[],filtered=[],pg=0,lim=20,view='table',expandedId=null;
+
+  // ── Auth ──
+  async function loadUser(){
+    const d=await f('/auth/me');if(!d)return;
+    const u=d.user||d;const sub=d.subscription||u.subscription||{};
+    plan=(sub.tier||sub.plan||u.tier||u.plan||'free').toLowerCase();
+    if(plan==='starter')plan='free';
+    const el=document.getElementById('sig-email');if(el&&u.email)el.textContent=u.email;
+    document.querySelectorAll('#sig-nl a[data-pro]').forEach(a=>{
+      if(plan==='free'){a.classList.add('nav-locked');a.addEventListener('click',e=>{e.preventDefault();window.location.href='/pricing';});}
+    });
+  }
+
+  // ── Load all trades ──
+  async function loadAll(){
+    const d=await f('/dashboard/signals?limit=500');
+    if(!d||!d.signals)return;
+    allTrades=d.signals;
+    buildProviderFilter();
+    computeKPIs();
+    buildInsight();
+    applyFilters();
+    document.getElementById('sig-upd').textContent='Updated '+ago(new Date().toISOString());
+  }
+
+  function buildProviderFilter(){
+    const sel=document.getElementById('f-prov');
+    const provs=[...new Set(allTrades.map(t=>t.providerName||t.provider).filter(Boolean))].sort();
+    sel.innerHTML='<option value="">All Providers</option>'+provs.map(p=>'<option value="'+esc(p)+'">'+esc(p)+'</option>').join('');
+  }
+
+  function computeKPIs(){
+    const total=allTrades.length;
+    const tp=allTrades.filter(t=>ocCls(t.outcome)==='tp'||ocCls(t.status)==='tp').length;
+    const sl=allTrades.filter(t=>ocCls(t.outcome)==='sl'||ocCls(t.status)==='sl').length;
+    const open=allTrades.filter(t=>ocCls(t.outcome)==='active'||ocCls(t.status)==='active').length;
+    const resolved=tp+sl;
+    const wr=resolved>0?Math.round(tp/resolved*1000)/10:0;
+    const rVals=allTrades.filter(t=>t.rMultiple!=null).map(t=>parseFloat(t.rMultiple));
+    const avgR=rVals.length>0?Math.round(rVals.reduce((a,b)=>a+b,0)/rVals.length*100)/100:null;
+
+    document.getElementById('k-total').textContent=total;
+    document.getElementById('k-wr').textContent=resolved>0?wr+'%':'—';
+    document.getElementById('k-avgr').textContent=avgR!=null?avgR:'—';
+    document.getElementById('k-avgr').className='sig-kpi-v'+(avgR!=null&&avgR>=0?' vgreen':avgR!=null?' vred':'');
+    document.getElementById('k-open').textContent=open;
+    document.getElementById('k-tp').textContent=tp;
+    document.getElementById('k-sl').textContent=sl;
+    document.getElementById('sig-open-ct').textContent=open;
+  }
+
+  function buildInsight(){
+    const el=document.getElementById('sig-ins');
+    const tp=allTrades.filter(t=>ocCls(t.outcome)==='tp'||ocCls(t.status)==='tp').length;
+    const sl=allTrades.filter(t=>ocCls(t.outcome)==='sl'||ocCls(t.status)==='sl').length;
+    const open=allTrades.filter(t=>ocCls(t.outcome)==='active'||ocCls(t.status)==='active').length;
+    const pairs=[...new Set(allTrades.slice(0,50).map(t=>t.pair))].slice(0,4);
+    const provCounts={};
+    allTrades.forEach(t=>{const p=t.providerName||t.provider;if(p)provCounts[p]=(provCounts[p]||0)+1;});
+    const topProv=Object.entries(provCounts).sort((a,b)=>b[1]-a[1])[0];
+
+    el.innerHTML='<strong>'+open+'</strong> open trades. <strong>'+tp+'</strong> TP hits, <strong>'+sl+'</strong> SL hits. Most active pairs: <strong>'+pairs.join(', ')+'</strong>.'+(topProv?' Top provider: <strong>'+esc(topProv[0])+'</strong> ('+topProv[1]+' trades).':'');
+  }
+
+  // ── Filtering ──
+  function applyFilters(){
+    const dir=document.getElementById('f-dir').value;
+    const oc=document.getElementById('f-oc').value;
+    const prov=document.getElementById('f-prov').value;
+    const srch=document.getElementById('f-srch').value.toUpperCase();
+    lim=parseInt(document.getElementById('f-lim').value)||20;
+
+    filtered=allTrades.filter(t=>{
+      if(dir&&t.direction!==dir)return false;
+      if(oc){
+        const o=t.outcome||t.status||'';
+        if(oc==='HIT_TP'&&ocCls(o)!=='tp')return false;
+        if(oc==='HIT_SL'&&ocCls(o)!=='sl')return false;
+        if(oc==='ACTIVE'&&ocCls(o)!=='active')return false;
+        if(oc==='EXPIRED'&&ocCls(o)!=='expired')return false;
+      }
+      if(prov&&(t.providerName||t.provider)!==prov)return false;
+      if(srch&&!(t.pair||'').toUpperCase().includes(srch))return false;
+      return true;
+    });
+
+    pg=0;
+    render();
+  }
+
+  // ── Render ──
+  function render(){
+    const start=pg*lim;
+    const slice=filtered.slice(start,start+lim);
+    const totalPages=Math.ceil(filtered.length/lim);
+
+    document.getElementById('sig-ct-label').textContent=filtered.length+' results';
+    document.getElementById('sig-pinfo').textContent='Showing '+(start+1)+'–'+Math.min(start+lim,filtered.length)+' of '+filtered.length;
+    document.getElementById('sig-prev').className='sig-pbtn'+(pg<=0?' off':'');
+    document.getElementById('sig-next').className='sig-pbtn'+(pg>=totalPages-1?' off':'');
+
+    if(view==='table')renderTable(slice);
+    else renderCards(slice);
+  }
+
+  function renderTable(rows){
+    document.getElementById('sig-tbl').classList.remove('hidden');
+    document.getElementById('sig-cds').classList.remove('show');
+    const tbody=document.getElementById('sig-tbody');
+    if(!rows.length){tbody.innerHTML='<div style="padding:32px 18px;text-align:center;color:var(--text-muted);">No signals match current filters</div>';return;}
+
+    tbody.innerHTML=rows.map(t=>{
+      const oc=t.outcome||t.status||'';
+      const cls=ocCls(oc);
+      const dir=(t.direction||'').toLowerCase();
+      const sc=t.score!=null?Math.round(t.score):null;
+      const conf=t.confidence!=null?Math.round(t.confidence):null;
+      const rm=t.rMultiple;
+      const rmV=rm!=null?parseFloat(rm):null;
+      return'<div class="sig-tr" data-id="'+t.id+'">'+
+        '<div><span class="sig-pair">'+esc(t.pair)+'</span></div>'+
+        '<div><span class="sig-dir '+dir+'">'+dir+'</span></div>'+
+        '<div class="sig-prov">'+esc(t.providerName||t.provider)+'</div>'+
+        '<div><span class="sig-pill '+(sc!=null?scCls(sc):'none')+'">'+(sc!=null?sc:'—')+'</span></div>'+
+        '<div><span class="sig-pill '+(conf!=null?scCls(conf):'none')+'">'+(conf!=null?conf+'%':'—')+'</span></div>'+
+        '<div><span class="sig-oc '+cls+'">'+ocLbl(oc)+'</span></div>'+
+        '<div class="sig-rm'+(rmV!=null&&rmV>=0?' pos':'')+(rmV!=null&&rmV<0?' neg':'')+'">'+fmtR(rm)+'</div>'+
+        '<div class="sig-time" title="'+(t.createdAt||'')+'">'+ago(t.createdAt)+'</div>'+
+      '</div>'+
+      '<div class="sig-det'+(expandedId===t.id?' open':'')+'" data-det="'+t.id+'">'+
+        '<div><div class="sig-det-l">Entry Price</div><div class="sig-det-v">'+fmtPrice(t.entry)+'</div></div>'+
+        '<div><div class="sig-det-l">R-Multiple</div><div class="sig-det-v'+(rmV!=null&&rmV>=0?' vgreen':'')+(rmV!=null&&rmV<0?' vred':'')+'">'+fmtR(rm)+'</div></div>'+
+        '<div><div class="sig-det-l">Provider</div><div class="sig-det-v">'+esc(t.providerName||t.provider)+'</div></div>'+
+        '<div><div class="sig-det-l">Outcome</div><div class="sig-det-v">'+ocLbl(oc)+'</div></div>'+
+        '<div><div class="sig-det-l">Pair</div><div class="sig-det-v">'+esc(t.pair)+'</div></div>'+
+        '<div><div class="sig-det-l">Timestamp</div><div class="sig-det-v">'+(t.createdAt?new Date(t.createdAt).toLocaleString():'—')+'</div></div>'+
+      '</div>';
+    }).join('');
+  }
+
+  function renderCards(rows){
+    document.getElementById('sig-tbl').classList.add('hidden');
+    const cds=document.getElementById('sig-cds');
+    cds.classList.add('show');
+    if(!rows.length){cds.innerHTML='<div style="padding:32px;text-align:center;color:var(--text-muted);grid-column:1/-1;">No signals match current filters</div>';return;}
+
+    cds.innerHTML=rows.map(t=>{
+      const oc=t.outcome||t.status||'';
+      const cls=ocCls(oc);
+      const dir=(t.direction||'').toLowerCase();
+      const rm=t.rMultiple;
+      const rmV=rm!=null?parseFloat(rm):null;
+      const conf=t.confidence!=null?Math.round(t.confidence):null;
+      return'<div class="sig-scard" data-id="'+t.id+'">'+
+        '<div class="sig-sc-top"><span class="sig-sc-pair">'+esc(t.pair)+'</span><span class="sig-dir '+dir+'">'+dir+'</span></div>'+
+        '<div class="sig-sc-mid">'+
+          '<div><div class="sig-sc-ml">Entry</div><div class="sig-sc-mv">'+fmtPrice(t.entry)+'</div></div>'+
+          '<div><div class="sig-sc-ml">Confidence</div><div class="sig-sc-mv">'+(conf!=null?conf+'%':'—')+'</div></div>'+
+          '<div><div class="sig-sc-ml">R×</div><div class="sig-sc-mv'+(rmV!=null&&rmV>=0?' vgreen':'')+(rmV!=null&&rmV<0?' vred':'')+'">'+fmtR(rm)+'</div></div>'+
+          '<div><div class="sig-sc-ml">Outcome</div><div class="sig-sc-mv"><span class="sig-oc '+cls+'">'+ocLbl(oc)+'</span></div></div>'+
+        '</div>'+
+        '<div class="sig-sc-bot"><span class="sig-sc-prov">'+esc(t.providerName||t.provider)+'</span><span class="sig-sc-time">'+ago(t.createdAt)+'</span></div>'+
+      '</div>';
+    }).join('');
+  }
+
+  // ── Events ──
+  ['f-dir','f-oc','f-prov','f-lim'].forEach(id=>{document.getElementById(id).addEventListener('change',applyFilters);});
+  document.getElementById('f-srch').addEventListener('input',applyFilters);
+  document.getElementById('sig-prev').addEventListener('click',()=>{if(pg>0){pg--;render();}});
+  document.getElementById('sig-next').addEventListener('click',()=>{if((pg+1)*lim<filtered.length){pg++;render();}});
+  document.getElementById('sig-vtog').addEventListener('click',e=>{
+    const b=e.target.closest('.sig-vbtn');if(!b)return;
+    document.querySelectorAll('.sig-vbtn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');view=b.dataset.v;render();
+  });
+  document.getElementById('sig-tbody').addEventListener('click',e=>{
+    const row=e.target.closest('.sig-tr:not(.hdr)');if(!row)return;
+    const id=row.dataset.id;expandedId=expandedId===id?null:id;
+    document.querySelectorAll('.sig-det').forEach(d=>{d.classList.toggle('open',d.dataset.det===expandedId);});
+  });
+  document.getElementById('sig-ham').addEventListener('click',()=>{document.getElementById('sig-nl').classList.toggle('open');});
+  document.getElementById('sig-nl').addEventListener('click',e=>{if(e.target.tagName==='A')document.getElementById('sig-nl').classList.remove('open');});
+  document.getElementById('sig-out').addEventListener('click',e=>{e.preventDefault();localStorage.removeItem('iq_token');window.location.href='/login';});
+
+  // ── Init ──
+  (async()=>{
+    await loadUser();
+    await loadAll();
+  })();
+
+  // Auto-refresh 60s
+  setInterval(loadAll,60000);
+})();
+</script>
+</body>
+</html>

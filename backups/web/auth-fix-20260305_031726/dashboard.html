@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgoraIQ — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+
+<!-- Loading screen -->
+<div id="loading-screen">
+  <div class="loader-ring"></div>
+  <div class="loader-text">AUTHENTICATING</div>
+</div>
+
+<header>
+  <a href="/dashboard" class="logo">
+    <div class="logo-mark"></div>
+    <div class="logo-text">Agora<span>IQ</span></div>
+  </a>
+  <nav>
+    <a href="/dashboard" class="active">Dashboard</a>
+    <a href="/marketplace">Marketplace</a>
+    <a href="/markets">Markets</a>
+    <a href="/proof">Proof</a>
+    <a href="/news">News</a>
+    <a href="/member">Portal</a>
+  </nav>
+  <div class="header-right">
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <div class="user-badge">
+      <div class="dot"></div>
+      <span id="username-badge">—</span>
+    </div>
+    <button class="btn-logout" onclick="logout()">LOGOUT</button>
+  </div>
+</header>
+
+<div id="toast"></div>
+
+<main>
+
+  <div class="section-header fade-up"><h2>Dashboard</h2></div>
+
+  <!-- KPI row -->
+  <div class="stats-grid fade-up" id="kpi-row">
+    <div class="stat-card">
+      <div class="stat-label">Active Providers</div>
+      <div class="stat-value cyan" id="kpi-providers">—</div>
+      <div class="stat-sub">Tracked channels</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Signals Today</div>
+      <div class="stat-value amber" id="kpi-signals-today">—</div>
+      <div class="stat-sub">Last 24 hours</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Win Rate</div>
+      <div class="stat-value" id="kpi-winrate">—</div>
+      <div class="stat-sub">Verified providers</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Platform Health</div>
+      <div class="stat-value green" id="kpi-health">—</div>
+      <div class="stat-sub">All systems</div>
+    </div>
+  </div>
+
+  <!-- Recent signals + activity -->
+  <div class="two-col fade-up">
+
+    <div class="card">
+      <div style="padding:20px 24px 12px;border-bottom:1px solid var(--border)">
+        <div class="flex-between">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--text)">📡 Recent Signals</div>
+          <a href="/marketplace" class="btn btn-ghost btn-sm">View All</a>
+        </div>
+      </div>
+      <div id="recent-signals">
+        <!-- populated by JS -->
+        <div style="padding:12px 0" id="signals-placeholder">
+          <div class="signal-row"><div class="skeleton" style="height:12px;width:80%"></div></div>
+          <div class="signal-row"><div class="skeleton" style="height:12px;width:65%"></div></div>
+          <div class="signal-row"><div class="skeleton" style="height:12px;width:72%"></div></div>
+          <div class="signal-row"><div class="skeleton" style="height:12px;width:58%"></div></div>
+          <div class="signal-row"><div class="skeleton" style="height:12px;width:70%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-pad">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--text);margin-bottom:16px">📈 Signal Activity (28d)</div>
+      <div id="dash-activity-bars" class="activity-bar"></div>
+      <div class="activity-labels">
+        <span id="dash-activity-start">—</span>
+        <span>Today</span>
+      </div>
+      <div class="divider-h"></div>
+      <div style="font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Top Providers</div>
+      <div id="top-providers">
+        <div class="uid-row"><span class="uid-exchange"><div class="skeleton" style="width:100px;height:10px"></div></span><div class="skeleton" style="width:40px;height:10px"></div></div>
+        <div class="uid-row"><span class="uid-exchange"><div class="skeleton" style="width:80px;height:10px"></div></span><div class="skeleton" style="width:40px;height:10px"></div></div>
+        <div class="uid-row"><span class="uid-exchange"><div class="skeleton" style="width:90px;height:10px"></div></span><div class="skeleton" style="width:40px;height:10px"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Market snapshot -->
+  <div class="section-header fade-up"><h2>Market Snapshot</h2></div>
+  <div class="card fade-up">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Pair</th>
+            <th>Price</th>
+            <th>24h Change</th>
+            <th>Volume</th>
+            <th>Exchange</th>
+          </tr>
+        </thead>
+        <tbody id="market-snapshot-body">
+          <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-size:11px">Loading market data…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<script src="/assets/app.js"></script>
+<script src="/assets/auth.js"></script>
+<script>
+async function pageInit(user) {
+  await Promise.all([loadKPIs(), loadRecentSignals(), loadMarketSnapshot()]);
+  renderActivityBars('dash-activity-bars', [], 28, 'dash-activity-start');
+  loadTopProviders();
+}
+
+async function loadKPIs() {
+  try {
+    const data = await apiFetch('/api/v1/signals/recent');
+    document.getElementById('kpi-providers').textContent = data?.providerCount ?? '100+';
+    document.getElementById('kpi-signals-today').textContent = data?.todayCount ?? '0';
+    document.getElementById('kpi-winrate').textContent = data?.avgWinRate ? data.avgWinRate.toFixed(1) + '%' : '—';
+    document.getElementById('kpi-health').textContent = '● OK';
+  } catch (_) {
+    document.getElementById('kpi-providers').textContent = '100+';
+    document.getElementById('kpi-health').textContent = '● OK';
+  }
+}
+
+async function loadRecentSignals() {
+  try {
+    const data = await apiFetch('/api/v1/signals/recent');
+    const signals = data?.signals || data || [];
+    const el = document.getElementById('recent-signals');
+    if (!signals.length) {
+      el.innerHTML = '<div class="empty-state"><div class="icon">📡</div><p>No recent signals.</p></div>';
+      return;
+    }
+    el.innerHTML = signals.slice(0, 8).map(s => `
+      <div class="signal-row">
+        <div class="signal-pair">${escapeHTML(s.pair || s.symbol || '—')}</div>
+        <div class="signal-dir ${(s.direction || 'long').toLowerCase()}">${s.direction || 'LONG'}</div>
+        <div style="flex:1;font-size:10px;color:var(--muted)">${escapeHTML(s.provider || '—')}</div>
+        <div style="font-size:10px;color:var(--muted)">${fmtRelative(s.createdAt)}</div>
+      </div>
+    `).join('');
+  } catch (_) {
+    document.getElementById('signals-placeholder').innerHTML =
+      '<div class="empty-state" style="padding:24px"><p>Could not load signals.</p></div>';
+  }
+}
+
+async function loadTopProviders() {
+  try {
+    const data = await apiFetch('/api/v1/providers');
+    const providers = (data?.providers || data || []).slice(0, 3);
+    const el = document.getElementById('top-providers');
+    if (!providers.length) return;
+    el.innerHTML = providers.map(p => `
+      <div class="uid-row">
+        <span class="uid-exchange"><span style="color:var(--cyan);font-size:12px">◆</span> ${escapeHTML(p.name || '—')}</span>
+        <span class="uid-badge">${p.winRate ? p.winRate.toFixed(0) + '%' : '—'}</span>
+      </div>
+    `).join('');
+  } catch (_) {}
+}
+
+async function loadMarketSnapshot() {
+  try {
+    const data = await apiFetch('/api/v1/markets');
+    const markets = data?.markets || data || [];
+    const tbody = document.getElementById('market-snapshot-body');
+    if (!markets.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-size:11px">No market data available.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = markets.slice(0, 6).map(m => {
+      const change = m.change24h || 0;
+      const cls = change >= 0 ? 'green' : 'red';
+      return `
+        <tr>
+          <td><strong>${escapeHTML(m.pair || m.symbol || '—')}</strong></td>
+          <td class="mono">${m.price ? '$' + Number(m.price).toLocaleString() : '—'}</td>
+          <td><span class="text-${cls}">${fmtPct(change)}</span></td>
+          <td class="mono">${m.volume ? fmtNum(m.volume) : '—'}</td>
+          <td><span class="badge badge-muted">${escapeHTML(m.exchange || '—')}</span></td>
+        </tr>
+      `;
+    }).join('');
+  } catch (_) {
+    document.getElementById('market-snapshot-body').innerHTML =
+      '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-size:11px">Could not load market data.</td></tr>';
+  }
+}
+</script>
+</body>
+</html>

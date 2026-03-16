@@ -1,541 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="shortcut icon" href="/favicon.svg">
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<meta name="theme-color" content="#060a14"/>
-<title>Pricing — AgoraIQ</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#060a14;--bg2:#0b1120;--bg3:#111827;--bg4:#1a2332;--bg5:#1f2b3d;
-  --border:#1e293b;--border2:#334155;
-  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
-  --cyan:#38bdf8;--violet:#a78bfa;--green:#4ade80;--amber:#f59e0b;--red:#ff3b5c;
-  --mono:'JetBrains Mono',monospace;--sans:'DM Sans',sans-serif;
-}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
-
-/* ── NAV ── */
-.nav{position:sticky;top:0;z-index:100;background:rgba(6,10,20,.82);backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid rgba(30,41,59,.5)}
-.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
-.nav-logo{font-weight:800;font-size:16px;letter-spacing:-.02em;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px}
-.nav-logo .agora{color:#a78bfa}
-.nav-logo .iq{color:#e2e8f0}
-.nav-links{display:flex;align-items:center;gap:6px}
-.nav-links a{font-size:13px;font-weight:500;color:var(--text3);text-decoration:none;padding:6px 14px;border-radius:8px;transition:all .2s}
-.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.04)}
-.nav-links a.active{color:var(--violet)}
-.nav-cta{font-size:13px;font-weight:600;color:#fff!important;background:linear-gradient(135deg,var(--cyan),var(--violet));padding:7px 18px;border-radius:8px;text-decoration:none;transition:opacity .2s}
-.nav-cta:hover{opacity:.88}
-
-/* ── HERO ── */
-.hero{text-align:center;padding:72px 24px 0;max-width:740px;margin:0 auto}
-.hero-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.12);border-radius:999px;padding:5px 16px;font-size:12px;font-weight:600;color:var(--cyan);letter-spacing:.06em;text-transform:uppercase;margin-bottom:20px}
-.hero h1{font-size:clamp(32px,5vw,52px);font-weight:800;letter-spacing:-.04em;line-height:1.1;margin-bottom:16px}
-.hero h1 .grad{background:linear-gradient(135deg,var(--cyan),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero p{font-size:16px;color:var(--text2);max-width:560px;margin:0 auto;line-height:1.7}
-
-/* ── BILLING TOGGLE ── */
-.toggle-wrap{display:flex;align-items:center;justify-content:center;gap:12px;margin:40px 0 8px}
-.toggle-label{font-size:14px;font-weight:500;color:var(--text3);transition:color .2s;cursor:pointer}
-.toggle-label.active{color:var(--text)}
-.toggle-track{width:52px;height:28px;border-radius:99px;background:var(--bg4);border:1px solid var(--border2);cursor:pointer;position:relative;transition:background .25s}
-.toggle-track.on{background:linear-gradient(135deg,var(--cyan),var(--violet))}
-.toggle-knob{width:22px;height:22px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:transform .25s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
-.toggle-track.on .toggle-knob{transform:translateX(24px)}
-.save-badge{font-size:11px;font-weight:700;color:var(--green);background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.18);padding:2px 10px;border-radius:99px;margin-left:4px}
-
-/* ── PRICING GRID ── */
-.pricing-grid{max-width:1200px;margin:40px auto 0;padding:0 24px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
-@media(max-width:1080px){.pricing-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){.pricing-grid{grid-template-columns:1fr;max-width:440px}}
-
-/* ── CARD ── */
-.price-card{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:32px 28px;display:flex;flex-direction:column;position:relative;transition:border-color .3s,transform .3s,box-shadow .3s}
-.price-card:hover{border-color:var(--border2);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.35)}
-.price-card.featured{border-color:rgba(167,139,250,.35);background:linear-gradient(170deg,rgba(167,139,250,.06) 0%,var(--bg3) 40%)}
-.price-card.featured::before{content:'';position:absolute;inset:-1px;border-radius:16px;background:linear-gradient(135deg,rgba(56,189,248,.25),rgba(167,139,250,.25));z-index:-1;opacity:0;transition:opacity .3s}
-.price-card.featured:hover::before{opacity:1}
-.popular-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--cyan),var(--violet));color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 16px;border-radius:99px;white-space:nowrap}
-
-.card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:16px}
-.card-icon.starter{background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.15)}
-.card-icon.pro{background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.15)}
-.card-icon.team{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.15)}
-.card-icon.vendor{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.15)}
-
-.card-tier{font-size:15px;font-weight:700;margin-bottom:2px;letter-spacing:-.01em}
-.card-audience{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
-.card-audience.cyan{color:var(--cyan)}
-.card-audience.violet{color:var(--violet)}
-.card-audience.green{color:var(--green)}
-.card-audience.amber{color:var(--amber)}
-.card-desc{font-size:13px;color:var(--text3);margin-bottom:20px;min-height:38px;line-height:1.55}
-
-.card-price{display:flex;align-items:baseline;gap:4px;margin-bottom:4px}
-.card-price .amount{font-family:var(--mono);font-size:40px;font-weight:700;letter-spacing:-.03em}
-.card-price .period{font-size:13px;color:var(--text3)}
-.card-price .original{font-size:14px;color:var(--text3);text-decoration:line-through;margin-left:6px;font-family:var(--mono)}
-.card-billed{font-size:12px;color:var(--text3);margin-bottom:4px;min-height:18px}
-.card-setup{font-size:11.5px;color:var(--amber);margin-bottom:20px;min-height:16px}
-
-.card-divider{height:1px;background:var(--border);margin-bottom:20px}
-
-.card-features{list-style:none;flex:1;margin-bottom:24px}
-.card-features li{font-size:13px;color:var(--text2);padding:5px 0;display:flex;align-items:flex-start;gap:8px;line-height:1.5}
-.card-features li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0;font-size:12px;margin-top:2px}
-.card-features li.highlight{color:var(--text);font-weight:600}
-.card-features li.highlight::before{color:var(--cyan)}
-.card-features li.addon{color:var(--text3);font-style:italic}
-.card-features li.addon::before{content:'+';color:var(--amber)}
-
-.upgrade-hint{font-size:11.5px;color:var(--text3);background:rgba(255,255,255,.025);border:1px dashed var(--border);border-radius:8px;padding:10px 12px;margin-bottom:16px;line-height:1.55}
-.upgrade-hint strong{color:var(--text2);font-weight:600}
-
-.card-cta{display:block;text-align:center;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;transition:all .2s;cursor:pointer;border:none;width:100%}
-.card-cta.outline{background:transparent;border:1px solid var(--border2);color:var(--text)}
-.card-cta.outline:hover{border-color:var(--text2);background:rgba(255,255,255,.03)}
-.card-cta.primary{background:linear-gradient(135deg,var(--cyan),var(--violet));color:#fff}
-.card-cta.primary:hover{opacity:.88;transform:scale(1.02)}
-.card-cta.solid{background:var(--bg5);border:1px solid var(--border2);color:var(--text)}
-.card-cta.solid:hover{background:rgba(255,255,255,.08)}
-.card-cta.amber{background:linear-gradient(135deg,var(--amber),#f97316);color:#fff}
-.card-cta.amber:hover{opacity:.88;transform:scale(1.02)}
-
-/* ── COMPARISON TABLE ── */
-.compare-section{max-width:1200px;margin:80px auto 0;padding:0 24px}
-.compare-title{font-size:24px;font-weight:700;letter-spacing:-.03em;text-align:center;margin-bottom:32px}
-.compare-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.compare-table{width:100%;border-collapse:collapse;background:var(--bg3);border-radius:12px;overflow:hidden;min-width:640px}
-.compare-table thead th{background:var(--bg2);padding:14px 16px;font-size:13px;font-weight:700;text-align:center;border-bottom:1px solid var(--border);color:var(--text)}
-.compare-table thead th:first-child{text-align:left;color:var(--text2);font-weight:500}
-.compare-table thead th .th-price{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text3);display:block;margin-top:2px}
-.compare-table tbody td{padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;text-align:center;color:var(--text2)}
-.compare-table tbody td:first-child{text-align:left;color:var(--text);font-weight:500}
-.compare-table tbody tr:last-child td{border-bottom:none}
-.compare-table tbody tr:hover{background:var(--bg4)}
-.compare-table .check{color:var(--green);font-weight:700}
-.compare-table .dash{color:var(--border2)}
-.compare-table .cat-row td{background:var(--bg2);font-weight:700;color:var(--text);font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:10px 16px}
-
-/* ── FAQ ── */
-.faq-section{max-width:720px;margin:80px auto 0;padding:0 24px}
-.faq-title{font-size:24px;font-weight:700;letter-spacing:-.03em;text-align:center;margin-bottom:32px}
-.faq-item{border-bottom:1px solid var(--border);padding:20px 0}
-.faq-q{font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--text);transition:color .2s}
-.faq-q:hover{color:var(--cyan)}
-.faq-q .arrow{font-size:18px;color:var(--text3);transition:transform .25s}
-.faq-item.open .faq-q .arrow{transform:rotate(45deg)}
-.faq-a{max-height:0;overflow:hidden;transition:max-height .4s ease,padding .35s ease}
-.faq-item.open .faq-a{max-height:300px;padding-top:12px}
-.faq-a p{font-size:13px;color:var(--text2);line-height:1.7}
-
-/* ── BOTTOM CTA ── */
-.bottom-cta{text-align:center;padding:64px 24px 80px;max-width:560px;margin:0 auto}
-.bottom-cta h2{font-size:24px;font-weight:700;letter-spacing:-.02em;margin-bottom:12px}
-.bottom-cta p{font-size:14px;color:var(--text2);margin-bottom:24px}
-.bottom-cta a{display:inline-block;background:linear-gradient(135deg,var(--cyan),var(--violet));color:#fff;padding:12px 32px;border-radius:10px;font-weight:600;font-size:15px;text-decoration:none;transition:opacity .2s}
-.bottom-cta a:hover{opacity:.88}
-
-/* ── RESPONSIVE ── */
-@media(max-width:768px){
-  .nav-links a:not(.nav-cta){display:none}
-  .hero{padding:48px 20px 0}
-  .pricing-grid{padding:0 16px}
-  .price-card{padding:28px 22px}
-  .compare-section{padding:0 16px}
-}
-
-/* ── MEGA FOOTER ── */
-.site-footer{border-top:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.25)}
-.site-footer-inner{max-width:1200px;margin:0 auto;padding:40px 24px 48px}
-.footer-top{display:flex;flex-wrap:wrap;gap:40px 56px;margin-bottom:32px}
-.footer-brand{min-width:200px;max-width:260px}
-.footer-logo{display:flex;align-items:center;gap:6px;text-decoration:none;font-size:14px;font-weight:800;letter-spacing:-.02em;margin-bottom:12px}
-.footer-logo .agora{color:#a78bfa}
-.footer-logo .iq{color:#e2e8f0}
-.footer-logo svg{flex-shrink:0}
-.footer-brand p{font-size:12px;color:var(--text3);line-height:1.65}
-.footer-col h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:12px}
-.footer-col a{display:block;font-size:12.5px;color:var(--text3);text-decoration:none;padding:3px 0;transition:color .2s}
-.footer-col a:hover{color:var(--cyan)}
-.footer-bottom{border-top:1px solid rgba(255,255,255,.06);padding-top:20px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px}
-.footer-disclaimer{font-size:11px;line-height:1.6;color:var(--text3);max-width:640px}
-.footer-disclaimer strong{color:var(--red)}
-.footer-copy{font-size:11px;color:rgba(255,255,255,.2)}
-@media(max-width:600px){.footer-top{gap:28px}.footer-brand{max-width:100%}}
-</style>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap" rel="stylesheet">
-<style id="aiq-brand">
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
-.brand-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--cyan,#00e5ff),#0066ff);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex:0 0 auto}
-.brand-text{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.5px;color:var(--text,#e2e8f0);white-space:nowrap;line-height:1}
-.brand-iq{color:var(--cyan,#00e5ff);margin-left:0}
-.brand-sm .brand-mark{width:20px;height:20px}
-.brand-sm .brand-text{font-size:14px}
-.brand-xs .brand-mark{width:18px;height:18px}
-.brand-xs .brand-text{font-size:14px}
-</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgoraIQ — Pricing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Albert+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
 </head>
 <body>
 
-<!-- ════════════════════════ NAV ════════════════════════ -->
-<nav class="nav">
-  <div class="nav-inner">
-    <a href="/dashboard" class="logo">
-    <svg width="130" height="36" viewBox="0 0 130 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="AgoraIQ">
-      <defs><linearGradient id="aiqHex" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#55d0ff"/><stop offset="100%" stop-color="#1a6eff"/>
-      </linearGradient></defs>
-      <polygon points="18,3 30,10 30,26 18,33 6,26 6,10" fill="url(#aiqHex)"/>
-      <text x="40" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#e2e4ef">Agora</text>
-      <text x="101" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#00d4ff">IQ</text>
-    </svg>
+<header>
+  <a href="/" class="logo">
+    <div class="logo-mark"></div>
+    <div class="logo-text">Agora<span>IQ</span></div>
   </a>
-    <div class="nav-links">
-      <a href="/">Home</a>
-      <a href="/proof">Proof</a>
-      <a href="/pricing" class="active">Pricing</a>
-      <a href="/login">Log in</a>
-      <a href="/signup" class="nav-cta">Get Started</a>
+    <nav>
+    <a href="/">Home</a>
+    <a href="/marketplace">Marketplace</a>
+    <a href="/screener">Screener</a>
+    <a href="/pricing" class="active">Pricing</a>
+    <a href="/about">About</a>
+  </nav>
+  <div class="header-right">
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <a href="/login" class="btn btn-ghost" style="font-size:11px">Login</a>
+    <a href="/signup" class="btn btn-cyan" style="font-size:11px">Sign Up</a>
+  </div>
+</header>
+
+<div id="toast"></div>
+
+<main>
+
+  <div style="text-align:center;padding:48px 0 32px" class="fade-up">
+    <div class="hero-eyebrow">SIMPLE PRICING</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:36px;letter-spacing:-1px;color:var(--text);margin-bottom:10px">
+      Choose Your Edge
+    </div>
+    <div style="font-size:13px;color:var(--muted);max-width:480px;margin:0 auto">
+      Start free. Upgrade when you need more signal intelligence.
     </div>
   </div>
-</nav>
 
-<!-- ════════════════════════ HERO ════════════════════════ -->
-<section class="hero">
-  <div class="hero-tag">⚡ Simple, transparent pricing</div>
-  <h1>Solo trader to<br><span class="grad">white-label vendor.</span></h1>
-  <p>One ladder that grows with you — validate a few sources, score your group, or ship your own branded signal platform. Every plan includes real-time tracking and verifiable proof.</p>
-</section>
+  <div class="pricing-grid fade-up">
 
-<!-- ════════════════════════ TOGGLE ════════════════════════ -->
-<div class="toggle-wrap">
-  <span class="toggle-label active" id="lbl-monthly">Monthly</span>
-  <div class="toggle-track" id="billing-toggle" onclick="toggleBilling()">
-    <div class="toggle-knob"></div>
-  </div>
-  <span class="toggle-label" id="lbl-annual">Annual</span>
-  <span class="save-badge">Save 20%</span>
-</div>
-
-<!-- ════════════════════════ PRICING GRID ════════════════════════ -->
-<div class="pricing-grid" id="pricing-grid">
-
-  <!-- ── STARTER (Solo) ─────────────────────────── -->
-  <div class="price-card">
-    <div class="card-icon starter">🎯</div>
-    <div class="card-tier">Starter</div>
-    <div class="card-audience cyan">Solo Trader</div>
-    <div class="card-desc">For individual traders validating a few signal sources.</div>
-    <div class="card-price">
-      <span class="amount" data-m="19" data-y="15">$19</span>
-      <span class="period">/mo</span>
-    </div>
-    <div class="card-billed" data-billed-y="$180/yr billed annually">&nbsp;</div>
-    <div class="card-setup">&nbsp;</div>
-    <div class="card-divider"></div>
-    <ul class="card-features">
-      <li><strong>1</strong> workspace, <strong>1</strong> seat</li>
-      <li>Up to <strong>3</strong> signal providers</li>
-      <li>Telegram delivery (<strong>1</strong> bot destination)</li>
-      <li>Web dashboard</li>
-      <li>Core KPIs + basic history (30–90 days)</li>
-      <li>CSV export (basic)</li>
-    </ul>
-    <div class="upgrade-hint"><strong>Need more?</strong> Upgrade when you want more providers, real scoring, and deeper history.</div>
-    <a href="/signup" class="card-cta outline">Start Free Trial</a>
-  </div>
-
-  <!-- ── PRO (Power Solo / Small Group) ─────────── -->
-  <div class="price-card featured">
-    <div class="popular-badge">Most Popular</div>
-    <div class="card-icon pro">🚀</div>
-    <div class="card-tier">Pro</div>
-    <div class="card-audience violet">Power Solo / Small Group</div>
-    <div class="card-desc">For serious users and small paid groups that need real analytics.</div>
-    <div class="card-price">
-      <span class="amount" data-m="49" data-y="39">$49</span>
-      <span class="period">/mo</span>
-    </div>
-    <div class="card-billed" data-billed-y="$468/yr billed annually">&nbsp;</div>
-    <div class="card-setup">&nbsp;</div>
-    <div class="card-divider"></div>
-    <ul class="card-features">
-      <li><strong>1</strong> workspace, <strong>1–2</strong> seats</li>
-      <li>Up to <strong>10</strong> signal providers</li>
-      <li>Full scoring: R-multiple, expectancy, profit factor, streaks</li>
-      <li>Filters, tags &amp; provider ranking</li>
-      <li><strong>12 months</strong> history</li>
-      <li>Alerts + anomaly flags</li>
-      <li class="highlight">"Prospect-safe" proof page mode (partial data)</li>
-    </ul>
-    <div class="upgrade-hint"><strong>Need more?</strong> Upgrade when you run a Telegram group and need multiple channels, reports, and seats.</div>
-    <a href="/signup" class="card-cta primary">Start Free Trial</a>
-  </div>
-
-  <!-- ── TEAM (Telegram Groups) ─────────────────── -->
-  <div class="price-card">
-    <div class="card-icon team">📡</div>
-    <div class="card-tier">Team</div>
-    <div class="card-audience green">Telegram Group Owners</div>
-    <div class="card-desc">Built for group owners and operators running signal channels.</div>
-    <div class="card-price">
-      <span class="amount" data-m="129" data-y="103">$129</span>
-      <span class="period">/mo</span>
-    </div>
-    <div class="card-billed" data-billed-y="$1,236/yr billed annually">&nbsp;</div>
-    <div class="card-setup">&nbsp;</div>
-    <div class="card-divider"></div>
-    <ul class="card-features">
-      <li><strong>1</strong> workspace, <strong>5 seats</strong> included</li>
-      <li>Up to <strong>30</strong> signal providers</li>
-      <li>Multi-channel Telegram delivery (3 channels)</li>
-      <li>Weekly performance report (PDF/CSV)</li>
-      <li>Leaderboards + provider scorecards</li>
-      <li>Audit log + idempotency monitoring</li>
-      <li><strong>24 months</strong> history</li>
-      <li class="addon">+$10/extra seat</li>
-      <li class="addon">+$10/extra Telegram channel</li>
-    </ul>
-    <div class="upgrade-hint"><strong>Need more?</strong> Upgrade when you want your own branded app, custom domain, and public proof page.</div>
-    <a href="/signup" class="card-cta solid">Start Free Trial</a>
-  </div>
-
-  <!-- ── VENDOR (White-Label) ───────────────────── -->
-  <div class="price-card">
-    <div class="card-icon vendor">🏷️</div>
-    <div class="card-tier">Vendor</div>
-    <div class="card-audience amber">White-Label for Signal Vendors</div>
-    <div class="card-desc">Your brand, your domain — sell credibility powered by AgoraIQ.</div>
-    <div class="card-price">
-      <span class="amount" data-m="399" data-y="319">$399</span>
-      <span class="period">/mo</span>
-    </div>
-    <div class="card-billed" data-billed-y="$3,828/yr billed annually">&nbsp;</div>
-    <div class="card-setup">+ $499 – $2,500 one-time setup</div>
-    <div class="card-divider"></div>
-    <ul class="card-features">
-      <li class="highlight">White-label branding + custom domain</li>
-      <li class="highlight">Public proof page (shareable, prospect-safe)</li>
-      <li><strong>Unlimited</strong> providers (fair use)</li>
-      <li>API access + webhooks + exports</li>
-      <li>SLA + priority support</li>
-      <li>Optional managed hosting</li>
-    </ul>
-    <div class="upgrade-hint"><strong>This is the top tier.</strong> Make AgoraIQ look like your product and sell subscriptions under your brand.</div>
-    <a href="/signup" class="card-cta amber">Contact Sales</a>
-  </div>
-
-</div>
-
-<!-- ════════════════════════ COMPARISON TABLE ════════════════════════ -->
-<section class="compare-section">
-  <div class="compare-title">Compare Plans</div>
-  <div class="compare-wrap">
-    <table class="compare-table">
-      <thead>
-        <tr>
-          <th style="width:30%"></th>
-          <th>Starter<span class="th-price">$19/mo</span></th>
-          <th>Pro<span class="th-price">$49/mo</span></th>
-          <th>Team<span class="th-price">$129/mo</span></th>
-          <th>Vendor<span class="th-price">$399/mo</span></th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Workspace & Access -->
-        <tr class="cat-row"><td colspan="5">Workspace &amp; Access</td></tr>
-        <tr><td>Workspaces</td><td>1</td><td>1</td><td>1</td><td>1+</td></tr>
-        <tr><td>Seats included</td><td>1</td><td>1–2</td><td>5</td><td>Unlimited</td></tr>
-        <tr><td>Extra seats</td><td class="dash">—</td><td class="dash">—</td><td>+$10/seat</td><td>Included</td></tr>
-        <tr><td>Signal providers</td><td>3</td><td>10</td><td>30</td><td>Unlimited</td></tr>
-
-        <!-- Tracking & Scoring -->
-        <tr class="cat-row"><td colspan="5">Tracking &amp; Scoring</td></tr>
-        <tr><td>Core KPIs</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
-        <tr><td>Full scoring (R-multiple, expectancy, profit factor)</td><td class="dash">—</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
-        <tr><td>Filters, tags &amp; provider ranking</td><td class="dash">—</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
-        <tr><td>Alerts + anomaly flags</td><td class="dash">—</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
-        <tr><td>Leaderboards &amp; scorecards</td><td class="dash">—</td><td class="dash">—</td><td class="check">✓</td><td class="check">✓</td></tr>
-        <tr><td>Audit log &amp; idempotency</td><td class="dash">—</td><td class="dash">—</td><td class="check">✓</td><td class="check">✓</td></tr>
-
-        <!-- History & Exports -->
-        <tr class="cat-row"><td colspan="5">History &amp; Exports</td></tr>
-        <tr><td>History retention</td><td>30–90 days</td><td>12 months</td><td>24 months</td><td>Unlimited</td></tr>
-        <tr><td>CSV export</td><td>Basic</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
-        <tr><td>Weekly performance report (PDF/CSV)</td><td class="dash">—</td><td class="dash">—</td><td class="check">✓</td><td class="check">✓</td></tr>
-        <tr><td>API access + webhooks</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td><td class="check">✓</td></tr>
-
-        <!-- Delivery & Branding -->
-        <tr class="cat-row"><td colspan="5">Delivery &amp; Branding</td></tr>
-        <tr><td>Web dashboard</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
-        <tr><td>Telegram delivery</td><td>1 bot</td><td>1 bot</td><td>3 channels</td><td>Unlimited</td></tr>
-        <tr><td>Extra Telegram channels</td><td class="dash">—</td><td class="dash">—</td><td>+$10/ch</td><td>Included</td></tr>
-        <tr><td>Proof page</td><td class="dash">—</td><td>Prospect-safe</td><td>Branded</td><td>White-label</td></tr>
-        <tr><td>Custom domain &amp; branding</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td><td class="check">✓</td></tr>
-
-        <!-- Support -->
-        <tr class="cat-row"><td colspan="5">Support</td></tr>
-        <tr><td>Support level</td><td>Email</td><td>Priority</td><td>Dedicated AM</td><td>SLA + Priority Eng</td></tr>
-        <tr><td>Managed hosting</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td><td>Optional</td></tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<!-- ════════════════════════ FAQ ════════════════════════ -->
-<section class="faq-section">
-  <div class="faq-title">Frequently Asked Questions</div>
-
-  <div class="faq-item">
-    <div class="faq-q" onclick="toggleFaq(this)">Is there a free trial?<span class="arrow">+</span></div>
-    <div class="faq-a"><p>Yes — every plan includes a 14-day free trial with full access. No credit card required to start.</p></div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-q" onclick="toggleFaq(this)">Can I switch plans later?<span class="arrow">+</span></div>
-    <div class="faq-a"><p>Absolutely. Upgrade or downgrade any time from your dashboard. Changes take effect on your next billing cycle, and we prorate automatically.</p></div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-q" onclick="toggleFaq(this)">What does "prospect-safe" proof page mean?<span class="arrow">+</span></div>
-    <div class="faq-a"><p>It's a public proof page that shows verified performance data but hides sensitive details like exact entry/exit prices and provider names. Perfect for sharing with potential subscribers or investors without exposing your edge.</p></div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-q" onclick="toggleFaq(this)">How do extra seats and channels work on Team?<span class="arrow">+</span></div>
-    <div class="faq-a"><p>Team includes 5 seats and 3 Telegram channels. Need more? Each additional seat is $10/mo and each additional Telegram channel is $10/mo. Add or remove them any time from your dashboard.</p></div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-q" onclick="toggleFaq(this)">What's included in the Vendor setup fee?<span class="arrow">+</span></div>
-    <div class="faq-a"><p>The one-time setup fee ($499–$2,500) covers custom domain configuration, SSL provisioning, brand asset integration (logo, colors, email sender), and initial white-label deployment. The exact fee depends on complexity — most standard setups are at the lower end.</p></div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-q" onclick="toggleFaq(this)">What payment methods do you accept?<span class="arrow">+</span></div>
-    <div class="faq-a"><p>All major credit and debit cards via Stripe. Annual plans and Vendor tier can also be paid by bank transfer or crypto — contact us for details.</p></div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-q" onclick="toggleFaq(this)">What does "unlimited providers (fair use)" mean?<span class="arrow">+</span></div>
-    <div class="faq-a"><p>Vendor plans have no hard provider cap. Fair use means we won't throttle normal usage — if you're running 100+ providers we'll work with you on infrastructure. This isn't a bait-and-switch; it's just how we keep pricing simple.</p></div>
-  </div>
-</section>
-
-<!-- ════════════════════════ BOTTOM CTA ════════════════════════ -->
-<section class="bottom-cta">
-  <h2>Not sure which plan fits?</h2>
-  <p>Start with Starter — you can upgrade in one click when you're ready. Every plan includes a 14-day free trial.</p>
-  <a href="/signup">Start Free Trial →</a>
-</section>
-
-<!-- ════════════════════════ FOOTER ════════════════════════ -->
-
-
-<!-- ════════════════════════ JS ════════════════════════ -->
-<script>
-// ── Billing Toggle ──────────────────────────────────────
-let isAnnual = false;
-function toggleBilling() {
-  isAnnual = !isAnnual;
-  const track = document.getElementById('billing-toggle');
-  const lblM = document.getElementById('lbl-monthly');
-  const lblA = document.getElementById('lbl-annual');
-  track.classList.toggle('on', isAnnual);
-  lblM.classList.toggle('active', !isAnnual);
-  lblA.classList.toggle('active', isAnnual);
-
-  document.querySelectorAll('.amount').forEach(el => {
-    const m = el.dataset.m;
-    const y = el.dataset.y;
-    el.textContent = isAnnual ? '$' + y : '$' + m;
-  });
-  document.querySelectorAll('.card-billed').forEach(el => {
-    const txt = el.dataset.billedY || '';
-    el.textContent = isAnnual ? txt : '\u00A0';
-  });
-  // Show original price struck-through when annual
-  document.querySelectorAll('.card-price').forEach(card => {
-    let orig = card.querySelector('.original');
-    const amount = card.querySelector('.amount');
-    if (isAnnual && amount.dataset.m !== amount.dataset.y) {
-      if (!orig) {
-        orig = document.createElement('span');
-        orig.className = 'original';
-        card.appendChild(orig);
-      }
-      orig.textContent = '$' + amount.dataset.m;
-    } else if (orig) {
-      orig.remove();
-    }
-  });
-}
-
-// ── FAQ Accordion ───────────────────────────────────────
-function toggleFaq(el) {
-  const item = el.closest('.faq-item');
-  const wasOpen = item.classList.contains('open');
-  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
-  if (!wasOpen) item.classList.add('open');
-}
-document.addEventListener("DOMContentLoaded", function(){ toggleBilling(); });
-</script>
-
-<footer class="site-footer">
-  <div class="site-footer-inner">
-    <div class="footer-top">
-      <div class="footer-brand">
-        <a href="/dashboard" class="logo">
-    <svg width="130" height="36" viewBox="0 0 130 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="AgoraIQ">
-      <defs><linearGradient id="aiqHex" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#55d0ff"/><stop offset="100%" stop-color="#1a6eff"/>
-      </linearGradient></defs>
-      <polygon points="18,3 30,10 30,26 18,33 6,26 6,10" fill="url(#aiqHex)"/>
-      <text x="40" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#e2e4ef">Agora</text>
-      <text x="101" y="24" font-family="Syne,Arial Black,sans-serif" font-weight="800" font-size="18" letter-spacing="-0.4" fill="#00d4ff">IQ</text>
-    </svg>
-  </a>
-        <p>AI-powered signal intelligence. Track, score, and verify crypto trading signals with verifiable proof.</p>
+    <!-- Free -->
+    <div class="pricing-card">
+      <div class="pricing-name">Free</div>
+      <div class="price"><sup>$</sup>0<sub>/mo</sub></div>
+      <div class="pricing-desc">Perfect for exploring AgoraIQ. Access public leaderboards and limited analytics.</div>
+      <div class="pricing-features">
+        <div class="pricing-feature"><span class="check">✓</span> Provider leaderboard</div>
+        <div class="pricing-feature"><span class="check">✓</span> Public proof dashboard</div>
+        <div class="pricing-feature"><span class="check">✓</span> 5 signal providers</div>
+        <div class="pricing-feature"><span class="check">✓</span> Daily digest (email)</div>
+        <div class="pricing-feature"><span class="x">—</span> Real-time signals</div>
+        <div class="pricing-feature"><span class="x">—</span> Telegram bot access</div>
+        <div class="pricing-feature"><span class="x">—</span> API access</div>
+        <div class="pricing-feature"><span class="x">—</span> Advanced analytics</div>
       </div>
-      <div class="footer-col">
-        <h4>About Us</h4>
-        <a href="/about">About</a>
-        <a href="/careers">Careers</a>
-        <a href="/announcements">Announcements</a>
-        <a href="/news">News</a>
-        <a href="/press">Press</a>
-      </div>
-      <div class="footer-col">
-        <h4>Legal</h4>
-        <a href="/terms">Terms</a>
-        <a href="/privacy">Privacy</a>
-        <a href="/cookies">Cookies</a>
-        <a href="/disclaimer">Disclaimer</a>
-        <a href="/trust">Building Trust</a>
-      </div>
-      <div class="footer-col">
-        <h4>Resources</h4>
-        <a href="/blog">Blog</a>
-        <a href="/community">Community</a>
-        <a href="/risk-warning">Risk Warning</a>
-        <a href="/notices">Notices</a>
-      </div>
+      <a href="/signup" class="btn btn-ghost" style="width:100%;justify-content:center;padding:10px">Get Started Free</a>
     </div>
-    <div class="footer-bottom">
-      <div class="footer-disclaimer"><strong>⚠ Not for UK Persons.</strong> AgoraIQ is not authorised or regulated by the FCA. Not directed at UK persons. Nothing on this site constitutes financial advice. Past performance does not guarantee future results.</div>
-      <div class="footer-copy">© 2026 ChatLogic Insights LTD. All rights reserved.</div>
+
+    <!-- PRO -->
+    <div class="pricing-card featured">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div class="pricing-name text-cyan">Pro</div>
+        <span class="badge badge-cyan">POPULAR</span>
+      </div>
+      <div class="price text-cyan"><sup>$</sup>29<sub>/mo</sub></div>
+      <div class="pricing-desc">Full signal intelligence platform for active traders.</div>
+      <div class="pricing-features">
+        <div class="pricing-feature"><span class="check">✓</span> Everything in Free</div>
+        <div class="pricing-feature"><span class="check">✓</span> <strong>All 100+ providers</strong></div>
+        <div class="pricing-feature"><span class="check">✓</span> Real-time signal feed</div>
+        <div class="pricing-feature"><span class="check">✓</span> Telegram bot access</div>
+        <div class="pricing-feature"><span class="check">✓</span> Discord channels</div>
+        <div class="pricing-feature"><span class="check">✓</span> Advanced analytics</div>
+        <div class="pricing-feature"><span class="check">✓</span> Trade-to-Earn eligibility</div>
+        <div class="pricing-feature"><span class="x">—</span> API access</div>
+      </div>
+      <a href="/signup?plan=pro" class="btn btn-cyan" style="width:100%;justify-content:center;padding:10px">Upgrade to Pro →</a>
     </div>
+
+    <!-- Elite -->
+    <div class="pricing-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div class="pricing-name text-amber">Elite</div>
+        <span class="badge badge-amber">INSTITUTIONAL</span>
+      </div>
+      <div class="price text-amber"><sup>$</sup>99<sub>/mo</sub></div>
+      <div class="pricing-desc">Institutional-grade signal intelligence with full API and priority support.</div>
+      <div class="pricing-features">
+        <div class="pricing-feature"><span class="check">✓</span> Everything in Pro</div>
+        <div class="pricing-feature"><span class="check">✓</span> <strong>Full REST API access</strong></div>
+        <div class="pricing-feature"><span class="check">✓</span> Webhook integrations</div>
+        <div class="pricing-feature"><span class="check">✓</span> Advanced vol-adjusted metrics</div>
+        <div class="pricing-feature"><span class="check">✓</span> Custom provider watchlists</div>
+        <div class="pricing-feature"><span class="check">✓</span> Priority support</div>
+        <div class="pricing-feature"><span class="check">✓</span> Early access features</div>
+        <div class="pricing-feature"><span class="check">✓</span> White-label reports</div>
+      </div>
+      <a href="/signup?plan=elite" class="btn btn-amber" style="width:100%;justify-content:center;padding:10px">Upgrade to Elite →</a>
+    </div>
+
+  </div>
+
+  <!-- FAQ -->
+  <div class="section-header fade-up"><h2>FAQ</h2></div>
+  <div class="two-col fade-up">
+    <div class="card card-pad">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:8px">Can I cancel anytime?</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.7">Yes. Cancel anytime from the member portal. Your access continues until the end of the billing period.</div>
+    </div>
+    <div class="card card-pad">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:8px">What's Trade-to-Earn?</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.7">Trade on affiliate exchanges using our referral links. Earn $25+/month = free Premium. Even below $25, you enter our monthly giveaway.</div>
+    </div>
+    <div class="card card-pad">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:8px">Is the proof system really tamper-proof?</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.7">Every signal is SHA-256 hashed on receipt. The hash database is immutable — no provider or admin can retroactively alter signal history.</div>
+    </div>
+    <div class="card card-pad">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:8px">What exchanges are supported?</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.7">Binance, Bybit, Kraken, Coinbase, OKX, Bitget, KuCoin and more. Outcome verification uses real market data from all major exchanges.</div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="card fade-up" style="padding:40px;text-align:center;margin-top:12px">
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--text);margin-bottom:8px">Still not sure?</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:20px">Start with the free plan. No credit card required.</div>
+    <a href="/signup" class="btn btn-cyan btn-lg">Start Free →</a>
+  </div>
+
+</main>
+
+<footer>
+  <div class="footer-left">© 2025 AgoraIQ · ChatLogic Insights LTD</div>
+  <div class="footer-links">
+    <a href="/privacy">Privacy</a>
+    <a href="/disclaimer">Disclaimer</a>
+    <a href="/no-financial-advice">No Financial Advice</a>
+    <a href="/terms">Terms</a>
+    <a href="/disclaimer">Disclaimer</a>
+    <a href="/no-financial-advice">No Financial Advice</a>
+    <a href="/risk-warning">Risk Warning</a>
   </div>
 </footer>
 
+<script src="/assets/app.js"></script>
 </body>
 </html>

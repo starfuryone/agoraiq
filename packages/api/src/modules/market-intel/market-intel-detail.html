@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Symbol Detail — AgoraIQ Market Intel</title>
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #08090d; --bg-card: #0e1018; --bg-elevated: #131620;
+      --border: #1e2235; --border-glow: #2a3055;
+      --text: #e8eaf2; --text-muted: #5a6080; --text-dim: #8892b0;
+      --accent: #3d6cff; --accent-glow: rgba(61,108,255,0.18);
+      --green: #00e5a0; --green-dim: rgba(0,229,160,0.12);
+      --red: #ff4d6a; --red-dim: rgba(255,77,106,0.12);
+      --amber: #ffb547; --amber-dim: rgba(255,181,71,0.12);
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-display: 'Syne', sans-serif;
+      --radius: 6px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font-mono); min-height: 100vh; }
+    body::before {
+      content:''; position:fixed; inset:0;
+      background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+      pointer-events:none; z-index:9999;
+    }
+
+    .topbar {
+      height:56px; background:var(--bg-card); border-bottom:1px solid var(--border);
+      display:flex; align-items:center; padding:0 28px; gap:16px;
+      position:sticky; top:0; z-index:50;
+    }
+    .back-btn {
+      color:var(--text-dim); text-decoration:none; font-size:12px;
+      display:flex; align-items:center; gap:6px;
+      padding:5px 10px; border-radius:var(--radius);
+      border:1px solid var(--border); transition:all .15s;
+    }
+    .back-btn:hover { color:var(--text); border-color:var(--border-glow); }
+    .topbar-sym { font-family:var(--font-display); font-size:18px; font-weight:800; }
+    .topbar-sym span { color:var(--accent); }
+    .topbar-spacer { flex:1; }
+
+    .content { padding:28px; max-width:1300px; }
+
+    /* Hero score card */
+    .hero-grid { display:grid; grid-template-columns:320px 1fr; gap:20px; margin-bottom:28px; }
+    .hero-score-card {
+      background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
+      padding:28px; display:flex; flex-direction:column; align-items:center; text-align:center;
+      position:relative; overflow:hidden;
+    }
+    .hero-score-card::before {
+      content:''; position:absolute; inset:0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(61,108,255,0.08) 0%, transparent 70%);
+      pointer-events:none;
+    }
+    .hero-score-ring {
+      width:140px; height:140px; position:relative; margin-bottom:20px;
+    }
+    .ring-svg { width:100%; height:100%; transform:rotate(-90deg); }
+    .ring-bg   { fill:none; stroke:var(--border); stroke-width:8; }
+    .ring-fill { fill:none; stroke-width:8; stroke-linecap:round; transition:stroke-dashoffset .8s ease; }
+    .ring-center {
+      position:absolute; inset:0; display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+    }
+    .ring-pct { font-family:var(--font-display); font-size:32px; font-weight:800; line-height:1; }
+    .ring-label { font-size:10px; color:var(--text-muted); margin-top:2px; }
+
+    .hero-sym { font-family:var(--font-display); font-size:22px; font-weight:800; margin-bottom:6px; }
+    .hero-meta { display:flex; gap:8px; justify-content:center; margin-bottom:14px; }
+    .pill { padding:4px 10px; border-radius:3px; font-size:11px; font-weight:700; }
+    .pill-long  { background:var(--green-dim); color:var(--green); }
+    .pill-short { background:var(--red-dim);   color:var(--red); }
+    .pill-high  { background:var(--green-dim); color:var(--green); }
+    .pill-med   { background:var(--amber-dim); color:var(--amber); }
+    .pill-low   { background:var(--red-dim);   color:var(--red); }
+
+    .hero-er { font-size:28px; font-weight:700; color:var(--green); font-family:var(--font-display); }
+    .hero-er-label { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; }
+
+    /* Inputs breakdown */
+    .inputs-card {
+      background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:24px;
+    }
+    .inputs-title {
+      font-family:var(--font-display); font-size:14px; font-weight:700; margin-bottom:20px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .input-row { display:grid; grid-template-columns:180px 1fr 50px; align-items:center; gap:14px; margin-bottom:14px; }
+    .input-row:last-child { margin-bottom:0; }
+    .input-key { font-size:11px; color:var(--text-dim); }
+    .input-bar-wrap { position:relative; }
+    .input-bar {
+      height:6px; background:var(--border); border-radius:3px; overflow:hidden;
+    }
+    .input-bar-fill {
+      height:100%; border-radius:3px; transition:width .8s ease .1s;
+    }
+    .input-val { font-size:12px; font-weight:600; text-align:right; }
+    .weight-dot {
+      display:inline-block; width:6px; height:6px; border-radius:50%;
+      margin-right:6px; vertical-align:middle;
+    }
+
+    /* History panel */
+    .panel {
+      background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
+      overflow:hidden; margin-bottom:20px;
+    }
+    .panel-header {
+      padding:14px 18px; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .panel-title { font-family:var(--font-display); font-size:13px; font-weight:700; }
+    .panel-sub   { font-size:10px; color:var(--text-muted); margin-top:1px; }
+
+    /* Chart */
+    .chart-wrap { padding:20px 18px; }
+    .chart-canvas { width:100%; height:180px; }
+    svg.score-chart { width:100%; height:180px; overflow:visible; }
+    .chart-line { fill:none; stroke:var(--accent); stroke-width:2; }
+    .chart-area { fill:url(#areaGrad); }
+    .chart-dot  { fill:var(--accent); }
+
+    /* History table */
+    .hist-table { width:100%; border-collapse:collapse; }
+    .hist-table th {
+      padding:9px 18px; text-align:left; font-size:9px; text-transform:uppercase;
+      letter-spacing:1px; color:var(--text-muted); border-bottom:1px solid var(--border);
+    }
+    .hist-table td {
+      padding:11px 18px; border-bottom:1px solid var(--border); font-size:11px; vertical-align:middle;
+    }
+    .hist-table tr:last-child td { border-bottom:none; }
+
+    .state-empty { padding:48px 24px; text-align:center; color:var(--text-muted); font-size:12px; }
+    .state-empty .icon { font-size:28px; margin-bottom:10px; opacity:.4; }
+
+    .skeleton { background:linear-gradient(90deg,var(--border) 25%,var(--bg-elevated) 50%,var(--border) 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:3px; height:14px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    @media(max-width:900px) { .hero-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="/market-intel">← Market Intel</a>
+  <div class="topbar-sym" id="topbar-sym">Loading<span>…</span></div>
+  <div class="topbar-spacer"></div>
+  <span style="font-size:11px;color:var(--text-muted)" id="last-updated">—</span>
+</div>
+
+<div class="content">
+
+  <!-- Hero row -->
+  <div class="hero-grid" id="hero-section">
+    <div class="hero-score-card" id="hero-card">
+      <div style="padding:40px;color:var(--text-muted);font-size:12px">Loading…</div>
+    </div>
+    <div class="inputs-card" id="inputs-card">
+      <div class="inputs-title">◇ Score Breakdown</div>
+      <div style="color:var(--text-muted);font-size:12px;padding:12px 0">Loading inputs…</div>
+    </div>
+  </div>
+
+  <!-- Score history chart -->
+  <div class="panel">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">◈ Score History</div>
+        <div class="panel-sub">Last 50 computed scores</div>
+      </div>
+    </div>
+    <div class="chart-wrap" id="chart-wrap">
+      <div style="color:var(--text-muted);font-size:12px;padding:20px 0">Loading chart…</div>
+    </div>
+  </div>
+
+  <!-- History table -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">▦ Score Log</div>
+    </div>
+    <table class="hist-table">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Side</th>
+          <th>Score</th>
+          <th>Confidence</th>
+          <th>Exp. R</th>
+          <th>Provider Acc.</th>
+          <th>Momentum</th>
+          <th>Volume Spike</th>
+        </tr>
+      </thead>
+      <tbody id="hist-tbody">
+        <tr><td colspan="8"><div class="state-empty"><div class="icon">▦</div>Loading…</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+// Extract symbol from URL: /market-intel/BTCUSDT
+const pathParts = window.location.pathname.split('/');
+const SYMBOL    = (pathParts[pathParts.length - 1] || 'BTCUSDT').toUpperCase();
+const API_BASE  = '/api/market-intel';
+
+const WEIGHT_COLORS = {
+  provider_accuracy:   '#3d6cff',
+  momentum_strength:   '#00e5a0',
+  volume_spike:        '#ffb547',
+  volatility_regime:   '#ff8c42',
+  sentiment_score:     '#c77dff',
+  funding_rate_signal: '#ff4d6a',
+};
+
+const WEIGHTS = {
+  provider_accuracy:   0.25,
+  momentum_strength:   0.20,
+  volume_spike:        0.15,
+  volatility_regime:   0.15,
+  sentiment_score:     0.15,
+  funding_rate_signal: 0.10,
+};
+
+// ── Load data ─────────────────────────────────────────────────
+async function loadSymbol() {
+  try {
+    document.getElementById('topbar-sym').innerHTML = SYMBOL.replace('USDT', '<span>USDT</span>');
+    const res  = await fetch(`${API_BASE}/scores?symbol=${SYMBOL}&limit=50`, { credentials:'include' });
+    const data = await res.json();
+    const rows = data.data || [];
+    if (!rows.length) { showEmpty(); return; }
+    const latest = rows[0];
+    document.getElementById('last-updated').textContent = 'Updated ' + timeAgo(new Date(latest.createdAt));
+    renderHero(latest);
+    renderInputs(latest);
+    renderChart(rows);
+    renderHistTable(rows);
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+// ── Hero card ─────────────────────────────────────────────────
+function renderHero(s) {
+  const pct   = s.probabilityPct;
+  const conf  = s.confidence.toLowerCase();
+  const side  = s.side.toLowerCase();
+  const color = pct >= 70 ? '#00e5a0' : pct >= 55 ? '#ffb547' : '#ff4d6a';
+  const circ  = 2 * Math.PI * 54; // r=54
+  const dash  = circ * (pct / 100);
+
+  document.getElementById('hero-card').innerHTML = `
+    <div class="hero-score-ring">
+      <svg class="ring-svg" viewBox="0 0 120 120">
+        <defs>
+          <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <circle class="ring-bg"   cx="60" cy="60" r="54"/>
+        <circle class="ring-fill" cx="60" cy="60" r="54"
+          stroke="${color}"
+          stroke-dasharray="${circ}"
+          stroke-dashoffset="${circ - dash}"
+          filter="url(#glow)"
+        />
+      </svg>
+      <div class="ring-center">
+        <div class="ring-pct" style="color:${color}">${pct}%</div>
+        <div class="ring-label">PROBABILITY</div>
+      </div>
+    </div>
+    <div class="hero-sym">${s.symbol}</div>
+    <div class="hero-meta">
+      <span class="pill pill-${side}">${s.side}</span>
+      <span class="pill pill-${conf}">${s.confidence}</span>
+    </div>
+    <div class="hero-er">${Number(s.expectedR).toFixed(1)}R</div>
+    <div class="hero-er-label">Expected Risk:Reward</div>
+  `;
+}
+
+// ── Inputs breakdown ──────────────────────────────────────────
+function renderInputs(s) {
+  const inp = s.rawInputs || {};
+  const keys = Object.keys(WEIGHTS);
+  const card = document.getElementById('inputs-card');
+
+  let rows = keys.map(k => {
+    const val   = inp[k] ?? 0;
+    const pct   = Math.round(val * 100);
+    const w     = WEIGHTS[k];
+    const color = WEIGHT_COLORS[k] || 'var(--accent)';
+    const label = k.replace(/_/g, ' ');
+    return `
+      <div class="input-row">
+        <div class="input-key">
+          <span class="weight-dot" style="background:${color}"></span>
+          ${label} <span style="color:var(--text-muted);font-size:9px">(${(w*100).toFixed(0)}%)</span>
+        </div>
+        <div class="input-bar-wrap">
+          <div class="input-bar">
+            <div class="input-bar-fill" style="width:${pct}%;background:${color}"></div>
+          </div>
+        </div>
+        <div class="input-val" style="color:${color}">${pct}%</div>
+      </div>`;
+  }).join('');
+
+  card.innerHTML = `<div class="inputs-title">◇ Score Breakdown — ${s.symbol}</div>${rows}`;
+}
+
+// ── Sparkline chart ───────────────────────────────────────────
+function renderChart(rows) {
+  const scores = [...rows].reverse().map(r => r.probabilityPct);
+  if (!scores.length) return;
+
+  const W = 800, H = 160, PAD = 10;
+  const min = Math.max(0,  Math.min(...scores) - 5);
+  const max = Math.min(100, Math.max(...scores) + 5);
+  const xStep = (W - PAD*2) / (scores.length - 1 || 1);
+  const yScale = v => H - PAD - ((v - min) / (max - min)) * (H - PAD*2);
+
+  const pts = scores.map((v, i) => [PAD + i * xStep, yScale(v)]);
+  const linePath  = 'M ' + pts.map(p => p.join(' ')).join(' L ');
+  const areaPath  = linePath + ` L ${pts[pts.length-1][0]} ${H} L ${PAD} ${H} Z`;
+
+  const svgDots = pts.filter((_, i) => i % Math.ceil(pts.length / 12) === 0)
+    .map(p => `<circle class="chart-dot" cx="${p[0]}" cy="${p[1]}" r="3"/>`)
+    .join('');
+
+  document.getElementById('chart-wrap').innerHTML = `
+    <svg class="score-chart" viewBox="0 0 ${W} ${H}">
+      <defs>
+        <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#3d6cff" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#3d6cff" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <!-- Grid lines -->
+      ${[25,50,70,100].map(v => {
+        const y = yScale(v);
+        const inRange = y >= PAD && y <= H - PAD;
+        return inRange ? `
+          <line x1="${PAD}" y1="${y}" x2="${W-PAD}" y2="${y}"
+            stroke="#1e2235" stroke-width="1" stroke-dasharray="4,4"/>
+          <text x="${PAD+4}" y="${y-4}" font-size="9" fill="#5a6080">${v}%</text>` : '';
+      }).join('')}
+      <!-- 70% confidence line -->
+      <line x1="${PAD}" y1="${yScale(70)}" x2="${W-PAD}" y2="${yScale(70)}"
+        stroke="rgba(0,229,160,0.3)" stroke-width="1" stroke-dasharray="6,3"/>
+      <text x="${W-PAD-30}" y="${yScale(70)-4}" font-size="9" fill="rgba(0,229,160,0.6)">HIGH</text>
+      <!-- Area + line -->
+      <path class="chart-area" d="${areaPath}"/>
+      <path class="chart-line" d="${linePath}"/>
+      ${svgDots}
+    </svg>`;
+}
+
+// ── History table ─────────────────────────────────────────────
+function renderHistTable(rows) {
+  if (!rows.length) {
+    document.getElementById('hist-tbody').innerHTML =
+      `<tr><td colspan="8"><div class="state-empty"><div class="icon">▦</div>No history</div></td></tr>`;
+    return;
+  }
+
+  const html = rows.map(s => {
+    const inp  = s.rawInputs || {};
+    const pct  = s.probabilityPct;
+    const col  = pct >= 70 ? 'var(--green)' : pct >= 55 ? 'var(--amber)' : 'var(--text-muted)';
+    const conf = s.confidence.toLowerCase();
+    const side = s.side.toLowerCase();
+    return `
+      <tr>
+        <td style="color:var(--text-muted)">${new Date(s.createdAt).toLocaleTimeString()}</td>
+        <td><span class="pill pill-${side}" style="padding:2px 7px;font-size:10px">${s.side}</span></td>
+        <td style="color:${col};font-weight:700">${pct}%</td>
+        <td><span class="pill pill-${conf}" style="padding:2px 7px;font-size:10px">${s.confidence}</span></td>
+        <td style="color:var(--green);font-weight:600">${Number(s.expectedR).toFixed(1)}R</td>
+        <td>${pct1(inp.provider_accuracy)}</td>
+        <td>${pct1(inp.momentum_strength)}</td>
+        <td>${pct1(inp.volume_spike)}</td>
+      </tr>`;
+  }).join('');
+
+  document.getElementById('hist-tbody').innerHTML = html;
+}
+
+function pct1(v) {
+  const n = Math.round((v||0)*100);
+  const col = n >= 70 ? 'var(--green)' : n >= 40 ? 'var(--text-dim)' : 'var(--text-muted)';
+  return `<span style="color:${col}">${n}%</span>`;
+}
+
+function showEmpty() {
+  document.getElementById('hero-card').innerHTML =
+    `<div class="state-empty"><div class="icon">◇</div>No data for ${SYMBOL}</div>`;
+}
+
+function timeAgo(d) {
+  const s = Math.floor((Date.now() - d) / 1000);
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s/60)}m ago`;
+  return `${Math.floor(s/3600)}h ago`;
+}
+
+loadSymbol();
+</script>
+</body>
+</html>

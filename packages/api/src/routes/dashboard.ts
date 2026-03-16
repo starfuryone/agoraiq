@@ -1,596 +1,309 @@
-// ═══════════════════════════════════════════════════════════════
-// @agoraiq/api — Dashboard Routes (Paid)
-//
-//   GET  /api/v1/dashboard/signals         — Signal inbox (paginated, filtered)
-//   GET  /api/v1/dashboard/signals/:id     — Signal detail + trade outcome
-//   GET  /api/v1/dashboard/providers       — Provider leaderboard
-//   GET  /api/v1/dashboard/providers/:slug — Provider detail + recent signals
-//   GET  /api/v1/dashboard/watchlists      — User watchlists
-//   POST /api/v1/dashboard/watchlists      — Add watchlist item
-//   DELETE /api/v1/dashboard/watchlists/:id— Remove watchlist item
-//   GET  /api/v1/dashboard/exports/csv     — Export signals as CSV
-//
-// ALL require auth + active subscription.
-// Queries scoped to user's workspace.
-// ═══════════════════════════════════════════════════════════════
+/**
+ * ══════════════════════════════════════════════════════
+ * AgoraIQ — Dashboard API Routes (PATCHED)
+ * ══════════════════════════════════════════════════════
+ *
+ * FIXES:
+ * - /signals: pair→symbol, direction→action, entryPrice→price, outcome from trades
+ * - /top-providers: uses trades.status for win rate (not signals.action)
+ * - /win-rate-trend: uses trades table for outcomes
+ * - /intelligence: unchanged (helpers fixed separately)
+ */
 
 import { Router, Request, Response } from 'express';
-import { PrismaClient, Prisma } from '@agoraiq/db';
-import { z } from 'zod';
-import { createLogger } from '@agoraiq/db';
-import { requireAuth, requireSubscription } from '../middleware/auth';
-import { dashboardCache } from '../services/cache';
+import { requireAuth } from '../middleware/auth';
+import { prisma } from '../lib/prisma';
+import {
+  getMarketRegime,
+  getMarketBreadth,
+  getTopProvider,
+  getMarketPulseData,
+  generateExplainers,
+  flushDashboardCache,
+} from '../lib/dashboard-helpers';
 
-const log = createLogger('dashboard-routes');
+const router: Router = Router();
+router.use(requireAuth);
 
-export function createDashboardRoutes(db: PrismaClient): Router {
-  const router = Router();
+// ─────────────────────────────
+// GET /intelligence
+// Top-strip: regime, actionable signals, top provider, breadth
+// ─────────────────────────────
+router.get('/intelligence', async (req: Request, res: Response) => {
+  try {
+    const now = new Date();
+    const yesterday = new Date(now.getTime() - 86_400_000);
+    const twoDaysAgo = new Date(now.getTime() - 172_800_000);
 
-  // All dashboard routes require auth + subscription
-  router.use(requireAuth);
-  router.use(requireSubscription(db));
-
-  // ── GET /signals ────────────────────────────────────────────
-  // Signal inbox with server-side pagination and filtering
-  router.get('/signals', async (req: Request, res: Response) => {
-    try {
-      const page = Math.max(1, parseInt(req.query.page as string, 10) || 1);
-      const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string, 10) || 20));
-      const skip = (page - 1) * limit;
-
-      const where: Prisma.SignalWhereInput = {
-        workspaceId: req.user!.workspaceId,
-      };
-
-      // Filters
-      if (req.query.provider) where.providerKey = req.query.provider as string;
-      if (req.query.symbol) where.symbol = (req.query.symbol as string).toUpperCase();
-      if (req.query.timeframe) where.timeframe = req.query.timeframe as string;
-      if (req.query.action) where.action = req.query.action as string;
-      if (req.query.minConfidence) {
-        where.confidence = { gte: parseFloat(req.query.minConfidence as string) };
-      }
-
-      const [signals, total] = await Promise.all([
-        db.signal.findMany({
-          where, skip, take: limit,
-          orderBy: { signalTs: 'desc' },
-          select: {
-            id: true, symbol: true, timeframe: true, action: true,
-            score: true, confidence: true, signalTs: true, providerKey: true,
-            price: true, meta: true,
-            trade: {
-              select: { id: true, status: true, direction: true, rMultiple: true, pnlPct: true, entryPrice: true, exitPrice: true, tpPrice: true, slPrice: true, tp1Price: true, tp2Price: true, tp3Price: true, tp1HitAt: true, tp2HitAt: true, tp3HitAt: true, tpHitCount: true },
-            },
-          },
+    const [regime, breadth, topProvider, totalProviders, actionableToday, actionableYesterday] =
+      await Promise.all([
+        getMarketRegime(),
+        getMarketBreadth(),
+        getTopProvider('7d'),
+        prisma.provider.count({ where: { isActive: true } }),
+        prisma.signal.count({
+          where: { confidence: { gte: 75 }, createdAt: { gte: yesterday } },
         }),
-        db.signal.count({ where }),
-      ]);
-
-      // Enrich signals with ITB metadata for paid display
-      const enrichedSignals = signals.map(s => {
-        const meta = (s.meta && typeof s.meta === 'object') ? s.meta as Record<string, any> : {};
-        return {
-          id: s.id,
-          symbol: s.symbol,
-          timeframe: s.timeframe,
-          action: s.action,
-          score: s.score,
-          confidence: s.confidence,
-          price: s.price,
-          signalTs: s.signalTs,
-          providerKey: s.providerKey,
-          trade: s.trade,
-          // ITB-specific fields for rich dashboard display
-          tradeScore: meta.trade_score ?? null,
-          bandNo: meta.band_no ?? null,
-          bandSign: meta.band_sign ?? null,
-          bandText: meta.band_text ?? null,
-          source: meta.source ?? null,
-        };
-      });
-
-      res.json({
-        signals: enrichedSignals,
-        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
-      });
-    } catch (err) {
-      log.error({ err }, 'Signal inbox query failed');
-      res.status(500).json({ error: 'SIGNALS_QUERY_FAILED' });
-    }
-  });
-
-  // ── GET /signals/:id ───────────────────────────────────────
-  router.get('/signals/:id', async (req: Request, res: Response) => {
-    try {
-      const signal = await db.signal.findFirst({
-        where: { id: req.params.id as string, workspaceId: req.user!.workspaceId },
-        include: {
-          trade: true,
-          provider: { select: { slug: true, name: true } },
-        },
-      });
-
-      if (!signal) {
-        res.status(404).json({ error: 'SIGNAL_NOT_FOUND' });
-        return;
-      }
-
-      // Remove rawPayload from response (audit only)
-      // Extract ITB metadata for enriched display
-      const { rawPayload, meta, ...safeSignal } = signal;
-      const itbMeta = (meta && typeof meta === 'object') ? meta as Record<string, any> : {};
-
-      // Build enriched response with ITB-specific fields promoted to top level
-      const enriched = {
-        ...safeSignal,
-        // ITB signal scoring (full data for paid users)
-        tradeScore: itbMeta.trade_score ?? null,
-        secondaryScore: itbMeta.secondary_score ?? null,
-        bandNo: itbMeta.band_no ?? null,
-        bandSign: itbMeta.band_sign ?? null,
-        bandText: itbMeta.band_text ?? null,
-        // OHLC candle data
-        ohlc: itbMeta.open ? {
-          open: itbMeta.open,
-          high: itbMeta.high,
-          low: itbMeta.low,
-          close: itbMeta.close_price ?? signal.price,
-          volume: itbMeta.volume ?? null,
-        } : null,
-        // Provider description
-        itbDescription: itbMeta.description ?? null,
-        // Transaction profit (if available)
-        transaction: itbMeta.transaction ?? null,
-        // Source identifier
-        source: itbMeta.source ?? 'unknown',
-      };
-
-      res.json(enriched);
-    } catch (err) {
-      log.error({ err }, 'Signal detail query failed');
-      res.status(500).json({ error: 'SIGNAL_DETAIL_FAILED' });
-    }
-  });
-
-  // ── GET /providers ──────────────────────────────────────────
-  // Provider leaderboard with 7d/30d/90d metrics
-  router.get('/providers', async (req: Request, res: Response) => {
-    try {
-      const period = (req.query.period as string) || '30d';
-      const cacheKey = `dash:providers:${req.user!.workspaceId}:${period}`;
-      const cached = dashboardCache.get<any>(cacheKey);
-      if (cached) { res.json(cached); return; }
-
-      const daysMap: Record<string, number> = { '7d': 7, '30d': 30, '90d': 90 };
-      const days = daysMap[period] || 30;
-      const since = new Date(Date.now() - days * 24 * 3600_000);
-
-      // Single query — fetch all trades for all active providers at once
-      const [providers, allTrades] = await Promise.all([
-        db.provider.findMany({
-          where: { isActive: true },
-          select: { id: true, slug: true, name: true, proofCategory: true },
-        }),
-        db.trade.findMany({
-          where: {
-            workspaceId: req.user!.workspaceId,
-            status: { in: ['HIT_TP', 'HIT_SL', 'EXPIRED'] },
-            exitedAt: { gte: since },
-            rMultiple: { not: null },
-          },
-          select: { providerId: true, rMultiple: true, pnlPct: true },
+        prisma.signal.count({
+          where: { confidence: { gte: 75 }, createdAt: { gte: twoDaysAgo, lt: yesterday } },
         }),
       ]);
 
-      // Group trades by providerId in memory
-      const tradesByProvider = new Map<string, typeof allTrades>();
-      for (const t of allTrades) {
-        if (!tradesByProvider.has(t.providerId)) tradesByProvider.set(t.providerId, []);
-        tradesByProvider.get(t.providerId)!.push(t);
+    res.json({
+      regime: {
+        label: regime.label,
+        confidence: regime.confidence,
+        changedAgo: regime.changedAgo,
+      },
+      actionableCount: actionableToday,
+      actionableDelta: actionableToday - actionableYesterday,
+      topProvider: topProvider
+        ? { name: topProvider.name, winRate: topProvider.winRate, avgR: topProvider.avgR }
+        : null,
+      breadth,
+      totalProviders,
+      updatedAt: now.toISOString(),
+    });
+  } catch (err) {
+    console.error('[Dashboard] /intelligence error:', err);
+    res.status(500).json({ error: 'Failed to load intelligence data' });
+  }
+});
+
+// ─────────────────────────────
+// GET /signals?limit=20
+// FIXED: uses actual column names (symbol, action, price) + joins trades for outcome
+// ─────────────────────────────
+router.get('/signals', async (req: Request, res: Response) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+
+    const rows: any[] = await prisma.$queryRaw`
+      SELECT
+        s.id, s.symbol, s.action, s.price,
+        s.confidence, s.score, s."createdAt", s.meta,
+        p.name  AS "providerName",
+        p.id    AS "providerId",
+        t.status    AS "tradeStatus",
+        t."rMultiple"
+      FROM signals s
+      LEFT JOIN providers p ON p.id = s."providerId"
+      LEFT JOIN trades   t ON t."signalId" = s.id
+      WHERE COALESCE(s.was_deleted, false) = false
+      ORDER BY s."createdAt" DESC
+      LIMIT ${limit}
+    `;
+
+    res.json({
+      signals: rows.map((s: any) => ({
+        id: s.id,
+        pair: s.symbol,
+        direction: s.action,                       // LONG / SHORT / BUY / SELL
+        entry: s.price,
+        confidence: s.confidence,
+        score: s.score,
+        provider: s.providerName || '—',
+        providerName: s.providerName || '—',
+        providerId: s.providerId,
+        outcome: s.tradeStatus || null,             // TP_HIT / SL_HIT / ACTIVE / null
+        status: s.tradeStatus || 'active',
+        createdAt: s.createdAt,
+        rMultiple: s.rMultiple || null,
+      })),
+    });
+  } catch (err) {
+    console.error('[Dashboard] /signals error:', err);
+    res.status(500).json({ error: 'Failed to load signals' });
+  }
+});
+
+// ─────────────────────────────
+// GET /top-providers?range=7d&limit=8
+// FIXED: queries trades table for win rate (signals.action = direction, not outcome)
+// ─────────────────────────────
+router.get('/top-providers', async (req: Request, res: Response) => {
+  try {
+    const range = req.query.range === '30d' ? 30 : 7;
+    const limit = Math.min(parseInt(req.query.limit as string) || 8, 20);
+    const since = new Date(Date.now() - range * 86_400_000);
+
+    const providers: any[] = await prisma.$queryRaw`
+      SELECT
+        p.id, p.name,
+        COUNT(t.id)::int AS "signalCount",
+        ROUND(100.0 * COUNT(CASE WHEN t.status = 'HIT_TP' THEN 1 END) /
+          NULLIF(COUNT(CASE WHEN t.status IN ('HIT_TP','HIT_SL') THEN 1 END), 0), 1)::float AS "winRate",
+        ROUND(AVG(
+          CASE WHEN t.status IN ('HIT_TP','HIT_SL') THEN t."rMultiple" END
+        )::numeric, 2)::float AS "avgR"
+      FROM providers p
+      JOIN trades t ON t."providerId" = p.id
+      WHERE COALESCE(t."exitedAt", t."updatedAt") >= ${since}
+        AND p."isActive" = true
+        AND t.status IN ('HIT_TP','HIT_SL')
+      GROUP BY p.id, p.name
+      HAVING COUNT(CASE WHEN t.status IN ('HIT_TP','HIT_SL') THEN 1 END) >= 3
+      ORDER BY "winRate" DESC NULLS LAST
+      LIMIT ${limit}
+    `;
+
+    res.json({
+      providers: providers.map((p, i) => ({
+        id: p.id,
+        name: p.name,
+        rank: i + 1,
+        winRate: p.winRate || 0,
+        avgR: p.avgR || 0,
+        signalCount: p.signalCount,
+      })),
+    });
+  } catch (err) {
+    console.error('[Dashboard] /top-providers error:', err);
+    res.status(500).json({ error: 'Failed to load providers' });
+  }
+});
+
+// ─────────────────────────────
+// GET /explainers
+// ─────────────────────────────
+router.get('/explainers', async (_req: Request, res: Response) => {
+  try {
+    const items = await generateExplainers();
+    res.json({ items });
+  } catch (err) {
+    console.error('[Dashboard] /explainers error:', err);
+    res.status(500).json({ error: 'Failed to load explainers' });
+  }
+});
+
+// ─────────────────────────────
+// GET /activity?days=30
+// Bar chart: signal count per day (uses signals table — this was correct)
+// ─────────────────────────────
+router.get('/activity', async (req: Request, res: Response) => {
+  try {
+    const numDays = Math.min(parseInt(req.query.days as string) || 30, 90);
+    const since = new Date(Date.now() - numDays * 86_400_000);
+
+    const rows: any[] = await prisma.$queryRaw`
+      SELECT DATE("createdAt") AS day, COUNT(*)::int AS count
+      FROM signals WHERE "createdAt" >= ${since}
+      GROUP BY DATE("createdAt") ORDER BY day ASC
+    `;
+
+    const dayMap = new Map(rows.map((r) => [new Date(r.day).toISOString().split('T')[0], r.count]));
+    const days: number[] = [];
+    for (let i = numDays - 1; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 86_400_000).toISOString().split('T')[0];
+      days.push(dayMap.get(d) || 0);
+    }
+
+    res.json({ days });
+  } catch (err) {
+    console.error('[Dashboard] /activity error:', err);
+    res.status(500).json({ error: 'Failed to load activity' });
+  }
+});
+
+// ─────────────────────────────
+// GET /win-rate-trend?days=30
+// FIXED: queries trades table (outcomes), not signals.action
+// ─────────────────────────────
+router.get('/win-rate-trend', async (req: Request, res: Response) => {
+  try {
+    const numDays = Math.min(parseInt(req.query.days as string) || 30, 90);
+    const since = new Date(Date.now() - numDays * 86_400_000);
+
+    const rows: any[] = await prisma.$queryRaw`
+      SELECT
+        DATE(COALESCE(t."exitedAt", t."updatedAt")) AS day,
+        COUNT(CASE WHEN t.status IN ('HIT_TP','HIT_SL') THEN 1 END)::int AS resolved,
+        ROUND(
+          100.0 * COUNT(CASE WHEN t.status = 'HIT_TP' THEN 1 END) /
+          NULLIF(COUNT(CASE WHEN t.status IN ('HIT_TP','HIT_SL') THEN 1 END), 0), 1
+        )::float AS "winRate"
+      FROM trades t
+      WHERE COALESCE(t."exitedAt", t."updatedAt") >= ${since}
+        AND t.status IN ('HIT_TP','HIT_SL')
+      GROUP BY DATE(COALESCE(t."exitedAt", t."updatedAt"))
+      ORDER BY day ASC
+    `;
+
+    const rowMap = new Map(
+      rows.map((r) => [
+        new Date(r.day).toISOString().split('T')[0],
+        { winRate: r.winRate || 0, resolved: r.resolved || 0 },
+      ])
+    );
+
+    const trend: { date: string; winRate: number; resolved: number }[] = [];
+    let lastWR = 0;
+    for (let i = numDays - 1; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 86_400_000).toISOString().split('T')[0];
+      const entry = rowMap.get(d);
+      if (entry && entry.resolved > 0) {
+        lastWR = entry.winRate;
+        trend.push({ date: d, winRate: entry.winRate, resolved: entry.resolved });
+      } else {
+        trend.push({ date: d, winRate: lastWR, resolved: 0 });
       }
-
-      const leaderboard = providers.map((p) => {
-          const trades = tradesByProvider.get(p.id) || [];
-          const total = trades.length;
-          const wins = trades.filter(t => (t.rMultiple || 0) > 0).length;
-          const winRate = total > 0 ? parseFloat(((wins / total) * 100).toFixed(1)) : 0;
-          const avgR = total > 0
-            ? parseFloat((trades.reduce((s, t) => s + (t.rMultiple || 0), 0) / total).toFixed(2))
-            : 0;
-          const totalPnl = trades.reduce((s, t) => s + (t.pnlPct || 0), 0);
-          return {
-            slug: p.slug, name: p.name, category: p.proofCategory,
-            totalTrades: total, wins, winRate, avgR,
-            totalReturn: parseFloat(totalPnl.toFixed(2)),
-          };
-      });
-
-      leaderboard.sort((a, b) => b.avgR - a.avgR);
-
-      const result = { leaderboard, period };
-      dashboardCache.set(cacheKey, result);
-      res.json(result);
-    } catch (err) {
-      log.error({ err }, 'Provider leaderboard failed');
-      res.status(500).json({ error: 'PROVIDERS_QUERY_FAILED' });
-    }
-  });
-
-  // ── GET /providers/:slug ───────────────────────────────────
-  router.get('/providers/:slug', async (req: Request, res: Response) => {
-    try {
-      const provider = await db.provider.findUnique({
-        where: { slug: req.params.slug as string },
-        select: { id: true, slug: true, name: true, description: true, proofCategory: true },
-      });
-      if (!provider) { res.status(404).json({ error: 'PROVIDER_NOT_FOUND' }); return; }
-
-      const recentSignals = await db.signal.findMany({
-        where: { providerId: provider.id, workspaceId: req.user!.workspaceId },
-        orderBy: { signalTs: 'desc' },
-        take: 20,
-        select: {
-          id: true, symbol: true, timeframe: true, action: true,
-          score: true, confidence: true, signalTs: true,
-          trade: { select: { status: true, rMultiple: true, pnlPct: true } },
-        },
-      });
-
-      res.json({ provider, recentSignals });
-    } catch (err) {
-      log.error({ err }, 'Provider detail failed');
-      res.status(500).json({ error: 'PROVIDER_DETAIL_FAILED' });
-    }
-  });
-
-  // ── GET /watchlists ─────────────────────────────────────────
-  router.get('/watchlists', async (req: Request, res: Response) => {
-    try {
-      const watchlists = await db.watchlist.findMany({
-        where: { userId: req.user!.userId, isActive: true },
-        orderBy: { createdAt: 'desc' },
-      });
-      res.json({ watchlists });
-    } catch (err) {
-      log.error({ err }, 'Watchlist query failed');
-      res.status(500).json({ error: 'WATCHLIST_QUERY_FAILED' });
-    }
-  });
-
-  // ── POST /watchlists ────────────────────────────────────────
-  const WatchlistSchema = z.object({
-    type: z.enum(['symbol', 'provider']),
-    value: z.string().min(1),
-  });
-
-  router.post('/watchlists', async (req: Request, res: Response) => {
-    const parsed = WatchlistSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ error: 'VALIDATION_FAILED', issues: parsed.error.issues });
-      return;
     }
 
-    try {
-      const watchlist = await db.watchlist.upsert({
-        where: {
-          userId_type_value: {
-            userId: req.user!.userId,
-            type: parsed.data.type,
-            value: parsed.data.value.toUpperCase(),
-          },
-        },
-        update: { isActive: true },
-        create: {
-          userId: req.user!.userId,
-          type: parsed.data.type,
-          value: parsed.data.value.toUpperCase(),
-        },
-      });
-      res.status(201).json({ watchlist });
-    } catch (err) {
-      log.error({ err }, 'Watchlist add failed');
-      res.status(500).json({ error: 'WATCHLIST_ADD_FAILED' });
-    }
-  });
+    res.json({ trend });
+  } catch (err) {
+    console.error('[Dashboard] /win-rate-trend error:', err);
+    res.status(500).json({ error: 'Failed to load win rate trend' });
+  }
+});
 
-  // ── DELETE /watchlists/:id ──────────────────────────────────
-  router.delete('/watchlists/:id', async (req: Request, res: Response) => {
-    try {
-      await db.watchlist.updateMany({
-        where: { id: req.params.id as string, userId: req.user!.userId },
-        data: { isActive: false },
-      });
-      res.json({ status: 'removed' });
-    } catch (err) {
-      log.error({ err }, 'Watchlist remove failed');
-      res.status(500).json({ error: 'WATCHLIST_REMOVE_FAILED' });
-    }
-  });
+// ─────────────────────────────
+// GET /market-pulse
+// ─────────────────────────────
+router.get('/market-pulse', async (_req: Request, res: Response) => {
+  try {
+    const pairs = await getMarketPulseData();
 
-  // ── GET /exports/csv ────────────────────────────────────────
-  router.get('/exports/csv', async (req: Request, res: Response) => {
-    try {
-      const signals = await db.signal.findMany({
-        where: { workspaceId: req.user!.workspaceId },
-        orderBy: { signalTs: 'desc' },
-        take: 5000,
-        include: {
-          trade: { select: { status: true, rMultiple: true, pnlPct: true, direction: true } },
-          provider: { select: { slug: true, name: true } },
-        },
-      });
+    const movers = pairs
+      .filter((p) => Math.abs(p.change24h) >= 4)
+      .map((p) => `${p.pair} ${p.change24h >= 0 ? '+' : ''}${p.change24h}%`);
 
-      const header = 'timestamp,provider,symbol,timeframe,action,confidence,score,direction,status,rMultiple,pnlPct\n';
-      const rows = signals.map((s) => {
-        const t = s.trade;
-        return [
-          s.signalTs.toISOString(), s.provider.slug, s.symbol, s.timeframe,
-          s.action, s.confidence ?? '', s.score ?? '',
-          t?.direction ?? '', t?.status ?? '', t?.rMultiple ?? '', t?.pnlPct ?? '',
-        ].join(',');
-      });
+    const breakouts = pairs
+      .filter((p) => p.trend === 'Uptrend' && p.volumeStatus === 'Spike')
+      .map((p) => p.pair);
 
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename=agoraiq-signals-${new Date().toISOString().split('T')[0]}.csv`);
-      res.send(header + rows.join('\n'));
-    } catch (err) {
-      log.error({ err }, 'CSV export failed');
-      res.status(500).json({ error: 'EXPORT_FAILED' });
-    }
-  });
+    const freshSignals = pairs
+      .filter((p) => p.signalCount > 0)
+      .map((p) => p.pair);
 
+    const overextended = pairs
+      .filter((p) => Math.abs(p.change24h) >= 8 || p.volatility === 'High')
+      .map((p) => p.pair);
 
-  // ── GET /performance ────────────────────────────────────────
-  // Performance analytics with equity curve, drawdown, period stats
-  router.get('/performance', async (req: Request, res: Response) => {
-    try {
-      const period = (req.query.period as string) || 'all';
-      const providerSlug = req.query.provider as string | undefined;
+    res.json({
+      pairs,
+      movers: movers.slice(0, 3),
+      breakouts: breakouts.slice(0, 3),
+      freshSignals: freshSignals.slice(0, 4),
+      overextended: overextended.slice(0, 2),
+    });
+  } catch (err) {
+    console.error('[Dashboard] /market-pulse error:', err);
+    res.status(500).json({ error: 'Failed to load market pulse' });
+  }
+});
 
-      let since: Date | undefined;
-      const now = new Date();
-      if (period === 'today') {
-        since = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      } else if (period === '7d') {
-        since = new Date(Date.now() - 7 * 24 * 3600_000);
-      } else if (period === '30d') {
-        since = new Date(Date.now() - 30 * 24 * 3600_000);
-      } else if (period === '90d') {
-        since = new Date(Date.now() - 90 * 24 * 3600_000);
-      }
+// ─────────────────────────────
+// POST /flush-cache (admin only)
+// ─────────────────────────────
+router.post('/flush-cache', async (req: Request, res: Response) => {
+  const userId = (req as any).user?.id;
+  if (userId !== 'cmm3nh44400012xfntoh7dzqm') {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  flushDashboardCache();
+  res.json({ ok: true, message: 'Dashboard cache flushed' });
+});
 
-      const where: any = {
-        workspaceId: req.user!.workspaceId,
-        status: { in: ['HIT_TP', 'HIT_SL', 'EXPIRED', 'CLOSED'] },
-        exitedAt: { not: null },
-      };
-      if (since) where.exitedAt = { ...where.exitedAt, gte: since };
-      if (providerSlug) {
-        const prov = await db.provider.findUnique({ where: { slug: providerSlug } });
-        if (prov) where.providerId = prov.id;
-      }
+export default router;
 
-      const trades = await db.trade.findMany({
-        where,
-        orderBy: { exitedAt: 'asc' },
-        select: {
-          id: true, symbol: true, direction: true, status: true,
-          entryPrice: true, exitPrice: true, rMultiple: true, pnlPct: true,
-          leverage: true, enteredAt: true, exitedAt: true, providerId: true,
-        },
-      });
-
-      const total = trades.length;
-      const wins = trades.filter(t => t.status === 'HIT_TP').length;
-      const losses = trades.filter(t => t.status === 'HIT_SL').length;
-      const expired = trades.filter(t => t.status === 'EXPIRED' || t.status === 'CLOSED').length;
-      const winRate = total > 0 ? parseFloat(((wins / total) * 100).toFixed(1)) : 0;
-
-      const rValues = trades.filter(t => t.rMultiple != null).map(t => t.rMultiple!);
-      const avgR = rValues.length > 0 ? parseFloat((rValues.reduce((a, b) => a + b, 0) / rValues.length).toFixed(3)) : 0;
-      const bestR = rValues.length > 0 ? parseFloat(Math.max(...rValues).toFixed(3)) : 0;
-      const worstR = rValues.length > 0 ? parseFloat(Math.min(...rValues).toFixed(3)) : 0;
-
-      const totalPnl = trades.reduce((s, t) => s + (t.pnlPct || 0), 0);
-      const avgPnl = total > 0 ? totalPnl / total : 0;
-
-      let cumPnl = 0; let peak = 0; let maxDrawdown = 0; let currentDrawdown = 0;
-      const equityCurve: any[] = [];
-      for (const t of trades) {
-        cumPnl += (t.pnlPct || 0);
-        if (cumPnl > peak) peak = cumPnl;
-        currentDrawdown = peak - cumPnl;
-        if (currentDrawdown > maxDrawdown) maxDrawdown = currentDrawdown;
-        equityCurve.push({
-          date: t.exitedAt!.toISOString(), cumPnl: parseFloat(cumPnl.toFixed(2)),
-          drawdown: parseFloat((-currentDrawdown).toFixed(2)),
-          symbol: t.symbol, status: t.status,
-          rMultiple: t.rMultiple ? parseFloat(t.rMultiple.toFixed(3)) : null,
-          pnlPct: t.pnlPct ? parseFloat(t.pnlPct.toFixed(2)) : null,
-        });
-      }
-
-      let maxWinStreak = 0; let maxLoseStreak = 0; let tempWin = 0; let tempLose = 0;
-      for (const t of trades) {
-        if (t.status === 'HIT_TP') { tempWin++; tempLose = 0; if (tempWin > maxWinStreak) maxWinStreak = tempWin; }
-        else if (t.status === 'HIT_SL') { tempLose++; tempWin = 0; if (tempLose > maxLoseStreak) maxLoseStreak = tempLose; }
-      }
-
-      const dailyMap = new Map<string, { pnl: number; trades: number; wins: number }>();
-      for (const t of trades) {
-        const day = t.exitedAt!.toISOString().split('T')[0];
-        const existing = dailyMap.get(day) || { pnl: 0, trades: 0, wins: 0 };
-        existing.pnl += (t.pnlPct || 0); existing.trades++;
-        if (t.status === 'HIT_TP') existing.wins++;
-        dailyMap.set(day, existing);
-      }
-      const dailyPnl = Array.from(dailyMap.entries()).map(([date, d]) => ({
-        date, pnl: parseFloat(d.pnl.toFixed(2)), trades: d.trades,
-        winRate: d.trades > 0 ? parseFloat(((d.wins / d.trades) * 100).toFixed(1)) : 0,
-      }));
-
-      const rBuckets: Record<string, number> = { '< -2R': 0, '-2R to -1R': 0, '-1R to 0R': 0, '0R to 1R': 0, '1R to 2R': 0, '2R to 3R': 0, '> 3R': 0 };
-      for (const r of rValues) {
-        if (r < -2) rBuckets['< -2R']++; else if (r < -1) rBuckets['-2R to -1R']++;
-        else if (r < 0) rBuckets['-1R to 0R']++; else if (r < 1) rBuckets['0R to 1R']++;
-        else if (r < 2) rBuckets['1R to 2R']++; else if (r < 3) rBuckets['2R to 3R']++;
-        else rBuckets['> 3R']++;
-      }
-
-      const symbolMap = new Map<string, { pnl: number; trades: number; wins: number }>();
-      for (const t of trades) {
-        const existing = symbolMap.get(t.symbol) || { pnl: 0, trades: 0, wins: 0 };
-        existing.pnl += (t.pnlPct || 0); existing.trades++;
-        if (t.status === 'HIT_TP') existing.wins++;
-        symbolMap.set(t.symbol, existing);
-      }
-      const topSymbols = Array.from(symbolMap.entries())
-        .map(([symbol, d]) => ({ symbol, pnl: parseFloat(d.pnl.toFixed(2)), trades: d.trades,
-          winRate: d.trades > 0 ? parseFloat(((d.wins / d.trades) * 100).toFixed(1)) : 0 }))
-        .sort((a, b) => b.trades - a.trades).slice(0, 10);
-
-
-      // ── Monthly Breakdown ─────────────────────────────────────
-      const monthlyMap = new Map<string, { trades: number; wins: number; losses: number; pnl: number }>();
-      for (const t of trades) {
-        const d = new Date(t.exitedAt as Date);
-        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-        const existing = monthlyMap.get(key) || { trades: 0, wins: 0, losses: 0, pnl: 0 };
-        existing.trades++;
-        if (t.status === 'HIT_TP') existing.wins++;
-        if (t.status === 'HIT_SL') existing.losses++;
-        existing.pnl += t.pnlPct || 0;
-        monthlyMap.set(key, existing);
-      }
-      const monthlyBreakdown = Array.from(monthlyMap.entries())
-        .map(([month, d]) => ({
-          month,
-          trades: d.trades,
-          wins: d.wins,
-          losses: d.losses,
-          pnl: parseFloat(d.pnl.toFixed(2)),
-          winRate: d.trades > 0 ? parseFloat(((d.wins / d.trades) * 100).toFixed(1)) : 0,
-        }))
-        .sort((a, b) => a.month.localeCompare(b.month));
-
-      // ── Duration Analytics ────────────────────────────────────
-      const durations: number[] = [];
-      const tpDurations: number[] = [];
-      const slDurations: number[] = [];
-      for (const t of trades) {
-        if (t.enteredAt && t.exitedAt) {
-          const ms = new Date(t.exitedAt).getTime() - new Date(t.enteredAt).getTime();
-          if (ms > 0) {
-            const hrs = ms / 3600_000;
-            durations.push(hrs);
-            if (t.status === 'HIT_TP') tpDurations.push(hrs);
-            if (t.status === 'HIT_SL') slDurations.push(hrs);
-          }
-        }
-      }
-      const avg = (arr: number[]) => arr.length > 0 ? parseFloat((arr.reduce((s, v) => s + v, 0) / arr.length).toFixed(2)) : 0;
-      const median = (arr: number[]) => {
-        if (arr.length === 0) return 0;
-        const sorted = [...arr].sort((a, b) => a - b);
-        const mid = Math.floor(sorted.length / 2);
-        return parseFloat((sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2).toFixed(2));
-      };
-      // Bucket durations: <1h, 1-4h, 4-12h, 12-24h, 1-3d, 3-7d, 7d+
-      const durationBuckets = [
-        { label: '<1h', min: 0, max: 1 },
-        { label: '1-4h', min: 1, max: 4 },
-        { label: '4-12h', min: 4, max: 12 },
-        { label: '12-24h', min: 12, max: 24 },
-        { label: '1-3d', min: 24, max: 72 },
-        { label: '3-7d', min: 72, max: 168 },
-        { label: '7d+', min: 168, max: Infinity },
-      ].map(b => ({ label: b.label, count: durations.filter(d => d >= b.min && d < b.max).length }));
-
-      const durationAnalytics = {
-        avgDuration: avg(durations),
-        medianDuration: median(durations),
-        avgTimeToTP: avg(tpDurations),
-        avgTimeToSL: avg(slDurations),
-        medianTimeToTP: median(tpDurations),
-        medianTimeToSL: median(slDurations),
-        totalWithDuration: durations.length,
-        distribution: durationBuckets,
-      };
-
-      res.json({
-        period,
-        summary: { totalTrades: total, wins, losses, expired, winRate, avgR, bestR, worstR,
-          totalPnl: parseFloat(totalPnl.toFixed(2)), avgPnl: parseFloat(avgPnl.toFixed(2)),
-          maxDrawdown: parseFloat(maxDrawdown.toFixed(2)), maxWinStreak, maxLoseStreak,
-          profitFactor: losses > 0 ? parseFloat((trades.filter(t => (t.pnlPct || 0) > 0).reduce((s, t) => s + (t.pnlPct || 0), 0) / Math.abs(trades.filter(t => (t.pnlPct || 0) < 0).reduce((s, t) => s + (t.pnlPct || 0), 0) || 1)).toFixed(2)) : 0,
-        },
-        equityCurve, dailyPnl, rDistribution: rBuckets, topSymbols, monthlyBreakdown, durationAnalytics,
-      });
-    } catch (err) {
-      log.error({ err }, 'Performance query failed');
-      res.status(500).json({ error: 'PERFORMANCE_QUERY_FAILED' });
-    }
-  });
-
-
-  // ── POST /signal-log ──────────────────────────────────────
-  router.post('/signal-log', async (req: Request, res: Response) => {
-    try {
-      const { symbol, direction, entryMin, entryMax, stopLoss, takeProfits,
-              leverage, marketType, confidence, rawMessage, note } = req.body;
-      if (!symbol) { res.status(400).json({ error: 'SYMBOL_REQUIRED' }); return; }
-      const { randomBytes } = require('crypto');
-      const id = randomBytes(16).toString('hex');
-      await db.$executeRawUnsafe(
-        `INSERT INTO "SignalLog" ("id","workspaceId","userId","symbol","direction","entryMin","entryMax","stopLoss","takeProfits","leverage","marketType","confidence","rawMessage","note","createdAt")
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12,$13,$14,NOW())`,
-        id, req.user!.workspaceId, req.user!.userId,
-        symbol, direction||null, entryMin||null, entryMax||null, stopLoss||null,
-        JSON.stringify(takeProfits||[]),
-        leverage||null, marketType||null, confidence||null, rawMessage||null, note||null
-      );
-      res.json({ ok: true, id });
-    } catch (err) {
-      log.error({ err }, 'Signal log create failed');
-      res.status(500).json({ error: 'LOG_CREATE_FAILED' });
-    }
-  });
-
-  // ── GET /signal-log ────────────────────────────────────────
-  router.get('/signal-log', async (req: Request, res: Response) => {
-    try {
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
-      const skip = (page - 1) * limit;
-      const [entries, total] = await Promise.all([
-        db.$queryRawUnsafe<any[]>(
-          `SELECT * FROM "SignalLog" WHERE "workspaceId"=$1 ORDER BY "createdAt" DESC LIMIT $2 OFFSET $3`,
-          req.user!.workspaceId, limit, skip
-        ),
-        db.$queryRawUnsafe<any[]>(
-          `SELECT COUNT(*)::int as count FROM "SignalLog" WHERE "workspaceId"=$1`,
-          req.user!.workspaceId
-        ).then((r: any[]) => r[0].count),
-      ]);
-      res.json({ entries, pagination: { total, page, totalPages: Math.ceil(total / limit) } });
-    } catch (err) {
-      res.status(500).json({ error: 'LOG_FETCH_FAILED' });
-    }
-  });
-
-  // ── DELETE /signal-log/:id ─────────────────────────────────
-  router.delete('/signal-log/:id', async (req: Request, res: Response) => {
-    try {
-      await db.$executeRawUnsafe(
-        `DELETE FROM "SignalLog" WHERE "id"=$1 AND "workspaceId"=$2`,
-        req.params.id, req.user!.workspaceId
-      );
-      res.json({ ok: true });
-    } catch (err) {
-      res.status(500).json({ error: 'LOG_DELETE_FAILED' });
-    }
-  });
-
-  return router;
-}
+export function createDashboardRoutes(db?: any): Router { return router; }

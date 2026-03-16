@@ -1,21 +1,247 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="shortcut icon" href="/favicon.svg"><meta http-equiv="refresh" content="0;url=/login">  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/agoraiq-design.css">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap" rel="stylesheet">
-<style id="aiq-brand">
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
-.brand-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--cyan,#00e5ff),#0066ff);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex:0 0 auto}
-.brand-text{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.5px;color:var(--text,#e2e8f0);white-space:nowrap;line-height:1}
-.brand-iq{color:var(--cyan,#00e5ff);margin-left:0}
-.brand-sm .brand-mark{width:20px;height:20px}
-.brand-sm .brand-text{font-size:14px}
-.brand-xs .brand-mark{width:18px;height:18px}
-.brand-xs .brand-text{font-size:14px}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgoraIQ — Crypto Signal Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Albert+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+  .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 48px; }
+  .feature-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; transition: border-color .2s, transform .2s; position: relative; overflow: hidden;
+  }
+  .feature-card:hover { border-color: var(--border-hi); transform: translateY(-2px); }
+  .feature-icon { font-size: 24px; margin-bottom: 14px; }
+  .feature-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 6px; }
+  .feature-desc { font-size: 11px; color: var(--muted); line-height: 1.6; }
+  .proof-strip {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 40px 32px; margin-bottom: 48px; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .proof-strip::before {
+    content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+    width: 400px; height: 200px;
+    background: radial-gradient(ellipse, rgba(0,212,255,.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .proof-strip h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; color: var(--text); margin-bottom: 8px; }
+  .proof-strip p { font-size: 12px; color: var(--muted); margin-bottom: 24px; }
+  .proof-kpis { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-bottom: 24px; }
+  .proof-kpi .v { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 28px; letter-spacing: -1px; color: var(--cyan); }
+  .proof-kpi .l { font-size: 10px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin-top: 2px; }
+  @media (max-width: 720px) { .feature-grid { grid-template-columns: 1fr; } .proof-kpis { gap: 24px; } }
+</style>
+
+<style id="hero-bg-patch">
+
+/* ── AgoraIQ Hero Background (injected by patch_hero_bg.py) ─────────────── */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Background image layer */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-image: url('/assets/hero-bg.png');
+  background-size: cover;
+  background-position: center 30%;
+  background-repeat: no-repeat;
+}
+
+/* Dark overlay — charcoal wash with slight blue tint */
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    /* radial soft spotlight at upper-left so globe stays visible */
+    radial-gradient(ellipse 70% 60% at 60% 40%, rgba(8, 18, 30, 0.35) 0%, rgba(5, 10, 20, 0.0) 100%),
+    /* base dark layer */
+    linear-gradient(
+      175deg,
+      rgba(5, 10, 18, 0.82) 0%,
+      rgba(7, 16, 28, 0.78) 40%,
+      rgba(6, 14, 24, 0.88) 75%,
+      rgba(4, 8, 16, 0.96) 100%
+    );
+}
+
+/* Ensure all hero content sits above the pseudo layers */
+.hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Text shadow to punch headlines through on any crop */
+.hero h1,
+.hero .hero-headline,
+.hero [class*="headline"] {
+  text-shadow: 0 2px 32px rgba(0, 0, 0, 0.7), 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.hero p,
+.hero .hero-sub,
+.hero [class*="subhead"],
+.hero [class*="copy"] {
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.8);
+}
+
+/* Mobile: shift focal point so globe stays in frame */
+@media (max-width: 768px) {
+  .hero::before {
+    background-position: 65% 25%;
+  }
+  .hero::after {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(5, 10, 18, 0.88) 0%,
+        rgba(6, 14, 24, 0.80) 50%,
+        rgba(4, 8, 16, 0.95) 100%
+      );
+  }
+}
+
+/* ── End hero background patch ───────────────────────────────────────────── */
+
 </style>
 </head>
-<body></body>
+<body>
+
+<header>
+  <a href="/" class="logo">
+    <div class="logo-mark"></div>
+    <div class="logo-text">Agora<span>IQ</span></div>
+  </a>
+    <nav>
+    <a href="/" class="active">Home</a>
+    <a href="/marketplace">Marketplace</a>
+    <a href="/screener">Screener</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/about">About</a>
+  </nav>
+  <div class="header-right">
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <a href="/login" class="btn btn-ghost" style="font-size:11px">Login</a>
+    <a href="/signup" class="btn btn-cyan" style="font-size:11px">Get Started →</a>
+  </div>
+</header>
+
+<div id="toast"></div>
+
+<!-- Hero -->
+<section class="hero fade-up">
+  <div class="hero-eyebrow">Verified Signal Intelligence</div>
+  <h1>Track, Verify &<br><span>Rank</span> Crypto Signals</h1>
+  <p>Immutable proof hashing, cherry-pick detection, and vol-adjusted scoring across 100+ Telegram & Discord channels.</p>
+  <div class="hero-cta">
+    <a href="/signup" class="btn btn-cyan btn-lg">Start Free →</a>
+    <a href="/marketplace" class="btn btn-outline btn-lg">Browse Providers</a>
+  </div>
+</section>
+
+<!-- Trust row -->
+<div style="position:relative;z-index:1;max-width:960px;margin:0 auto;padding:0 24px">
+  <div class="trust-row fade-up">
+    <div class="trust-item"><span class="icon">🔒</span> Immutable Proof Hashing</div>
+    <div class="trust-item"><span class="icon">📊</span> 100+ Signal Providers</div>
+    <div class="trust-item"><span class="icon">⚡</span> Real-Time Intelligence</div>
+    <div class="trust-item"><span class="icon">🎯</span> Cherry-Pick Detection</div>
+    <div class="trust-item"><span class="icon">📈</span> Vol-Adjusted Scoring</div>
+  </div>
+</div>
+
+<!-- Proof strip -->
+<main style="padding-top:24px">
+  <div class="proof-strip fade-up">
+    <div class="badge badge-cyan" style="margin-bottom:16px">VERIFIED PERFORMANCE</div>
+    <h2>Signal Performance You Can Trust</h2>
+    <p>Every signal is timestamped, hashed, and outcome-verified against real market data. No cherry-picking.</p>
+    <div class="proof-kpis">
+      <div class="proof-kpi"><div class="v">100+</div><div class="l">Providers Tracked</div></div>
+      <div class="proof-kpi"><div class="v">7+</div><div class="l">Verified Providers</div></div>
+      <div class="proof-kpi"><div class="v">50K+</div><div class="l">Signals Processed</div></div>
+      <div class="proof-kpi"><div class="v">99.9%</div><div class="l">Uptime</div></div>
+    </div>
+    <a href="/proof" class="btn btn-outline">View Proof Dashboard →</a>
+  </div>
+
+  <!-- Features -->
+  <div class="section-header fade-up"><h2>Platform Features</h2></div>
+  <div class="feature-grid fade-up">
+    <div class="feature-card">
+      <div class="feature-icon">🔗</div>
+      <div class="feature-title">Immutable Proof</div>
+      <div class="feature-desc">Every signal hashed on receipt. Retroactive editing is cryptographically impossible.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🕵️</div>
+      <div class="feature-title">Cherry-Pick Detection</div>
+      <div class="feature-desc">Our algorithms detect selective reporting and downrank providers who hide losers.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📉</div>
+      <div class="feature-title">Vol-Adjusted Scoring</div>
+      <div class="feature-desc">Returns are normalised for volatility — comparing signals fairly across market regimes.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📡</div>
+      <div class="feature-title">Real-Time Feeds</div>
+      <div class="feature-desc">Live signal ingestion from Telegram & Discord with sub-second latency tracking.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏆</div>
+      <div class="feature-title">Provider Leaderboard</div>
+      <div class="feature-desc">Rank providers by win rate, ROI, average RR, and verified signal count.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🤖</div>
+      <div class="feature-title">Cornix Integration</div>
+      <div class="feature-desc">Auto-parse signals in Cornix format. One-click execution on supported exchanges.</div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="card" style="padding:48px 32px;text-align:center;position:relative;overflow:hidden" class="fade-up">
+    <div style="position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:300px;height:150px;background:radial-gradient(ellipse,rgba(245,158,11,.06) 0%,transparent 70%);pointer-events:none"></div>
+    <div class="badge badge-amber" style="margin-bottom:16px">GET STARTED TODAY</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:24px;color:var(--text);margin-bottom:8px">Ready to trade smarter?</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:24px;max-width:400px;margin-left:auto;margin-right:auto">
+      Join hundreds of traders using AgoraIQ to separate signal from noise.
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="/signup" class="btn btn-amber btn-lg">Create Free Account →</a>
+      <a href="/pricing" class="btn btn-ghost btn-lg">View Pricing</a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-left">© 2025 AgoraIQ · ChatLogic Insights LTD</div>
+  <div class="footer-links">
+    <a href="/about">About</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/privacy">Privacy</a>
+    <a href="/disclaimer">Disclaimer</a>
+    <a href="/no-financial-advice">No Financial Advice</a>
+    <a href="/terms">Terms</a>
+    <a href="/disclaimer">Disclaimer</a>
+    <a href="/no-financial-advice">No Financial Advice</a>
+    <a href="/risk-warning">Risk Warning</a>
+  </div>
+</footer>
+
+<script src="/assets/app.js"></script>
+</body>
 </html>

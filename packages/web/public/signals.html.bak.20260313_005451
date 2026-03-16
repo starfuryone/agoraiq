@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgoraIQ — Signals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Albert+Sans:wght@400;500;600;700;800;900&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+.filter-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:20px; }
+.filter-bar input  { flex:1; min-width:160px; max-width:220px; }
+.filter-bar select {
+  background:var(--surface); border:1px solid var(--border);
+  color:var(--text); padding:8px 12px; border-radius:6px;
+  font-size:11px; font-family:'DM Mono',monospace; cursor:pointer;
+}
+
+/* Signal table rows */
+.sig-symbol  { font-family:'Albert Sans',sans-serif; font-weight:700; font-size:13px; color:var(--text); }
+.sig-action  { font-size:10px; font-weight:700; letter-spacing:.06em; padding:2px 7px; border-radius:4px; }
+.sig-action.long  { background:rgba(16,185,129,.12); color:var(--green); }
+.sig-action.short { background:rgba(239,68,68,.12);  color:var(--red);   }
+.sig-score   { font-family:'DM Mono',monospace; font-size:11px; }
+.sig-ts      { font-size:10px; color:var(--muted); white-space:nowrap; }
+
+/* Outcome badges */
+.outcome-tp  { background:rgba(16,185,129,.1);  color:var(--green); border:1px solid rgba(16,185,129,.2); }
+.outcome-sl  { background:rgba(239,68,68,.1);   color:var(--red);   border:1px solid rgba(239,68,68,.2); }
+.outcome-open{ background:rgba(0,212,255,.08);  color:var(--cyan);  border:1px solid rgba(0,212,255,.15); }
+.outcome-exp { background:rgba(90,94,122,.1);   color:var(--muted); border:1px solid var(--border); }
+
+/* Pagination */
+.pagination { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:24px; }
+.page-btn {
+  background:var(--surface); border:1px solid var(--border); color:var(--text);
+  padding:6px 12px; border-radius:6px; font-size:11px; font-family:'DM Mono',monospace;
+  cursor:pointer; transition:border-color .15s;
+}
+.page-btn:hover:not(:disabled) { border-color:var(--cyan); color:var(--cyan); }
+.page-btn:disabled { opacity:.35; cursor:default; }
+.page-btn.active   { border-color:var(--cyan); color:var(--cyan); background:rgba(0,212,255,.06); }
+.page-info { font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; }
+
+/* Signal detail panel */
+.panel-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.55);
+  z-index:200; opacity:0; pointer-events:none; transition:opacity .2s;
+}
+.panel-overlay.open { opacity:1; pointer-events:all; }
+.detail-panel {
+  position:fixed; top:0; right:-500px; width:480px; max-width:95vw;
+  height:100vh; background:var(--surface); border-left:1px solid var(--border);
+  z-index:201; transition:right .25s cubic-bezier(.4,0,.2,1);
+  overflow-y:auto; padding:28px 28px 48px;
+}
+.detail-panel.open { right:0; }
+.panel-close {
+  position:absolute; top:16px; right:16px;
+  background:none; border:none; color:var(--muted);
+  font-size:20px; cursor:pointer; padding:4px 8px;
+  line-height:1; border-radius:4px;
+}
+.panel-close:hover { color:var(--text); background:var(--card); }
+.panel-section { margin-top:20px; }
+.panel-section-title {
+  font-size:9px; color:var(--muted); letter-spacing:.1em;
+  text-transform:uppercase; border-bottom:1px solid var(--border);
+  padding-bottom:6px; margin-bottom:12px;
+}
+.panel-kv { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid rgba(30,32,48,.6); font-size:11px; }
+.panel-kv:last-child { border-bottom:none; }
+.panel-kv-label { color:var(--muted); }
+.panel-kv-value { font-family:'DM Mono',monospace; color:var(--text); text-align:right; }
+/* Signal card (from formatted_html) */
+.signal-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:16px 20px; margin-top:16px; }
+.signal-card .signal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.signal-card .signal-header h2 { font-family:"Albert Sans",sans-serif; font-weight:800; font-size:18px; color:var(--text); margin:0; }
+.signal-card .signal-badge { font-size:11px; font-weight:700; padding:3px 10px; border-radius:4px; letter-spacing:.05em; }
+.signal-card .badge-long { background:rgba(16,185,129,.12); color:var(--green); }
+.signal-card .badge-short { background:rgba(239,68,68,.12); color:var(--red); }
+.signal-card .signal-meta { display:flex; flex-wrap:wrap; gap:12px; font-size:11px; color:var(--muted); margin-bottom:14px; }
+.signal-card .signal-meta strong { color:var(--text); }
+.signal-card .signal-section { margin-bottom:12px; }
+.signal-card .signal-section h3 { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin:0 0 6px; }
+.signal-card .signal-section ol { margin:0; padding-left:18px; font-family:"DM Mono",monospace; font-size:12px; color:var(--text); }
+.signal-card .signal-section li { padding:2px 0; }
+.signal-card .stop-loss p { font-family:"DM Mono",monospace; font-size:12px; color:var(--red); margin:0; }
+.signal-card .signal-note { font-size:11px; color:var(--muted); font-style:italic; margin-top:8px; }
+.signal-card .signal-note p { margin:0; }
+</style>
+</head>
+<body>
+
+<div id="loading-screen">
+  <div class="loader-ring"></div>
+  <div class="loader-text">AUTHENTICATING</div>
+</div>
+
+<!-- Detail panel -->
+<div class="panel-overlay" id="panel-overlay" onclick="closePanel()"></div>
+<div class="detail-panel" id="detail-panel">
+  <button class="panel-close" onclick="closePanel()">✕</button>
+  <div id="panel-content"></div>
+</div>
+
+<header>
+  <a href="/dashboard" class="logo">
+    <div class="logo-mark"></div>
+    <div class="logo-text">Agora<span>IQ</span></div>
+  </a>
+  <nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/market" style="font-weight:700;color:var(--green)">Watchlist</a>
+    <a href="/marketplace">Marketplace</a>
+    <a href="/markets">Markets</a>
+    <a href="/proof">Proof</a>
+    <a href="/news">News</a>
+    
+    <a href="/scanner">Scanner</a>
+    <a href="/provider-alpha">Intel</a>
+  </nav>
+  <div class="header-right">
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <div class="user-badge"><div class="dot"></div><span id="username-badge">—</span></div>
+    <button class="btn-logout" onclick="logout()">LOGOUT</button>
+  </div>
+</header>
+
+<div id="toast"></div>
+
+<main>
+  <div class="section-header fade-up"><h2>Signals</h2></div>
+
+  <!-- KPI strip -->
+  <div class="stats-grid fade-up" style="margin-bottom:24px">
+    <div class="stat-card">
+      <div class="stat-label">Total Signals</div>
+      <div class="stat-value cyan" id="kpi-total">—</div>
+      <div class="stat-sub">All time</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">This Page</div>
+      <div class="stat-value" id="kpi-page">—</div>
+      <div class="stat-sub">Current view</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">TP Hits</div>
+      <div class="stat-value green" id="kpi-tp">—</div>
+      <div class="stat-sub">This page</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">SL Hits</div>
+      <div class="stat-value red" id="kpi-sl">—</div>
+      <div class="stat-sub">This page</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar fade-up">
+    <input class="form-input" id="search" type="text" placeholder="Filter by pair or provider…" oninput="applyLocalFilter()">
+    <select id="filter-action" onchange="applyLocalFilter()">
+      <option value="">All Directions</option>
+      <option value="long">Long</option>
+      <option value="short">Short</option>
+    </select>
+    <select id="filter-status" onchange="fetchPage(1)">
+      <option value="">All Outcomes</option>
+      <option value="HIT_TP">TP Hit</option>
+      <option value="HIT_SL">SL Hit</option>
+      <option value="OPEN">Open</option>
+      <option value="EXPIRED">Expired</option>
+    </select>
+    <select id="filter-provider" onchange="fetchPage(1)">
+      <option value="">All Providers</option>
+    </select>
+    <select id="page-size" onchange="fetchPage(1)">
+      <option value="20">20 / page</option>
+      <option value="50">50 / page</option>
+      <option value="100">100 / page</option>
+    </select>
+    <a href="/api/v1/dashboard/exports/csv" class="btn btn-ghost btn-sm" style="white-space:nowrap" download>⬇ Export CSV</a>
+  </div>
+
+  <!-- Table -->
+  <div class="card fade-up">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Pair</th>
+            <th>Direction</th>
+            <th>Provider</th>
+            <th>Score</th>
+            <th>Confidence</th>
+            <th>Outcome</th>
+            <th>R×</th>
+            <th>Time</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="signals-body">
+          <tr><td colspan="9" style="text-align:center;padding:32px;color:var(--muted);font-size:11px">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" id="pagination"></div>
+
+</main>
+
+<script src="/assets/app.js"></script>
+<script src="/assets/auth.js"></script>
+<script>
+let currentPage  = 1;
+let totalPages   = 1;
+let totalSignals = 0;
+let pageSignals  = [];  // raw signals for current page (for local filter)
+
+async function pageInit(user) {
+  await fetchPage(1);
+}
+
+async function fetchPage(page) {
+  currentPage = page;
+  const limit    = parseInt(document.getElementById('page-size').value) || 20;
+  const provider = document.getElementById('filter-provider').value;
+
+  const tbody = document.getElementById('signals-body');
+  tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--muted);font-size:11px">
+    <div class="loader-ring" style="width:24px;height:24px;margin:0 auto"></div>
+  </td></tr>`;
+
+  try {
+    let url = `/api/v1/dashboard/signals?page=${page}&limit=${limit}`;
+    if (provider) url += `&provider=${encodeURIComponent(provider)}`;
+
+    const data    = await apiFetch(url);
+    pageSignals   = data?.signals || [];
+    const pag     = data?.pagination || {};
+    totalPages    = pag.totalPages  || 1;
+    totalSignals  = pag.total       || pageSignals.length;
+
+    // Populate provider filter from first page
+    if (page === 1) populateProviderFilter(pageSignals);
+
+    // KPIs
+    document.getElementById('kpi-total').textContent = fmtNum(totalSignals);
+    document.getElementById('kpi-page').textContent  = pageSignals.length;
+    updatePageKpis(pageSignals);
+
+    applyLocalFilter();
+    renderPagination(pag);
+
+  } catch (err) {
+    console.error('signals error:', err);
+    const isSubErr = err.message?.includes('SUBSCRIPTION') || err.message?.includes('403');
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--muted);font-size:11px">
+      ${isSubErr
+        ? '🔒 PRO subscription required — <a href="/pricing" style="color:var(--cyan)">Upgrade →</a>'
+        : 'Could not load signals.'}
+    </td></tr>`;
+  }
+}
+
+function updatePageKpis(signals) {
+  const tp = signals.filter(s => s.trade?.status === 'HIT_TP').length;
+  const sl = signals.filter(s => s.trade?.status === 'HIT_SL').length;
+  document.getElementById('kpi-tp').textContent = tp;
+  document.getElementById('kpi-sl').textContent = sl;
+}
+
+function populateProviderFilter(signals) {
+  const providers = [...new Set(signals.map(s => s.providerKey).filter(Boolean))].sort();
+  const sel = document.getElementById('filter-provider');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">All Providers</option>' +
+    providers.map(p => `<option value="${escapeHTML(p)}">${escapeHTML(p)}</option>`).join('');
+  if (cur) sel.value = cur;
+}
+
+function applyLocalFilter() {
+  const q      = document.getElementById('search').value.toLowerCase();
+  const action = document.getElementById('filter-action').value.toLowerCase();
+
+  let list = pageSignals.filter(s => {
+    const text = ((s.symbol||'') + ' ' + (s.providerKey||'')).toLowerCase();
+    if (q && !text.includes(q)) return false;
+    const a = (s.action || '').toLowerCase();
+    if (action === 'long'  && !['buy','long','call'].includes(a))  return false;
+    if (action === 'short' && !['sell','short','put'].includes(a)) return false;
+    return true;
+  });
+
+  updatePageKpis(list);
+  renderTable(list);
+}
+
+function renderTable(signals) {
+  const tbody = document.getElementById('signals-body');
+  if (!signals.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--muted);font-size:11px">No signals match your filters.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = signals.map(s => {
+    const action  = (s.action || '').toUpperCase();
+    const isBuy   = ['BUY','LONG','CALL'].includes(action);
+    const dirCls  = isBuy ? 'long' : 'short';
+    const dirLbl  = isBuy ? 'LONG' : 'SHORT';
+    const status  = s.trade?.status || null;
+    const rMult   = s.trade?.rMultiple;
+
+    let outcomeCls = 'outcome-open', outcomeLbl = 'OPEN';
+    if (status === 'HIT_TP')  { outcomeCls = 'outcome-tp';  outcomeLbl = 'TP'; }
+    if (status === 'HIT_SL')  { outcomeCls = 'outcome-sl';  outcomeLbl = 'SL'; }
+    if (status === 'EXPIRED') { outcomeCls = 'outcome-exp'; outcomeLbl = 'EXP'; }
+    if (status === 'CLOSED')  { outcomeCls = 'outcome-exp'; outcomeLbl = 'CLOSED'; }
+
+    const rColor = rMult == null ? '' : rMult >= 0 ? 'color:var(--green)' : 'color:var(--red)';
+    const rDisp  = rMult != null ? `${rMult >= 0 ? '+' : ''}${rMult.toFixed(2)}R` : '—';
+    const score  = s.score      != null ? s.score.toFixed(2)      : '—';
+    const conf   = s.confidence != null ? (s.confidence * 100).toFixed(0) + '%' : '—';
+
+    return `<tr style="cursor:pointer" onclick="openSignalPanel('${escapeHTML(s.id)}')">
+      <td class="sig-symbol">${escapeHTML(s.symbol || '—')}</td>
+      <td><span class="sig-action ${dirCls}">${dirLbl}</span></td>
+      <td style="font-size:10px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHTML(s.providerKey || '—')}</td>
+      <td class="sig-score">${score}</td>
+      <td class="sig-score">${conf}</td>
+      <td><span class="badge ${outcomeCls}" style="font-size:9px">${outcomeLbl}</span></td>
+      <td class="mono" style="font-size:11px;${rColor}">${rDisp}</td>
+      <td class="sig-ts">${fmtRelative(s.signalTs)}</td>
+      <td><span class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openSignalPanel('${escapeHTML(s.id)}')">→</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPagination(pag) {
+  const total = pag.totalPages || 1;
+  const cur   = pag.page || 1;
+  const cont  = document.getElementById('pagination');
+  if (total <= 1) { cont.innerHTML = ''; return; }
+
+  let html = `<button class="page-btn" onclick="fetchPage(${cur-1})" ${cur<=1?'disabled':''}>‹ Prev</button>`;
+
+  // Show max 7 page buttons with ellipsis
+  const pages = [];
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (cur > 3) pages.push('…');
+    for (let i = Math.max(2, cur-1); i <= Math.min(total-1, cur+1); i++) pages.push(i);
+    if (cur < total - 2) pages.push('…');
+    pages.push(total);
+  }
+
+  pages.forEach(p => {
+    if (p === '…') {
+      html += `<span class="page-info">…</span>`;
+    } else {
+      html += `<button class="page-btn ${p===cur?'active':''}" onclick="fetchPage(${p})">${p}</button>`;
+    }
+  });
+
+  html += `<button class="page-btn" onclick="fetchPage(${cur+1})" ${cur>=total?'disabled':''}>Next ›</button>`;
+  html += `<span class="page-info">page ${cur} of ${total}</span>`;
+  cont.innerHTML = html;
+}
+
+// ── Signal detail panel ───────────────────────────────────────
+let signalCache = {};
+
+function openSignalPanel(id) {
+  document.getElementById('panel-overlay').classList.add('open');
+  document.getElementById('detail-panel').classList.add('open');
+
+  // Try from page cache first
+  const s = pageSignals.find(x => x.id === id);
+  if (s) renderSignalPanel(s);
+
+  // Always fetch full detail (includes OHLC, ITB meta etc.)
+  fetchSignalDetail(id);
+}
+
+async function fetchSignalDetail(id) {
+  try {
+    const data = await apiFetch(`/api/v1/dashboard/signals/${id}`);
+    if (data) renderSignalPanel(data);
+  } catch (_) {}
+}
+
+function renderSignalPanel(s) {
+  const action  = (s.action || '').toUpperCase();
+  const isBuy   = ['BUY','LONG','CALL'].includes(action);
+  const dirCls  = isBuy ? 'var(--green)' : 'var(--red)';
+  const dirLbl  = isBuy ? 'LONG' : 'SHORT';
+  const status  = s.trade?.status || 'OPEN';
+  const rMult   = s.trade?.rMultiple;
+
+  let statusColor = 'var(--cyan)';
+  if (status === 'HIT_TP') statusColor = 'var(--green)';
+  if (status === 'HIT_SL') statusColor = 'var(--red)';
+  if (status === 'EXPIRED' || status === 'CLOSED') statusColor = 'var(--muted)';
+
+  document.getElementById('panel-content').innerHTML = `
+    <!-- Header -->
+    <div style="padding-right:32px;margin-bottom:4px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="font-family:'Albert Sans',sans-serif;font-weight:800;font-size:22px;color:var(--text)">${escapeHTML(s.symbol||'—')}</span>
+        <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;background:${isBuy?'rgba(16,185,129,.12)':'rgba(239,68,68,.12)'};color:${dirCls}">${dirLbl}</span>
+        <span style="font-size:10px;padding:2px 7px;border-radius:4px;color:${statusColor};background:rgba(255,255,255,.04);border:1px solid currentColor">${status}</span>
+      </div>
+      <div style="font-size:10px;color:var(--muted)">${fmtDate(s.signalTs)} · ${escapeHTML(s.providerKey||s.provider?.slug||'—')} · ${escapeHTML(s.timeframe||'—')}</div>
+    </div>
+
+    <!-- Signal card (Cornix-style) -->
+    ${s.trade?.formattedHtml ? `
+    <div class="panel-section">
+      <div class="panel-section-title">Signal Card</div>
+      ${s.trade.formattedHtml}
+    </div>` : ""}
+    <!-- Trade outcome -->
+    <div class="panel-section">
+      <div class="panel-section-title">Trade Outcome</div>
+      <div class="panel-kv"><span class="panel-kv-label">Status</span>       <span class="panel-kv-value" style="color:${statusColor}">${status}</span></div>
+      <div class="panel-kv"><span class="panel-kv-label">R-Multiple</span>   <span class="panel-kv-value" style="color:${rMult!=null?(rMult>=0?'var(--green)':'var(--red)'):'var(--muted)'}">${rMult!=null?(rMult>=0?'+':'')+rMult.toFixed(3)+'R':'—'}</span></div>
+      <div class="panel-kv"><span class="panel-kv-label">P&L %</span>        <span class="panel-kv-value">${s.trade?.pnlPct!=null?((s.trade.pnlPct>=0?'+':'')+s.trade.pnlPct.toFixed(2)+'%'):'—'}</span></div>
+      <div class="panel-kv"><span class="panel-kv-label">Entry Price</span>  <span class="panel-kv-value">${s.trade?.entryPrice ?? s.price ?? '—'}</span></div>
+      <div class="panel-kv"><span class="panel-kv-label">Exit Price</span>   <span class="panel-kv-value">${s.trade?.exitPrice ?? '—'}</span></div>
+      ${s.trade?.tpPrice  ? `<div class="panel-kv"><span class="panel-kv-label">Take Profit</span> <span class="panel-kv-value" style="color:var(--green)">${s.trade.tpPrice}</span></div>` : ''}
+      ${s.trade?.tp1Price ? `<div class="panel-kv"><span class="panel-kv-label">TP1</span>         <span class="panel-kv-value" style="color:var(--green)">${s.trade.tp1Price}</span></div>` : ''}
+      ${s.trade?.tp2Price ? `<div class="panel-kv"><span class="panel-kv-label">TP2</span>         <span class="panel-kv-value" style="color:var(--green)">${s.trade.tp2Price}</span></div>` : ''}
+      ${s.trade?.tp3Price ? `<div class="panel-kv"><span class="panel-kv-label">TP3</span>         <span class="panel-kv-value" style="color:var(--green)">${s.trade.tp3Price}</span></div>` : ''}
+      ${s.trade?.slPrice  ? `<div class="panel-kv"><span class="panel-kv-label">Stop Loss</span>   <span class="panel-kv-value" style="color:var(--red)">${s.trade.slPrice}</span></div>` : ''}
+    </div>
+
+    <!-- Signal scoring -->
+    <div class="panel-section">
+      <div class="panel-section-title">Signal Scoring</div>
+      <div class="panel-kv"><span class="panel-kv-label">Score</span>       <span class="panel-kv-value">${s.score!=null?s.score.toFixed(4):'—'}</span></div>
+      <div class="panel-kv"><span class="panel-kv-label">Confidence</span>  <span class="panel-kv-value">${s.confidence!=null?((s.confidence*100).toFixed(1)+'%'):'—'}</span></div>
+      ${s.tradeScore  != null ? `<div class="panel-kv"><span class="panel-kv-label">Trade Score</span>  <span class="panel-kv-value">${s.tradeScore}</span></div>` : ''}
+      ${s.bandNo      != null ? `<div class="panel-kv"><span class="panel-kv-label">Band</span>         <span class="panel-kv-value">#${s.bandNo} ${escapeHTML(s.bandText||'')}</span></div>` : ''}
+      ${s.bandSign    != null ? `<div class="panel-kv"><span class="panel-kv-label">Band Sign</span>    <span class="panel-kv-value">${s.bandSign}</span></div>` : ''}
+    </div>
+
+    <!-- OHLC if available -->
+    ${s.ohlc ? `
+    <div class="panel-section">
+      <div class="panel-section-title">Candle at Signal</div>
+      <div class="panel-kv"><span class="panel-kv-label">Open</span>   <span class="panel-kv-value">${s.ohlc.open}</span></div>
+      <div class="panel-kv"><span class="panel-kv-label">High</span>   <span class="panel-kv-value">${s.ohlc.high}</span></div>
+      <div class="panel-kv"><span class="panel-kv-label">Low</span>    <span class="panel-kv-value">${s.ohlc.low}</span></div>
+      <div class="panel-kv"><span class="panel-kv-label">Close</span>  <span class="panel-kv-value">${s.ohlc.close}</span></div>
+      ${s.ohlc.volume ? `<div class="panel-kv"><span class="panel-kv-label">Volume</span> <span class="panel-kv-value">${s.ohlc.volume}</span></div>` : ''}
+    </div>` : ''}
+
+    <!-- Metadata -->
+    <div class="panel-section">
+      <div class="panel-section-title">Metadata</div>
+      <div class="panel-kv"><span class="panel-kv-label">Signal ID</span>    <span class="panel-kv-value" style="font-size:9px;color:var(--muted)">${escapeHTML(s.id||'—')}</span></div>
+      <div class="panel-kv"><span class="panel-kv-label">Timeframe</span>    <span class="panel-kv-value">${escapeHTML(s.timeframe||'—')}</span></div>
+      <div class="panel-kv"><span class="panel-kv-label">Provider</span>     <span class="panel-kv-value">${escapeHTML(s.providerKey||s.provider?.slug||'—')}</span></div>
+      <div class="panel-kv"><span class="panel-kv-label">Source</span>       <span class="panel-kv-value">${escapeHTML(s.source||'—')}</span></div>
+      <div class="panel-kv"><span class="panel-kv-label">Signal time</span>  <span class="panel-kv-value">${fmtDate(s.signalTs)}</span></div>
+    </div>
+  `;
+}
+
+function closePanel() {
+  document.getElementById('panel-overlay').classList.remove('open');
+  document.getElementById('detail-panel').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+</script>
+<footer style="border-top:1px solid var(--border);padding:24px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:40px"><p style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">© 2025 ChatLogic Insights LTD · AgoraIQ</p><div style="display:flex;gap:18px;flex-wrap:wrap"><a href="/terms" style="font-size:10px;color:#8b90a8;text-decoration:none">Terms</a><a href="/privacy" style="font-size:10px;color:#8b90a8;text-decoration:none">Privacy</a><a href="/disclaimer" style="font-size:10px;color:#8b90a8;text-decoration:none">Disclaimer</a><a href="/no-financial-advice" style="font-size:10px;color:#8b90a8;text-decoration:none">No Financial Advice</a><a href="/cookies" style="font-size:10px;color:#8b90a8;text-decoration:none">Cookies</a></div></footer></body>
+</html>

@@ -52,8 +52,8 @@ app.get('/signup', (_req, res) => {
 });
 
 // ── Pricing Page ─────────────────────────────────────────────
-app.get('/markets', (_req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, 'markets.html'));
+app.get('/screener', (_req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, 'screener.html'));
 });
 
 app.get('/pricing', (_req, res) => {
@@ -82,7 +82,6 @@ app.get('/press', (_req, res) => {
 });
 
 // ── Resource Pages ──────────────────────────────────────────
-app.get('/blog', (_req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, 'blog.html'));
 });
 
@@ -118,6 +117,17 @@ app.get('/cookies', (_req, res) => {
 
 app.get('/disclaimer', (_req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, 'disclaimer.html'));
+});
+
+
+// ── Legacy route redirects ────────────────────────────────────
+app.get('/market', (_req, res) => { res.redirect(301, '/tracking'); });
+app.get('/markets', (_req, res) => { res.redirect(301, '/screener'); });
+
+
+// ── Pair Detail ───────────────────────────────────────────────
+app.get('/pair/*', (_req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, 'pair-detail.html'));
 });
 
 // ── Root → Proof ──────────────────────────────────────────────

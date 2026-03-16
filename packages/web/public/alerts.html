@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Smart Alerts — AgoraIQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08090d;--bg2:#0d0f16;--bg3:#12151f;--bg4:#161925;
+  --border:#1e2235;--muted:#4a5270;--text:#c8d0e8;
+  --cyan:#00d4ff;--green:#10b981;--red:#ef4444;--amber:#f59e0b;--purple:#a78bfa;
+  --critical:#ef4444;--high:#f59e0b;--medium:#00d4ff;--low:#4a5270;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'Syne',sans-serif}
+
+/* Nav */
+.nav{display:flex;align-items:center;padding:0 24px;height:56px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.nav-logo{font-size:18px;font-weight:800;color:var(--cyan);letter-spacing:-.02em;margin-right:auto}
+.nav-link{padding:0 14px;height:56px;display:flex;align-items:center;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-decoration:none;border-bottom:2px solid transparent;transition:.2s}
+.nav-link:hover,.nav-link.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.nav-bell{position:relative;margin-left:16px;cursor:pointer;padding:8px;border-radius:6px;transition:.2s}
+.nav-bell:hover{background:var(--bg3)}
+.bell-badge{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--red);border-radius:50%;border:2px solid var(--bg2);display:none}
+.bell-badge.has{display:block}
+
+/* Layout */
+.page{max-width:1200px;margin:0 auto;padding:28px 24px}
+.page-title{font-size:26px;font-weight:800;letter-spacing:-.02em}
+.page-sub{font-size:13px;color:var(--muted);margin-top:4px}
+
+/* Stats */
+.stats-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:24px 0}
+@media(max-width:900px){.stats-bar{grid-template-columns:repeat(3,1fr)}}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px 18px}
+.stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.stat-val{font-size:24px;font-weight:800;font-family:'DM Mono',monospace;line-height:1}
+.noise-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:8px}
+.noise-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));border-radius:3px;transition:width 1.2s ease}
+
+/* Tabs */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:28px}
+.tab{padding:10px 20px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.2s}
+.tab:hover{color:var(--text)}.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+/* Grid */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:900px){.grid-2{grid-template-columns:1fr}}
+
+/* Card */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px}
+.card-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;font-weight:700}
+
+/* Forms */
+.field{margin-bottom:14px}
+.field-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;display:block;font-weight:700}
+.input,.select,.textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:9px 12px;font-size:13px;color:var(--text);font-family:'Syne',sans-serif;outline:none;transition:.2s}
+.input:focus,.select:focus,.textarea:focus{border-color:var(--cyan)}
+.textarea{resize:vertical;min-height:80px;font-family:'DM Mono',monospace;font-size:12px;line-height:1.6}
+.input-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.range-wrap{display:flex;align-items:center;gap:10px}
+.range-wrap input[type=range]{flex:1;accent-color:var(--cyan)}
+
+/* Toggles & Pills */
+.ch-toggle{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:20px;border:1px solid var(--border);cursor:pointer;font-size:12px;font-weight:700;letter-spacing:.04em;transition:.2s;user-select:none}
+.ch-toggle.on{border-color:var(--cyan);color:var(--cyan);background:rgba(0,212,255,.07)}
+.ch-toggle:not(.on){color:var(--muted)}
+.pill{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.04em}
+
+/* Priority colors */
+.prio-critical{color:var(--critical);border-color:rgba(239,68,68,.4)}
+.prio-high{color:var(--high);border-color:rgba(245,158,11,.4)}
+.prio-medium{color:var(--medium);border-color:rgba(0,212,255,.4)}
+.prio-low{color:var(--low);border-color:rgba(74,82,112,.4)}
+.prio-bg-critical{background:rgba(239,68,68,.1)}
+.prio-bg-high{background:rgba(245,158,11,.1)}
+.prio-bg-medium{background:rgba(0,212,255,.1)}
+.prio-bg-low{background:rgba(74,82,112,.1)}
+
+/* Category badges */
+.cat-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:.04em;font-family:'DM Mono',monospace}
+.cat-signal{background:rgba(0,212,255,.1);color:var(--cyan)}
+.cat-market{background:rgba(167,139,250,.1);color:var(--purple)}
+.cat-whale{background:rgba(16,185,129,.1);color:var(--green)}
+.cat-liquidation{background:rgba(239,68,68,.1);color:var(--red)}
+.cat-pump{background:rgba(245,158,11,.1);color:var(--amber)}
+
+/* Buttons */
+.btn{padding:10px 20px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:.05em;cursor:pointer;border:none;font-family:'Syne',sans-serif;transition:.2s}
+.btn-primary{background:var(--cyan);color:var(--bg)}.btn-primary:hover{background:#19e0ff}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{border-color:var(--text);color:var(--text)}
+.btn-danger{background:transparent;color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.btn-row{display:flex;gap:10px;margin-top:20px;align-items:center}
+.btn-sm{padding:6px 12px;font-size:11px}
+
+/* Mode toggle for builder */
+.mode-toggle{display:flex;background:var(--bg3);border-radius:6px;border:1px solid var(--border);overflow:hidden;margin-bottom:16px}
+.mode-btn{flex:1;padding:8px 16px;font-size:11px;font-weight:700;text-align:center;cursor:pointer;transition:.2s;color:var(--muted);letter-spacing:.04em}
+.mode-btn.active{background:var(--cyan);color:var(--bg)}
+
+/* DSL editor */
+.dsl-editor{position:relative}
+.dsl-hint{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5}
+.dsl-hint code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-family:'DM Mono',monospace;font-size:10px}
+.dsl-valid{border-color:var(--green)!important}
+.dsl-invalid{border-color:var(--red)!important}
+.dsl-status{font-size:11px;margin-top:4px;font-weight:700}
+
+/* Score display */
+.score-ring{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;font-family:'DM Mono',monospace;flex-shrink:0}
+.score-factors{display:flex;flex-direction:column;gap:6px;flex:1}
+.factor-row{display:flex;align-items:center;gap:8px;font-size:11px}
+.factor-bar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.factor-fill{height:100%;border-radius:2px;transition:width .8s ease}
+.factor-label{min-width:110px;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px}
+.factor-val{min-width:30px;text-align:right;font-family:'DM Mono',monospace;font-size:10px;color:var(--text)}
+
+/* Preview banner */
+.preview-banner{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-top:16px;display:none}
+.preview-banner.show{display:block}
+.preview-fire{font-size:22px;font-weight:800;color:var(--cyan);font-family:'DM Mono',monospace}
+.preview-note{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* Rules list */
+.rule-row{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px}
+.rule-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.rule-name{font-size:14px;font-weight:700}
+.rule-meta{font-size:11px;color:var(--muted);margin-top:3px;font-family:'DM Mono',monospace}
+.rule-stats{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap}
+.rule-stat{font-size:11px;color:var(--muted)}
+.rule-stat span{color:var(--text);font-weight:700;font-family:'DM Mono',monospace}
+.rule-actions{margin-left:auto;display:flex;gap:8px}
+
+/* Feed */
+.feed-filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.feed-filter{padding:5px 12px;border-radius:4px;border:1px solid var(--border);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:.2s}
+.feed-filter.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,212,255,.07)}
+.feed-filter:not(.active){color:var(--muted)}
+.event-row{border-bottom:1px solid var(--border);padding:12px 0;display:flex;align-items:flex-start;gap:12px}
+.event-row:last-child{border-bottom:none}
+.event-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.event-pair{font-size:13px;font-weight:700}
+.event-meta{font-size:11px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace}
+.event-conds{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.cond-pill{font-size:10px;padding:2px 7px;border-radius:3px;font-family:'DM Mono',monospace}
+.cond-pass{background:rgba(16,185,129,.12);color:var(--green)}
+.cond-fail{background:rgba(239,68,68,.12);color:var(--red)}
+.ch-result{font-size:10px;padding:2px 7px;border-radius:3px;font-family:'DM Mono',monospace;background:var(--bg4);color:var(--muted)}
+.ch-result.sent{background:rgba(16,185,129,.12);color:var(--green)}
+.ch-result.failed{background:rgba(239,68,68,.12);color:var(--red)}
+.event-time{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap}
+
+/* Category breakdown mini chart */
+.cat-breakdown{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+.cat-chip{font-size:11px;display:flex;align-items:center;gap:4px}
+.cat-dot{width:6px;height:6px;border-radius:50%}
+
+/* Empty + Toast + Skeleton */
+.empty{text-align:center;padding:48px 0;color:var(--muted)}
+.empty-icon{font-size:36px;margin-bottom:12px}.empty-text{font-size:14px}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 18px;font-size:13px;font-weight:600;z-index:1000;transform:translateY(80px);opacity:0;transition:.3s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}.toast.success{border-left:3px solid var(--green)}.toast.error{border-left:3px solid var(--red)}
+.skeleton{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeUp .3s ease forwards}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">AgoraIQ</div>
+  <a href="/dashboard" class="nav-link">Dashboard</a>
+  <a href="/signals" class="nav-link">Signals</a>
+  <a href="/screener" class="nav-link">Screener</a>
+  <a href="/alerts" class="nav-link active">Alerts</a>
+  <a href="/journal" class="nav-link">Journal</a>
+  <div class="nav-bell" id="navBell" onclick="location.href='/alerts'">🔔<div class="bell-badge" id="bellBadge"></div></div>
+</nav>
+
+<div class="page">
+  <div class="page-header fade-in" style="display:flex;align-items:center;gap:14px;margin-bottom:4px">
+    <div>
+      <div class="page-title">Smart Alerts</div>
+      <div class="page-sub">AI-scored · Multi-source · Programmable rules · 5 delivery channels</div>
+    </div>
+    <div style="margin-left:auto"><span style="font-size:10px;color:var(--amber);font-weight:700;text-transform:uppercase;letter-spacing:.06em">⚡ Pro Feature</span></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar fade-in" id="statsBar">
+    <div class="stat-card"><div class="stat-label">Fired (30d)</div><div class="stat-val" id="sFired">–</div></div>
+    <div class="stat-card"><div class="stat-label">Blocked</div><div class="stat-val" id="sBlocked">–</div></div>
+    <div class="stat-card"><div class="stat-label">Noise Reduction</div><div class="stat-val" id="sNoise">–</div><div class="noise-bar"><div class="noise-fill" id="noiseFill" style="width:0%"></div></div></div>
+    <div class="stat-card"><div class="stat-label">Avg Alert Score</div><div class="stat-val" id="sScore">–</div></div>
+    <div class="stat-card"><div class="stat-label">Active Rules</div><div class="stat-val" id="sRules">–</div><div class="cat-breakdown" id="catBreakdown"></div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" data-tab="builder">Alert Builder</div>
+    <div class="tab" data-tab="rules">My Rules</div>
+    <div class="tab" data-tab="feed">Activity Feed</div>
+  </div>
+
+  <!-- ═══ TAB: BUILDER ═══ -->
+  <div id="tab-builder" class="fade-in">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">🎯 Rule Definition</div>
+
+        <div class="field">
+          <label class="field-label">Rule Name</label>
+          <input class="input" id="ruleName" placeholder="e.g. High-IQ BTC longs + whale activity"/>
+        </div>
+
+        <!-- Mode toggle: Visual vs DSL -->
+        <div class="mode-toggle" id="modeToggle">
+          <div class="mode-btn active" data-mode="visual" onclick="setMode('visual')">Visual Builder</div>
+          <div class="mode-btn" data-mode="dsl" onclick="setMode('dsl')">Expression DSL</div>
+        </div>
+
+        <!-- Visual mode -->
+        <div id="mode-visual">
+          <div class="field">
+            <label class="field-label">Event Categories</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap" id="catPills">
+              <div class="ch-toggle on" data-cat="SIGNAL">📡 Signals</div>
+              <div class="ch-toggle" data-cat="MARKET">📊 Market</div>
+              <div class="ch-toggle" data-cat="WHALE">🐋 Whale</div>
+              <div class="ch-toggle" data-cat="LIQUIDATION">💥 Liquidation</div>
+              <div class="ch-toggle" data-cat="PUMP">🚀 Pump</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Min IQ Score — <span id="iqVal" style="color:var(--cyan)">75</span></label>
+            <div class="range-wrap"><input type="range" id="iqScore" min="0" max="100" value="75" oninput="$('iqVal').textContent=this.value"/></div>
+          </div>
+          <div class="field">
+            <label class="field-label">Min Truth Pass — <span id="tpVal" style="color:var(--cyan)">80</span>%</label>
+            <div class="range-wrap"><input type="range" id="truthPass" min="0" max="100" value="80" oninput="$('tpVal').textContent=this.value"/></div>
+          </div>
+          <div class="field">
+            <label class="field-label">Min Confidence — <span id="confVal" style="color:var(--cyan)">65</span>%</label>
+            <div class="range-wrap"><input type="range" id="confidence" min="0" max="100" value="65" oninput="$('confVal').textContent=this.value"/></div>
+          </div>
+          <div class="field">
+            <label class="field-label">Max Cherry-Pick Risk</label>
+            <select class="select" id="cherryPick"><option value="">Any</option><option value="LOW">Low only</option><option value="MEDIUM" selected>Medium or below</option><option value="HIGH">Any</option></select>
+          </div>
+          <div class="input-row field">
+            <div><label class="field-label">Min R:R</label><input class="input" id="minR" type="number" placeholder="1.5" min="0" step="0.1"/></div>
+            <div><label class="field-label">Max Leverage</label><input class="input" id="maxLev" type="number" placeholder="0 = none" min="0"/></div>
+          </div>
+          <div class="field">
+            <label class="field-label">Pairs (blank = all)</label>
+            <input class="input" id="pairs" placeholder="BTC/USDT, ETH/USDT, SOL/USDT"/>
+          </div>
+          <div class="field">
+            <label class="field-label">Direction</label>
+            <select class="select" id="direction"><option value="">Both</option><option value="LONG">LONG only</option><option value="SHORT">SHORT only</option></select>
+          </div>
+          <div class="field">
+            <label class="field-label">Sessions</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap" id="sessionPills">
+              <div class="ch-toggle on" data-session="london">🇬🇧 London</div>
+              <div class="ch-toggle on" data-session="ny_open">🇺🇸 NY Open</div>
+              <div class="ch-toggle" data-session="asia">🌏 Asia</div>
+              <div class="ch-toggle" data-session="ny_close">🌙 NY Close</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DSL mode -->
+        <div id="mode-dsl" style="display:none">
+          <div class="field">
+            <label class="field-label">Event Categories</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap" id="dslCatPills">
+              <div class="ch-toggle on" data-cat="SIGNAL">📡 Signals</div>
+              <div class="ch-toggle" data-cat="MARKET">📊 Market</div>
+              <div class="ch-toggle" data-cat="WHALE">🐋 Whale</div>
+              <div class="ch-toggle" data-cat="LIQUIDATION">💥 Liquidation</div>
+              <div class="ch-toggle" data-cat="PUMP">🚀 Pump</div>
+            </div>
+          </div>
+          <div class="dsl-editor field">
+            <label class="field-label">Rule Expression</label>
+            <textarea class="textarea" id="dslExpr" placeholder="iqScore >= 75 AND confidence > 60 AND direction == 'LONG'
+
+More examples:
+  asset IN('BTC','ETH') AND priceChange > 5
+  (iqScore >= 80 OR amountUsd > 50000000) AND asset == 'BTC'
+  rRatio BETWEEN(1.5, 5.0) AND leverage <= 10" rows="5"></textarea>
+            <div class="dsl-status" id="dslStatus"></div>
+            <div class="dsl-hint">
+              Fields: <code>iqScore</code> <code>confidence</code> <code>truthPassRate</code> <code>rRatio</code> <code>leverage</code> <code>direction</code> <code>pair</code> <code>asset</code> <code>priceChange</code> <code>volumeChange</code> <code>amountUsd</code> <code>cascadeRisk</code> <code>volumeSpike</code><br/>
+              Operators: <code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code> <code>==</code> <code>!=</code> <code>AND</code> <code>OR</code> <code>NOT</code> <code>IN()</code> <code>BETWEEN()</code><br/>
+              Suffixes: <code>50M</code> = 50,000,000 · <code>200K</code> = 200,000
+            </div>
+          </div>
+        </div>
+
+        <!-- Shared: priority + throttle -->
+        <div class="input-row field" style="margin-top:14px">
+          <div>
+            <label class="field-label">Min Priority to Fire</label>
+            <select class="select" id="minPriority"><option value="LOW">Low (all)</option><option value="MEDIUM" selected>Medium+</option><option value="HIGH">High+</option><option value="CRITICAL">Critical only</option></select>
+          </div>
+          <div>
+            <label class="field-label">Throttle</label>
+            <select class="select" id="throttle"><option value="15">15 min</option><option value="30">30 min</option><option value="60" selected>1 hour</option><option value="120">2 hours</option><option value="240">4 hours</option><option value="1440">24 hours</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card">
+          <div class="card-title">📡 Delivery Channels</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap" id="channelToggles">
+            <div class="ch-toggle on" data-ch="web">🌐 In-app</div>
+            <div class="ch-toggle on" data-ch="telegram">✈️ Telegram</div>
+            <div class="ch-toggle" data-ch="email">📧 Email</div>
+            <div class="ch-toggle" data-ch="discord">💬 Discord</div>
+            <div class="ch-toggle" data-ch="webpush">🔔 Push</div>
+          </div>
+          <div style="margin-top:14px;padding:12px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.7">
+            <b style="color:var(--text)">CRITICAL</b> alerts force Telegram + Push regardless of selection.<br/>
+            <b style="color:var(--text)">In-app</b> notifications always delivered via SSE.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🔍 Live Preview</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Test these conditions against the last 24h of signals.</div>
+          <button class="btn btn-ghost" onclick="runPreview()" id="previewBtn">Run Preview →</button>
+          <div class="preview-banner" id="previewBanner">
+            <div class="preview-fire" id="previewFire">–</div>
+            <div class="preview-note" id="previewNote"></div>
+            <div style="margin-top:10px;font-size:11px;color:var(--muted)" id="previewExamples"></div>
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-top:0">
+          <button class="btn btn-primary" onclick="saveRule()">Save Rule</button>
+          <button class="btn btn-ghost" onclick="resetBuilder()">Clear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: MY RULES ═══ -->
+  <div id="tab-rules" style="display:none" class="fade-in">
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btn btn-primary" onclick="showTab('builder')">+ New Rule</button>
+    </div>
+    <div id="rulesContent"><div class="skeleton" style="height:80px;border-radius:8px;margin-bottom:10px"></div></div>
+  </div>
+
+  <!-- ═══ TAB: FEED ═══ -->
+  <div id="tab-feed" style="display:none" class="fade-in">
+    <div class="feed-filters" id="feedFilters">
+      <div class="feed-filter active" data-status="">All</div>
+      <div class="feed-filter" data-status="FIRED">Fired</div>
+      <div class="feed-filter" data-status="BLOCKED">Blocked</div>
+      <div class="feed-filter" data-status="THROTTLED">Throttled</div>
+      <span style="width:1px;background:var(--border);margin:0 4px"></span>
+      <div class="feed-filter" data-category="SIGNAL">📡 Signal</div>
+      <div class="feed-filter" data-category="MARKET">📊 Market</div>
+      <div class="feed-filter" data-category="WHALE">🐋 Whale</div>
+      <div class="feed-filter" data-category="LIQUIDATION">💥 Liq</div>
+      <div class="feed-filter" data-category="PUMP">🚀 Pump</div>
+    </div>
+    <div class="card"><div id="feedContent"><div class="skeleton" style="height:60px;border-radius:6px;margin-bottom:8px"></div></div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api/v1/alerts';
+const token = localStorage.getItem('token') || '';
+const headers = { 'Content-Type':'application/json', ...(token && { Authorization:`Bearer ${token}` }) };
+const $ = id => document.getElementById(id);
+const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+
+let currentMode = 'visual';
+let feedStatus = '';
+let feedCategory = '';
+
+// ── Tabs ──────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => showTab(t.dataset.tab)));
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  ['builder','rules','feed'].forEach(n => $(f='tab-'+n).style.display = n === name ? 'block' : 'none');
+  if (name === 'rules') loadRules();
+  if (name === 'feed')  loadFeed();
+}
+
+// ── Toggle pills ──────────────────────────────────────────
+document.querySelectorAll('[data-session],[data-ch],[data-cat]').forEach(p =>
+  p.addEventListener('click', () => p.classList.toggle('on'))
+);
+
+// ── Mode toggle ───────────────────────────────────────────
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  $('mode-visual').style.display = mode === 'visual' ? 'block' : 'none';
+  $('mode-dsl').style.display    = mode === 'dsl'    ? 'block' : 'none';
+}
+
+// ── DSL validation ────────────────────────────────────────
+let dslDebounce;
+$('dslExpr').addEventListener('input', () => {
+  clearTimeout(dslDebounce);
+  dslDebounce = setTimeout(validateDsl, 400);
+});
+
+async function validateDsl() {
+  const expr = $('dslExpr').value.trim();
+  if (!expr) { $('dslStatus').textContent = ''; $('dslExpr').classList.remove('dsl-valid','dsl-invalid'); return; }
+  try {
+    const r = await fetch(`${API}/validate-expression`, { method:'POST', headers, body: JSON.stringify({ expression: expr }) });
+    const data = await r.json();
+    if (data.valid) {
+      $('dslExpr').classList.add('dsl-valid'); $('dslExpr').classList.remove('dsl-invalid');
+      $('dslStatus').innerHTML = '<span style="color:var(--green)">✓ Valid expression</span>';
+    } else {
+      $('dslExpr').classList.add('dsl-invalid'); $('dslExpr').classList.remove('dsl-valid');
+      $('dslStatus').innerHTML = `<span style="color:var(--red)">✗ ${esc(data.error)}</span>`;
+    }
+  } catch { $('dslStatus').textContent = ''; }
+}
+
+// ── Stats ─────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const r = await fetch(`${API}/stats?window=30d`, { headers });
+    if (!r.ok) throw 0;
+    const d = await r.json();
+    $('sFired').textContent   = d.fired;
+    $('sBlocked').textContent = d.blocked;
+    $('sNoise').textContent   = `${d.noiseReduction}%`;
+    $('sScore').textContent   = d.avgAlertScore > 0 ? d.avgAlertScore : '–';
+    $('sRules').textContent   = d.activeRules;
+    $('noiseFill').style.width = `${d.noiseReduction}%`;
+    // Category breakdown
+    const catColors = { SIGNAL:'var(--cyan)',MARKET:'var(--purple)',WHALE:'var(--green)',LIQUIDATION:'var(--red)',PUMP:'var(--amber)' };
+    const cbd = d.categoryBreakdown || {};
+    $('catBreakdown').innerHTML = Object.entries(cbd)
+      .filter(([,v]) => v > 0)
+      .map(([k,v]) => `<div class="cat-chip"><div class="cat-dot" style="background:${catColors[k]||'var(--muted)'}"></div>${k} ${v}</div>`)
+      .join('');
+  } catch {
+    ['sFired','sBlocked','sNoise','sScore','sRules'].forEach(id => $(id).textContent = '–');
+  }
+}
+
+// ── Build payloads ────────────────────────────────────────
+function getCategories(containerId) {
+  return [...document.querySelectorAll(`#${containerId} [data-cat].on`)].map(p => p.dataset.cat);
+}
+
+function buildLegacyConditions() {
+  const sessions = [...document.querySelectorAll('[data-session].on')].map(p => p.dataset.session);
+  const pairsRaw = $('pairs').value.trim();
+  const dir = $('direction').value;
+  const cp = $('cherryPick').value;
+  const minR = parseFloat($('minR').value) || 0;
+  const maxLev = parseInt($('maxLev').value) || 0;
+  return {
+    minIQScore:       parseInt($('iqScore').value),
+    minTruthPassRate: parseInt($('truthPass').value),
+    minConfidence:    parseInt($('confidence').value),
+    ...(cp && { maxCherryPickRisk: cp }),
+    pairs:      pairsRaw ? pairsRaw.split(',').map(s => s.trim().toUpperCase()).filter(Boolean) : [],
+    directions: dir ? [dir] : [],
+    sessions,
+    ...(minR > 0 && { minRR: minR }),
+    ...(maxLev > 0 && { maxLeverage: maxLev }),
+  };
+}
+
+function buildChannels() {
+  const ch = {};
+  document.querySelectorAll('#channelToggles [data-ch]').forEach(p => ch[p.dataset.ch] = p.classList.contains('on'));
+  return ch;
+}
+
+// ── Preview ───────────────────────────────────────────────
+async function runPreview() {
+  const btn = $('previewBtn');
+  btn.textContent = 'Simulating…'; btn.disabled = true;
+  try {
+    const body = { lookbackHours: 24 };
+    if (currentMode === 'dsl') {
+      body.ruleFormat = 'expression';
+      body.expression = $('dslExpr').value.trim();
+    } else {
+      body.conditions = buildLegacyConditions();
+    }
+    const r = await fetch(`${API}/preview`, { method:'POST', headers, body: JSON.stringify(body) });
+    if (!r.ok) throw 0;
+    const d = await r.json();
+    $('previewFire').textContent = `${d.wouldFire} signals would fire`;
+    $('previewNote').textContent = `Out of ${d.totalSignals} in last 24h (${d.fireRate}% fire rate)`;
+    $('previewExamples').innerHTML = (d.examples||[]).map(e => `<div style="margin-top:4px">↳ ${esc(e.pair)} ${esc(e.direction)}</div>`).join('');
+    $('previewBanner').classList.add('show');
+  } catch { showToast('Preview failed','error'); }
+  btn.textContent = 'Run Preview →'; btn.disabled = false;
+}
+
+// ── Save rule ─────────────────────────────────────────────
+async function saveRule() {
+  const name = $('ruleName').value.trim();
+  if (!name) { showToast('Enter a rule name','error'); return; }
+
+  const body = {
+    name,
+    channels:    buildChannels(),
+    minPriority: $('minPriority').value,
+    throttleMin: parseInt($('throttle').value),
+  };
+
+  if (currentMode === 'dsl') {
+    const expr = $('dslExpr').value.trim();
+    if (!expr) { showToast('Enter a rule expression','error'); return; }
+    body.ruleFormat  = 'expression';
+    body.expression  = expr;
+    body.categories  = getCategories('dslCatPills');
+  } else {
+    body.ruleFormat  = 'legacy';
+    body.conditions  = buildLegacyConditions();
+    body.categories  = getCategories('catPills');
+  }
+
+  if (body.categories.length === 0) body.categories = ['SIGNAL'];
+
+  try {
+    const r = await fetch(`${API}/rules`, { method:'POST', headers, body: JSON.stringify(body) });
+    if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || 'Failed'); }
+    showToast('Rule saved ✓','success');
+    resetBuilder();
+    loadStats();
+  } catch (e) { showToast(e.message,'error'); }
+}
+
+function resetBuilder() {
+  $('ruleName').value = '';
+  $('iqScore').value = 75; $('iqVal').textContent = '75';
+  $('truthPass').value = 80; $('tpVal').textContent = '80';
+  $('confidence').value = 65; $('confVal').textContent = '65';
+  $('cherryPick').value = 'MEDIUM';
+  $('pairs').value = ''; $('direction').value = '';
+  $('minR').value = ''; $('maxLev').value = '';
+  $('dslExpr').value = '';
+  $('dslStatus').textContent = '';
+  $('dslExpr').classList.remove('dsl-valid','dsl-invalid');
+  $('previewBanner').classList.remove('show');
+}
+
+// ── Rules list ────────────────────────────────────────────
+async function loadRules() {
+  try {
+    const r = await fetch(`${API}/rules`, { headers });
+    if (!r.ok) throw 0;
+    const { rules } = await r.json();
+    const el = $('rulesContent');
+    if (!rules?.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🔔</div><div class="empty-text">No rules yet</div></div>'; return; }
+    el.innerHTML = rules.map(rule => {
+      const cond = rule.conditions || {};
+      const cats = (rule.categories || ['SIGNAL']).map(c => `<span class="cat-badge cat-${c.toLowerCase()}">${c}</span>`).join(' ');
+      const ch = rule.channels || {};
+      const chIcons = Object.entries(ch).filter(([,v])=>v).map(([k])=>chIcon(k)).join(' ');
+      const isDsl = rule.ruleFormat === 'expression';
+      const meta = isDsl
+        ? `DSL · Throttle ${rule.throttleMin}min · Min ${rule.minPriority||'LOW'}`
+        : `IQ≥${cond.minIQScore??0} · Truth≥${cond.minTruthPassRate??0}% · Throttle ${rule.throttleMin}min`;
+      return `
+        <div class="rule-row">
+          <div class="rule-dot" style="background:${rule.active?'var(--green)':'var(--muted)'}"></div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <div class="rule-name">${esc(rule.name)}</div>
+              <span class="pill" style="background:${rule.active?'rgba(16,185,129,.12)':'rgba(74,82,112,.12)'};color:${rule.active?'var(--green)':'var(--muted)'}">${rule.active?'ACTIVE':'PAUSED'}</span>
+              ${isDsl ? '<span class="pill" style="background:rgba(167,139,250,.12);color:var(--purple)">DSL</span>' : ''}
+              ${cats}
+            </div>
+            <div class="rule-meta">${meta}</div>
+            <div class="rule-stats">
+              <div class="rule-stat">Fired <span>${rule.firedCount}</span></div>
+              <div class="rule-stat">Blocked <span>${rule.blockedCount}</span></div>
+              <div class="rule-stat">Events <span>${rule._count?.events??0}</span></div>
+              <div class="rule-stat">Channels <span>${chIcons||'—'}</span></div>
+            </div>
+          </div>
+          <div class="rule-actions">
+            <button class="btn btn-ghost btn-sm" onclick="toggleRule('${rule.id}',${!rule.active})">${rule.active?'Pause':'Resume'}</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteRule('${rule.id}')">Delete</button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch { $('rulesContent').innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">Failed to load</div></div>'; }
+}
+
+async function toggleRule(id, active) {
+  await fetch(`${API}/rules/${id}`, { method:'PATCH', headers, body: JSON.stringify({ active }) });
+  loadRules(); loadStats();
+}
+async function deleteRule(id) {
+  if (!confirm('Delete this rule?')) return;
+  await fetch(`${API}/rules/${id}`, { method:'DELETE', headers });
+  showToast('Rule deleted','success'); loadRules(); loadStats();
+}
+function chIcon(ch) { return {web:'🌐',telegram:'✈️',email:'📧',discord:'💬',webpush:'🔔'}[ch]||ch; }
+
+// ── Feed ──────────────────────────────────────────────────
+document.querySelectorAll('.feed-filter').forEach(f => f.addEventListener('click', () => {
+  if (f.dataset.status !== undefined) {
+    document.querySelectorAll('.feed-filter[data-status]').forEach(x => x.classList.remove('active'));
+    f.classList.add('active');
+    feedStatus = f.dataset.status;
+  }
+  if (f.dataset.category !== undefined) {
+    if (f.classList.contains('active')) { f.classList.remove('active'); feedCategory = ''; }
+    else { document.querySelectorAll('.feed-filter[data-category]').forEach(x => x.classList.remove('active')); f.classList.add('active'); feedCategory = f.dataset.category; }
+  }
+  loadFeed();
+}));
+
+async function loadFeed() {
+  const today = new Date().toISOString().split('T')[0];
+  let url = `${API}/feed?date=${today}&limit=50`;
+  if (feedStatus) url += `&status=${feedStatus}`;
+  if (feedCategory) url += `&category=${feedCategory}`;
+  try {
+    const r = await fetch(url, { headers });
+    if (!r.ok) throw 0;
+    const { events } = await r.json();
+    const el = $('feedContent');
+    if (!events?.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">No events today</div></div>'; return; }
+    el.innerHTML = events.map(e => {
+      const isFired = e.status === 'FIRED';
+      const isBlocked = e.status === 'BLOCKED';
+      const statusBg = isFired ? 'rgba(16,185,129,.12)' : isBlocked ? 'rgba(239,68,68,.12)' : 'rgba(245,158,11,.12)';
+      const statusIcon = isFired ? '🔔' : isBlocked ? '🚫' : '⏱';
+      const statusColor = isFired ? 'var(--green)' : isBlocked ? 'var(--red)' : 'var(--amber)';
+
+      // Priority badge
+      const prio = e.priority || 'LOW';
+      const prioColor = {CRITICAL:'var(--critical)',HIGH:'var(--high)',MEDIUM:'var(--medium)',LOW:'var(--low)'}[prio];
+
+      // Category badge
+      const cat = e.category || 'SIGNAL';
+      const catClass = `cat-${cat.toLowerCase()}`;
+
+      // Matched conditions
+      const condArray = Array.isArray(e.matchedConditions) ? e.matchedConditions : [];
+      const conds = condArray.map(c => {
+        const pass = c.includes('✓');
+        return `<span class="cond-pill ${pass?'cond-pass':'cond-fail'}">${esc(c)}</span>`;
+      }).join('');
+
+      // Delivery results
+      const dr = (typeof e.deliveryResults === 'object' && e.deliveryResults) ? e.deliveryResults : {};
+      const delivery = Object.entries(dr).map(([ch,s]) =>
+        `<span class="ch-result ${s==='sent'?'sent':'failed'}">${chIcon(ch)} ${s}</span>`).join('');
+
+      // Score
+      const scoreHtml = e.alertScore ? `<span style="font-size:10px;padding:2px 6px;border-radius:3px;background:rgba(0,212,255,.1);color:var(--cyan);font-family:'DM Mono',monospace;font-weight:700">${e.alertScore}%</span>` : '';
+
+      const t = new Date(e.firedAt);
+      const time = t.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+
+      return `
+        <div class="event-row">
+          <div class="event-icon" style="background:${statusBg}">${statusIcon}</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <div class="event-pair">${esc(e.rule?.name||'Unknown')}</div>
+              <span class="pill" style="background:${statusBg};color:${statusColor}">${e.status}</span>
+              <span class="pill" style="color:${prioColor};border:1px solid ${prioColor}33">${prio}</span>
+              <span class="cat-badge ${catClass}">${cat}</span>
+              ${scoreHtml}
+            </div>
+            <div class="event-meta">${e.signalId ? 'Signal '+e.signalId.slice(-8) : '—'}</div>
+            <div class="event-conds">${conds}</div>
+            ${delivery ? `<div style="display:flex;gap:6px;margin-top:6px">${delivery}</div>` : ''}
+          </div>
+          <div class="event-time">${time}</div>
+        </div>`;
+    }).join('');
+  } catch { $('feedContent').innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">Failed to load</div></div>'; }
+}
+
+// ── SSE + Bell ────────────────────────────────────────────
+function connectSSE() {
+  if (!token) return;
+  try {
+    const es = new EventSource(`${API}/stream`);
+    es.onmessage = () => {
+      $('bellBadge').classList.add('has');
+      if ($('tab-feed').style.display !== 'none') loadFeed();
+      loadStats();
+    };
+    es.onerror = () => { es.close(); setTimeout(connectSSE, 5000); };
+  } catch {}
+}
+async function loadUnreadCount() {
+  if (!token) return;
+  try {
+    const r = await fetch(`${API}/unread-count`, { headers });
+    if (!r.ok) return;
+    const { count } = await r.json();
+    if (count > 0) $('bellBadge').classList.add('has');
+  } catch {}
+}
+
+// ── Toast ─────────────────────────────────────────────────
+function showToast(msg, type='success') {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── Init ──────────────────────────────────────────────────
+loadStats();
+loadUnreadCount();
+connectSSE();
+</script>
+</body>
+</html>

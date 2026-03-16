@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgoraIQ — Proof</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+
+<div id="loading-screen">
+  <div class="loader-ring"></div>
+  <div class="loader-text">LOADING</div>
+</div>
+
+<header>
+  <a href="/dashboard" class="logo">
+    <div class="logo-mark"></div>
+    <div class="logo-text">Agora<span>IQ</span></div>
+  </a>
+  <nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/marketplace">Marketplace</a>
+    <a href="/markets">Markets</a>
+    <a href="/proof" class="active">Proof</a>
+    <a href="/news">News</a>
+    <a href="/member">Portal</a>
+  </nav>
+  <div class="header-right">
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <div class="user-badge"><div class="dot"></div><span id="username-badge">—</span></div>
+    <button class="btn-logout" onclick="logout()">LOGOUT</button>
+  </div>
+</header>
+
+<div id="toast"></div>
+
+<main>
+
+  <div class="section-header fade-up"><h2>Immutable Proof Dashboard</h2></div>
+
+  <div class="banner info fade-up">
+    🔒 All signals are hashed on receipt using SHA-256. Retroactive editing is cryptographically impossible.
+  </div>
+
+  <!-- KPIs -->
+  <div class="stats-grid fade-up">
+    <div class="stat-card">
+      <div class="stat-label">Total Signals</div>
+      <div class="stat-value cyan" id="kpi-total">—</div>
+      <div class="stat-sub">All time</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Outcomes Resolved</div>
+      <div class="stat-value amber" id="kpi-resolved">—</div>
+      <div class="stat-sub">Win / loss / stopped</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Overall Win Rate</div>
+      <div class="stat-value green" id="kpi-winrate">—</div>
+      <div class="stat-sub">Verified trades</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Risk/Reward</div>
+      <div class="stat-value" id="kpi-rr">—</div>
+      <div class="stat-sub">Realized RR</div>
+    </div>
+  </div>
+
+  <!-- Monthly breakdown -->
+  <div class="section-header fade-up"><h2>Monthly Breakdown</h2></div>
+  <div class="card fade-up">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Signals</th>
+            <th>Resolved</th>
+            <th>Wins</th>
+            <th>Losses</th>
+            <th>Win Rate</th>
+            <th>Avg RR</th>
+            <th>Vol Score</th>
+          </tr>
+        </thead>
+        <tbody id="monthly-body">
+          <tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted);font-size:11px">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Hash verification -->
+  <div class="section-header fade-up"><h2>Verify a Signal Hash</h2></div>
+  <div class="card card-pad fade-up">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--text);margin-bottom:6px">Hash Lookup</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px">Enter a signal hash to verify its original content and timestamp.</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <input class="form-input" id="hash-input" type="text" placeholder="sha256:abcdef1234…" style="flex:1;min-width:200px">
+      <button class="btn btn-cyan" onclick="verifyHash()">Verify →</button>
+    </div>
+    <div id="hash-result" style="margin-top:16px"></div>
+  </div>
+
+  <!-- Recent proofs table -->
+  <div class="section-header fade-up"><h2>Recent Proof Records</h2></div>
+  <div class="card fade-up">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Provider</th>
+            <th>Pair</th>
+            <th>Direction</th>
+            <th>Outcome</th>
+            <th>Hash (short)</th>
+          </tr>
+        </thead>
+        <tbody id="proof-body">
+          <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted);font-size:11px">Loading proof records…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<script src="/assets/app.js"></script>
+<script src="/assets/auth.js"></script>
+<script>
+async function pageInit() {
+  try {
+    const data = await apiFetch('/api/v1/proof/summary');
+    const s = data?.summary || data || {};
+    document.getElementById('kpi-total').textContent = fmtNum(s.totalSignals) || '—';
+    document.getElementById('kpi-resolved').textContent = fmtNum(s.resolvedCount) || '—';
+    document.getElementById('kpi-winrate').textContent = s.winRate != null ? s.winRate.toFixed(1) + '%' : '—';
+    document.getElementById('kpi-rr').textContent = s.avgRR != null ? s.avgRR.toFixed(2) : '—';
+    renderMonthly(s.monthly || []);
+    renderProofRecords(s.recent || []);
+  } catch (err) {
+    toast('Could not load proof data.', 'error');
+    renderMonthly([]);
+    renderProofRecords([]);
+  }
+}
+
+function renderMonthly(months) {
+  const tbody = document.getElementById('monthly-body');
+  if (!months.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted);font-size:11px">No monthly data yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = months.map(m => {
+    const wr = m.winRate != null ? m.winRate.toFixed(1) + '%' : '—';
+    const cls = (m.winRate || 0) >= 50 ? 'green' : 'red';
+    return `
+      <tr>
+        <td><strong>${escapeHTML(m.month || '—')}</strong></td>
+        <td>${m.signals ?? '—'}</td>
+        <td>${m.resolved ?? '—'}</td>
+        <td class="text-green">${m.wins ?? '—'}</td>
+        <td class="text-red">${m.losses ?? '—'}</td>
+        <td><span class="text-${cls}">${wr}</span></td>
+        <td>${m.avgRR != null ? m.avgRR.toFixed(2) : '—'}</td>
+        <td>${m.volScore != null ? m.volScore.toFixed(2) : '—'}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderProofRecords(records) {
+  const tbody = document.getElementById('proof-body');
+  if (!records.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted);font-size:11px">No proof records.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = records.map(r => {
+    const outcome = r.outcome || 'pending';
+    const outcomeClass = outcome === 'win' ? 'badge-green' : outcome === 'loss' ? 'badge-red' : 'badge-muted';
+    return `
+      <tr>
+        <td class="mono" style="font-size:10px">${fmtRelative(r.createdAt)}</td>
+        <td>${escapeHTML(r.provider || '—')}</td>
+        <td><strong>${escapeHTML(r.pair || '—')}</strong></td>
+        <td><span class="signal-dir ${(r.direction||'long').toLowerCase()}" style="font-size:9px;padding:2px 6px">${r.direction || 'LONG'}</span></td>
+        <td><span class="badge ${outcomeClass}">${outcome.toUpperCase()}</span></td>
+        <td class="mono" style="font-size:10px;color:var(--muted)">${(r.hash || '').slice(0, 16)}…</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function verifyHash() {
+  const hash = document.getElementById('hash-input').value.trim();
+  const result = document.getElementById('hash-result');
+  if (!hash) { toast('Please enter a hash.', 'error'); return; }
+  result.innerHTML = '<div class="skeleton" style="height:40px;width:100%"></div>';
+  try {
+    const data = await apiFetch(`/api/v1/proof/verify?hash=${encodeURIComponent(hash)}`);
+    if (data?.found) {
+      result.innerHTML = `
+        <div class="banner success">
+          ✓ Hash verified · Signal from ${escapeHTML(data.provider || '—')} · ${fmtDate(data.createdAt)}
+        </div>`;
+    } else {
+      result.innerHTML = '<div class="banner error">✕ Hash not found in the proof database.</div>';
+    }
+  } catch (_) {
+    result.innerHTML = '<div class="banner error">Could not verify hash.</div>';
+  }
+}
+</script>
+</body>
+</html>

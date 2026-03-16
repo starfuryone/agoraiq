@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgoraIQ — Provider Alpha</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="icon" href="/favicon.ico" />
+  <style>
+    :root {
+      --bg:#08090d;--surface:#0f1018;--card:#13141e;--border:#1e2030;--border-hi:#2a2d42;
+      --cyan:#00d4ff;--cyan-dim:rgba(0,212,255,.12);--amber:#f59e0b;--amber-dim:rgba(245,158,11,.12);
+      --green:#10b981;--green-dim:rgba(16,185,129,.12);--red:#ef4444;--red-dim:rgba(239,68,68,.10);
+      --text:#e2e4ef;--muted:#5a5e7a;--label:#8b90b0;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:48px 48px;pointer-events:none}
+
+    /* ── Header ── */
+    header{position:sticky;top:0;z-index:100;background:rgba(8,9,13,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:60px}
+    .logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .logo-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--cyan),#0066ff);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex-shrink:0}
+    .logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.5px;color:var(--text)}
+    .logo-text span{color:var(--cyan)}
+    nav{display:flex;gap:6px}
+    nav a{color:var(--label);text-decoration:none;font-size:12px;letter-spacing:.04em;padding:6px 14px;border-radius:6px;transition:all .15s;border:1px solid transparent}
+    nav a:hover{color:var(--text);background:var(--card);border-color:var(--border)}
+    nav a.active{color:var(--cyan);border-color:var(--border-hi)}
+    .header-right{display:flex;align-items:center;gap:12px}
+    .user-badge{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--label)}
+    .user-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
+    #username-badge{color:var(--text);font-weight:500}
+    .btn-logout{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.06em;color:var(--muted);background:none;border:1px solid var(--border);border-radius:6px;padding:6px 12px;cursor:pointer;transition:all .15s}
+    .btn-logout:hover{color:var(--red);border-color:var(--red)}
+
+    /* ── Layout ── */
+    main{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:36px 32px 60px}
+
+    /* ── Page header ── */
+    .page-eyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+    .page-eyebrow::before{content:'';width:20px;height:1px;background:var(--cyan);opacity:.5}
+    .page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:40px;letter-spacing:-2px;color:var(--text);line-height:1;margin-bottom:8px}
+    .page-sub{font-size:11px;color:var(--muted);max-width:580px;line-height:1.8;margin-bottom:28px}
+
+    /* ── Callout ── */
+    .callout{padding:16px 20px;border-radius:10px;font-size:11px;color:var(--label);line-height:1.8;margin-bottom:24px;background:var(--cyan-dim);border:1px solid rgba(0,212,255,.2);border-left:3px solid var(--cyan)}
+    .callout strong{color:var(--text)}
+
+    /* ── Stats ── */
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px 20px;transition:border-color .2s,transform .15s}
+    .stat-card:hover{border-color:var(--border-hi);transform:translateY(-1px)}
+    .stat-label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+    .stat-value{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;letter-spacing:-1px;line-height:1}
+    .stat-value.cyan{color:var(--cyan)}.stat-value.green{color:var(--green)}.stat-value.amber{color:var(--amber)}
+    .stat-sub{font-size:10px;color:var(--muted);margin-top:4px}
+
+    /* ── Cards ── */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .2s;margin-bottom:14px;animation:fadeUp .35s ease both}
+    .card:hover{border-color:var(--border-hi)}
+    .card:nth-child(1){animation-delay:.04s}.card:nth-child(2){animation-delay:.08s}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .card-hdr{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--text);display:flex;align-items:center;gap:8px}
+    .card-title .icon{color:var(--cyan)}
+    .card-meta{font-size:10px;color:var(--muted)}
+
+    /* ── Alpha table ── */
+    .alpha-table{width:100%;border-collapse:collapse}
+    .alpha-table th{padding:9px 20px;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);text-align:left;background:var(--surface);font-weight:500;border-bottom:1px solid var(--border)}
+    .alpha-table td{padding:14px 20px;border-bottom:1px solid var(--border);vertical-align:middle}
+    .alpha-table tr:last-child td{border-bottom:none}
+    .alpha-table tr:hover td{background:var(--surface)}
+
+    .prov-name{font-size:12px;font-weight:500;color:var(--text);margin-bottom:3px}
+    .prov-count{font-size:10px;color:var(--muted)}
+    .ctx-tag{display:inline-block;font-size:9px;padding:2px 7px;border-radius:4px;background:var(--surface);border:1px solid var(--border);color:var(--label);margin-top:4px;text-transform:uppercase;letter-spacing:.06em}
+
+    .wr-cell{min-width:90px}
+    .wr-val{font-size:13px;font-weight:600;margin-bottom:4px}
+    .wr-bar{height:2px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:3px}
+    .wr-fill{height:100%;border-radius:2px;transition:width 1s ease}
+    .wr-na{font-size:11px;color:var(--muted)}
+
+    .edge-badge{display:inline-block;padding:3px 9px;border-radius:6px;font-size:9px;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+    .edge-strong{background:var(--green-dim);color:var(--green);border:1px solid rgba(16,185,129,.2)}
+    .edge-good  {background:var(--cyan-dim); color:var(--cyan); border:1px solid rgba(0,212,255,.2)}
+    .edge-mixed {background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+    .edge-weak  {background:var(--red-dim);  color:var(--red);  border:1px solid rgba(239,68,68,.2)}
+
+    /* ── Grade rows ── */
+    .grade-row{display:grid;grid-template-columns:1fr 100px 80px 80px 75px 120px;gap:12px;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border);transition:background .1s}
+    .grade-row:last-child{border-bottom:none}
+    .grade-row:hover:not(.hdr){background:var(--surface)}
+    .grade-row.hdr{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);background:var(--surface);padding:9px 20px}
+    .g-sym{font-size:12px;font-weight:500}
+    .g-side-long{color:var(--green)}.g-side-short{color:var(--red)}
+    .g-prov{font-size:10px;color:var(--muted);margin-top:2px}
+    .g-ts{font-size:10px;color:var(--muted)}
+    .g-score-num{font-size:13px;font-weight:600;margin-bottom:3px}
+    .g-score-bar{width:56px;height:2px;background:var(--border);border-radius:2px;overflow:hidden}
+    .g-score-fill{height:100%;border-radius:2px}
+
+    .ctx-badge{display:inline-block;font-size:9px;font-weight:500;padding:2px 7px;border-radius:4px;letter-spacing:.06em;text-transform:uppercase}
+    .ctx-HIGH_PROB_BREAKOUT{background:var(--green-dim);color:var(--green)}
+    .ctx-HIGH_PROB_STABLE  {background:rgba(16,185,129,.07);color:var(--green)}
+    .ctx-MED_PROB_VOLATILE {background:var(--amber-dim);color:var(--amber)}
+    .ctx-MED_PROB          {background:var(--cyan-dim);color:var(--cyan)}
+    .ctx-LOW_PROB          {background:var(--red-dim);color:var(--red)}
+    .ctx-LOW_PROB_EXTREME_VOL{background:rgba(239,68,68,.18);color:var(--red)}
+    .ctx-HIGH_PROB_SENTIMENT{background:rgba(161,107,255,.12);color:#b06aff}
+
+    .empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:11px}
+    .loading{padding:20px 20px;color:var(--muted);font-size:11px}
+
+    .btn{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.06em;font-weight:500;padding:7px 14px;border-radius:7px;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:6px;transition:all .15s;text-decoration:none}
+    .btn-ghost{background:var(--surface);color:var(--label);border:1px solid var(--border)}
+    .btn-ghost:hover{border-color:var(--border-hi);color:var(--text)}
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <a href="/dashboard" class="logo">
+    <div class="logo-mark"></div>
+    <div class="logo-text">Agora<span>IQ</span></div>
+  </a>
+    <nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/tracking" style="font-weight:700;color:var(--green)">Watchlist</a>
+    <a href="/marketplace">Marketplace</a>
+    <a href="/screener" class="active">Screener</a>
+    <a href="/signals">Signals</a>
+    <a href="/proof">Proof</a>
+    <a href="/news">News</a>
+  </nav>
+  <div class="header-right">
+    <div class="user-badge">
+      <div class="dot"></div>
+      <span id="username-badge">—</span>
+    </div>
+    <button class="btn-logout" onclick="logout()">LOGOUT</button>
+  </div>
+</header>
+
+<main>
+
+  <div class="page-eyebrow">Market Intelligence</div>
+  <div class="page-title">Provider Alpha</div>
+  <div class="page-sub">Win rate conditioned on market context at signal entry. Separates genuine edge from favorable conditions.</div>
+
+  <div class="callout">
+    <strong>How it works:</strong> When any provider signal arrives, AgoraIQ captures the full market context at that exact moment — AI probability score, volatility regime, sentiment, funding rate. Over time this reveals which providers perform best in <strong>high-volatility breakouts</strong>, which only shine in calm markets, and which have no real edge. This is <strong>AI Verified Signals</strong> — data no signal tracker can replicate.
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">Providers Graded</div><div class="stat-value cyan" id="s-total">—</div><div class="stat-sub">≥5 signals each</div></div>
+    <div class="stat-card"><div class="stat-label">Best Win Rate (High Score)</div><div class="stat-value green" id="s-best-wr">—</div><div class="stat-sub">when score ≥70</div></div>
+    <div class="stat-card"><div class="stat-label">Most Graded</div><div class="stat-value" id="s-most">—</div><div class="stat-sub" id="s-most-name">—</div></div>
+    <div class="stat-card"><div class="stat-label">Avg Score at Entry</div><div class="stat-value amber" id="s-avg">—</div><div class="stat-sub">all providers</div></div>
+  </div>
+
+  <!-- Provider alpha table -->
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-title"><span class="icon">◆</span> Conditional Win Rate by Provider</div>
+      <span class="card-meta">Last 90 days · min 5 graded signals</span>
+    </div>
+    <table class="alpha-table">
+      <thead>
+        <tr>
+          <th>Provider</th>
+          <th>Score ≥70 WR</th>
+          <th>Score &lt;55 WR</th>
+          <th>High Vol WR</th>
+          <th>Avg Score</th>
+          <th>Edge Profile</th>
+        </tr>
+      </thead>
+      <tbody id="alpha-tbody">
+        <tr><td colspan="6" class="loading">Loading provider data…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Recent signal grades -->
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-title"><span class="icon">◎</span> Recent Signal Grades</div>
+      <span class="card-meta">Market context captured at each entry</span>
+    </div>
+    <div class="grade-row hdr">
+      <div>Signal</div><div>Score @ Entry</div>
+      <div>Vol Regime</div><div>Sentiment</div>
+      <div>Exp.R</div><div>Context</div>
+    </div>
+    <div id="grades-list">
+      <div class="loading">Loading signal grades…</div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+
+// ── Auth (matches app.js pattern) ────────────────────────────
+function getToken() { return localStorage.getItem('iq_token') || ''; }
+async function apiFetch(path, opts = {}) {
+  const token = getToken();
+  const headers = { 'Content-Type': 'application/json', ...(token ? { 'Authorization': 'Bearer ' + token } : {}), ...(opts.headers || {}) };
+  const res = await fetch(path, { credentials: 'include', ...opts, headers });
+  if (res.status === 401) { window.location.href = '/login'; return null; }
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+const API = '/api/v1/market-intel';
+
+fetch('/api/v1/auth/me',{credentials:'include',headers:{'Authorization':'Bearer '+getToken()}})
+  .then(r=>r.ok?r.json():null)
+  .then(u=>{if(u) document.getElementById('username-badge').textContent=u.name||u.email?.split('@')[0]||'—';})
+  .catch(()=>{});
+
+async function get(path) { return apiFetch(API + path); }
+
+function wr(val) { val=Number(val);
+  if(val==null||isNaN(val)) return `<span class="wr-na">—</span>`;
+  const c = val>=60?'var(--green)':val>=50?'var(--amber)':'var(--red)';
+  return `<div class="wr-cell">
+    <div class="wr-val" style="color:${c}">${Number(val).toFixed(1)}%</div>
+    <div class="wr-bar"><div class="wr-fill" style="width:${Math.min(100,val)}%;background:${c}"></div></div>
+  </div>`;
+}
+
+function edgeBadge(high,low,vol) {
+  if(high==null||isNaN(high)) return `<span class="edge-badge edge-weak">No data yet</span>`;
+  if(high>=65&&(!low||high-low>=15)) return `<span class="edge-badge edge-strong">Strong conditional</span>`;
+  if(high>=55)  return `<span class="edge-badge edge-good">Selective edge</span>`;
+  if(vol>=60)   return `<span class="edge-badge edge-mixed">Vol specialist</span>`;
+  return `<span class="edge-badge edge-weak">Weak / random</span>`;
+}
+
+function bestCtx(row) {
+  const m = [['High score',row.highScoreWinRate],['High vol',row.highVolWinRate],['Low score',row.lowScoreWinRate]];
+  const b = m.filter(([,v])=>v!=null).sort((a,b)=>b[1]-a[1])[0];
+  return b ? `<span class="ctx-tag">${b[0]}: ${Number(b[1]).toFixed(0)}%</span>` : '';
+}
+
+async function loadAlpha() {
+  try {
+    const d = await get('/provider-alpha');
+    const rows = d.data||[];
+    if(!rows.length){
+      document.getElementById('alpha-tbody').innerHTML=`<tr><td colspan="6" class="empty">No graded signals yet — grades appear after signals arrive and market context is computed</td></tr>`;
+      return;
+    }
+    const best = Math.max(...rows.map(r=>Number(r.highScoreWinRate)).filter(Boolean));
+    const most = rows.reduce((a,b)=>a.totalGraded>b.totalGraded?a:b);
+    const avg  = rows.reduce((s,r)=>s+Number(r.avgScoreAtEntry||0),0)/rows.length;
+    document.getElementById('s-total').textContent   = rows.length;
+    document.getElementById('s-best-wr').textContent = isFinite(best)?`${best.toFixed(1)}%`:'—';
+    document.getElementById('s-most').textContent    = most.totalGraded;
+    document.getElementById('s-most-name').textContent = most.providerName||'—';
+    document.getElementById('s-avg').textContent     = `${avg.toFixed(0)}%`;
+    document.getElementById('alpha-tbody').innerHTML = rows.map(r=>`
+      <tr>
+        <td><div class="prov-name">${esc(r.providerName||r.providerId)}</div>
+            <div class="prov-count">${r.totalGraded} graded</div>${bestCtx(r)}</td>
+        <td>${wr(r.highScoreWinRate)}</td>
+        <td>${wr(r.lowScoreWinRate)}</td>
+        <td>${wr(r.highVolWinRate)}</td>
+        <td><div style="font-size:13px;font-weight:600;color:${Number(r.avgScoreAtEntry)>=60?'var(--green)':Number(r.avgScoreAtEntry)>=50?'var(--amber)':'var(--muted)'}">${Number(r.avgScoreAtEntry)?.toFixed(0)||'—'}%</div></td>
+        <td>${edgeBadge(r.highScoreWinRate,r.lowScoreWinRate,r.highVolWinRate)}</td>
+      </tr>`).join('');
+  } catch {
+    document.getElementById('alpha-tbody').innerHTML=`<tr><td colspan="6" class="empty">Error loading data</td></tr>`;
+  }
+}
+
+async function loadGrades() {
+  try {
+    const d = await apiFetch('/api/v1/market-intel/signal-grades?limit=20');
+    if(!d || !d.ok){showGradesEmpty();return;}
+    if(!(d.data||[]).length){showGradesEmpty();return;}
+    document.getElementById('grades-list').innerHTML = (d.data||[]).map(g=>{
+      const pct = Math.round((g.score_at_entry||0)*100);
+      const c = pct>=70?'var(--green)':pct>=55?'var(--amber)':'var(--red)';
+      const ctx = g.market_context_label||'UNKNOWN';
+      return `<div class="grade-row">
+        <div>
+          <div class="g-sym ${g.side==='LONG'?'g-side-long':'g-side-short'}">${g.symbol} ${g.side}</div>
+          <div class="g-prov">${esc(g.providerName||g.providerId?.slice(0,8)||'—')}</div>
+          <div class="g-ts">${ago(new Date(g.createdAt))}</div>
+        </div>
+        <div>
+          <div class="g-score-num" style="color:${c}">${pct}%</div>
+          <div class="g-score-bar"><div class="g-score-fill" style="width:${pct}%;background:${c}"></div></div>
+        </div>
+        <div style="font-size:11px;color:${Math.round((g.volatility_regime_at_entry||0)*100)>=60?'var(--amber)':'var(--muted)'}">${Math.round((g.volatility_regime_at_entry||0)*100)}%</div>
+        <div style="font-size:11px;color:${Math.round((g.sentiment_at_entry||0)*100)>=60?'var(--green)':Math.round((g.sentiment_at_entry||0)*100)<=40?'var(--red)':'var(--muted)'}">${Math.round((g.sentiment_at_entry||0)*100)}%</div>
+        <div style="font-size:12px;font-weight:500;color:var(--cyan)">${Number(g.expectedR_at_entry||0).toFixed(1)}R</div>
+        <div><span class="ctx-badge ctx-${ctx}">${ctx.replace(/_/g,' ')}</span></div>
+      </div>`;
+    }).join('');
+  } catch { showGradesEmpty(); }
+}
+
+function showGradesEmpty(){
+  document.getElementById('grades-list').innerHTML=`<div class="empty">Signal grades appear here as providers send signals and market context is captured at entry.</div>`;
+}
+
+function ago(d){const s=Math.floor((Date.now()-d)/1000);return s<60?`${s}s ago`:s<3600?`${Math.floor(s/60)}m ago`:s<86400?`${Math.floor(s/3600)}h ago`:`${Math.floor(s/86400)}d ago`;}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+async function logout(){await fetch('/api/v1/auth/logout',{method:'POST',credentials:'include'}).catch(()=>{});window.location.href='/login';}
+
+loadAlpha(); loadGrades();
+</script>
+</body>
+</html>

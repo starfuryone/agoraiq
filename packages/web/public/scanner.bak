@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgoraIQ — Market Scanner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="icon" href="/favicon.ico" />
+  <style>
+    :root {
+      --bg:        #08090d;
+      --surface:   #0f1018;
+      --card:      #13141e;
+      --border:    #1e2030;
+      --border-hi: #2a2d42;
+      --cyan:      #00d4ff;
+      --cyan-dim:  rgba(0,212,255,.12);
+      --amber:     #f59e0b;
+      --amber-dim: rgba(245,158,11,.12);
+      --green:     #10b981;
+      --green-dim: rgba(16,185,129,.12);
+      --red:       #ef4444;
+      --red-dim:   rgba(239,68,68,.10);
+      --text:      #e2e4ef;
+      --muted:     #5a5e7a;
+      --label:     #8b90b0;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+    }
+
+    /* ── Header ── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(8,9,13,.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none;
+    }
+    .logo-mark {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--cyan), #0066ff);
+      clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+      flex-shrink: 0;
+    }
+    .logo-text {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 18px;
+      letter-spacing: -0.5px; color: var(--text);
+    }
+    .logo-text span { color: var(--cyan); }
+
+    nav { display: flex; gap: 6px; }
+    nav a {
+      color: var(--label); text-decoration: none;
+      font-size: 12px; letter-spacing: .04em;
+      padding: 6px 14px; border-radius: 6px;
+      transition: all .15s; border: 1px solid transparent;
+    }
+    nav a:hover { color: var(--text); background: var(--card); border-color: var(--border); }
+    nav a.active { color: var(--cyan); border-color: var(--border-hi); }
+
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .user-badge {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 6px 12px;
+      font-size: 12px; color: var(--label);
+    }
+    .user-badge .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 6px var(--green);
+    }
+    #username-badge { color: var(--text); font-weight: 500; }
+    .btn-logout {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px; letter-spacing: .06em;
+      color: var(--muted); background: none;
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 6px 12px; cursor: pointer; transition: all .15s;
+    }
+    .btn-logout:hover { color: var(--red); border-color: var(--red); }
+
+    /* ── Page layout ── */
+    main {
+      position: relative; z-index: 1;
+      max-width: 1440px; margin: 0 auto;
+      padding: 28px 32px 60px;
+    }
+
+    /* ── Ticker tape ── */
+    .ticker {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      height: 36px; overflow: hidden;
+      display: flex; align-items: center;
+      position: relative; z-index: 1;
+    }
+    .ticker-inner {
+      display: flex; gap: 0;
+      animation: scroll-ticker 50s linear infinite;
+      white-space: nowrap;
+    }
+    .ticker-inner:hover { animation-play-state: paused; }
+    @keyframes scroll-ticker {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .ticker-item {
+      padding: 0 22px;
+      font-size: 11px; font-weight: 500;
+      display: flex; align-items: center; gap: 8px;
+      border-right: 1px solid var(--border);
+      height: 36px;
+    }
+    .t-sym { color: var(--text); font-weight: 600; }
+    .t-pct-up   { color: var(--green); }
+    .t-pct-mid  { color: var(--amber); }
+    .t-pct-low  { color: var(--muted); }
+    .t-side-long  { color: var(--green); font-size: 9px; letter-spacing: .06em; }
+    .t-side-short { color: var(--red);   font-size: 9px; letter-spacing: .06em; }
+
+    /* ── Page header ── */
+    .page-hdr {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .page-title-block { }
+    .page-eyebrow {
+      font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--cyan); margin-bottom: 6px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .page-eyebrow::before {
+      content: ''; width: 20px; height: 1px; background: var(--cyan); opacity: .5;
+    }
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 36px;
+      letter-spacing: -1.5px; color: var(--text);
+      line-height: 1;
+    }
+    .page-sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
+    .live-pill {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--green-dim);
+      border: 1px solid rgba(16,185,129,.25);
+      padding: 5px 12px; border-radius: 20px;
+      font-size: 10px; font-weight: 500;
+      color: var(--green); letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .live-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--green);
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,185,129,.4)}
+      50%{opacity:.6;box-shadow:0 0 0 4px rgba(16,185,129,0)}
+    }
+
+    /* ── Stat pills ── */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(5,1fr);
+      gap: 10px; margin-bottom: 20px;
+    }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 18px;
+      transition: border-color .2s, transform .15s;
+    }
+    .stat-card:hover { border-color: var(--border-hi); transform: translateY(-1px); }
+    .stat-label {
+      font-size: 9px; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 8px;
+    }
+    .stat-value {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 28px;
+      letter-spacing: -1px; color: var(--text);
+      line-height: 1;
+    }
+    .stat-value.cyan  { color: var(--cyan); }
+    .stat-value.green { color: var(--green); }
+    .stat-value.amber { color: var(--amber); }
+    .stat-value.red   { color: var(--red); }
+    .stat-sub { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Grid layout ── */
+    .intel-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      transition: border-color .2s;
+      animation: fadeUp .35s ease both;
+    }
+    .card:hover { border-color: var(--border-hi); }
+    .card:nth-child(1){animation-delay:.04s}
+    .card:nth-child(2){animation-delay:.08s}
+    .card:nth-child(3){animation-delay:.12s}
+    .card:nth-child(4){animation-delay:.16s}
+    @keyframes fadeUp {
+      from{opacity:0;transform:translateY(12px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+    .card-hdr {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: .04em; color: var(--text);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title .icon { color: var(--cyan); font-size: 14px; }
+    .card-badge {
+      font-size: 9px; font-weight: 500; letter-spacing: .08em;
+      text-transform: uppercase; padding: 3px 9px;
+      border-radius: 20px;
+    }
+    .badge-green  { background: var(--green-dim); color: var(--green);  border: 1px solid rgba(16,185,129,.2); }
+    .badge-amber  { background: var(--amber-dim); color: var(--amber);  border: 1px solid rgba(245,158,11,.2); }
+    .badge-cyan   { background: var(--cyan-dim);  color: var(--cyan);   border: 1px solid rgba(0,212,255,.2); }
+    .badge-muted  { background: var(--surface);   color: var(--muted);  border: 1px solid var(--border); }
+
+    /* ── Filter row ── */
+    .filter-row { display: flex; gap: 5px; }
+    .filter-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px; font-weight: 500;
+      letter-spacing: .06em; text-transform: uppercase;
+      padding: 4px 11px; border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent; color: var(--muted);
+      cursor: pointer; transition: all .12s;
+    }
+    .filter-btn:hover  { border-color: var(--border-hi); color: var(--label); }
+    .filter-btn.active { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
+    .filter-btn.active-long  { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+    .filter-btn.active-short { border-color: var(--red);   color: var(--red);   background: var(--red-dim); }
+
+    /* ── Scoreboard ── */
+    .score-row {
+      display: grid;
+      grid-template-columns: 36px 1fr 100px 72px 56px 52px 50px;
+      align-items: center; gap: 10px;
+      padding: 11px 20px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer; transition: background .1s;
+    }
+    .score-row:last-child { border-bottom: none; }
+    .score-row:hover { background: var(--surface); }
+    .score-row.hdr {
+      padding: 8px 20px; background: var(--surface);
+      font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--muted); cursor: default;
+    }
+    .score-row.hdr:hover { background: var(--surface); }
+    .rank { font-size: 11px; color: var(--muted); text-align: center; }
+    .rank.r1 { color: var(--amber); font-weight: 700; }
+    .sym-block { display: flex; flex-direction: column; gap: 2px; }
+    .sym-name { font-size: 12px; font-weight: 500; color: var(--text); }
+    .sym-base { font-size: 10px; color: var(--muted); }
+    .prob-block { display: flex; flex-direction: column; gap: 4px; }
+    .prob-num { font-size: 13px; font-weight: 700; }
+    .prob-bar { height: 2px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .prob-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
+    .side-tag {
+      font-size: 9px; font-weight: 500; letter-spacing: .06em;
+      padding: 3px 8px; border-radius: 4px; width: fit-content;
+    }
+    .side-long  { background: var(--green-dim); color: var(--green); }
+    .side-short { background: var(--red-dim);   color: var(--red); }
+    .conf-HIGH { color: var(--green); font-size: 10px; font-weight: 600; }
+    .conf-MED  { color: var(--amber); font-size: 10px; font-weight: 600; }
+    .conf-LOW  { color: var(--muted); font-size: 10px; }
+    .er-val { font-size: 12px; font-weight: 500; color: var(--cyan); }
+    .ts-ago { font-size: 10px; color: var(--muted); }
+
+    /* ── Radar grid ── */
+    .radar-grid {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 1px; background: var(--border);
+    }
+    .radar-cell {
+      background: var(--card); padding: 14px 16px;
+      cursor: pointer; transition: background .12s;
+      position: relative;
+    }
+    .radar-cell:hover { background: var(--surface); }
+    .radar-cell::after {
+      content: ''; position: absolute;
+      bottom: 0; left: 0; right: 0; height: 2px;
+    }
+    .radar-cell.extreme::after  { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    .radar-cell.breakout::after { background: var(--amber); }
+    .radar-cell.elevated::after { background: var(--cyan); }
+    .radar-cell.normal::after   { background: var(--border); }
+    .r-sym { font-size: 11px; font-weight: 500; color: var(--text); margin-bottom: 8px; }
+    .r-heat-wrap { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .r-heat-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .r-heat-fill { height: 100%; border-radius: 2px; }
+    .r-heat-extreme  { background: var(--red); }
+    .r-heat-breakout { background: var(--amber); }
+    .r-heat-elevated { background: var(--cyan); }
+    .r-heat-normal   { background: var(--border-hi); }
+    .r-vol { font-size: 10px; font-weight: 600; }
+    .r-regime { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+
+    /* ── Arbitrage board ── */
+    .arbi-row {
+      display: grid;
+      grid-template-columns: 88px 1fr 90px 80px 55px;
+      align-items: center; gap: 10px;
+      padding: 11px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .arbi-row:last-child { border-bottom: none; }
+    .arbi-row.hdr {
+      padding: 8px 20px; background: var(--surface);
+      font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .arbi-sym { font-size: 12px; font-weight: 500; }
+    .arbi-route { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+    .arbi-ex {
+      padding: 2px 7px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 4px;
+      font-size: 9px; font-weight: 500; color: var(--label); letter-spacing: .06em;
+    }
+    .arbi-arrow { color: var(--muted); }
+    .arbi-spread {
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: 16px; color: var(--green);
+    }
+    .arbi-net { font-size: 10px; color: var(--muted); }
+    .arbi-empty { padding: 36px 20px; text-align: center; color: var(--muted); font-size: 11px; }
+
+    /* ── Sentiment heatmap ── */
+    .sent-grid {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 1px; background: var(--border);
+    }
+    .sent-cell {
+      background: var(--card); padding: 16px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .sent-sym { font-size: 11px; font-weight: 500; color: var(--text); }
+    .sent-row { display: flex; align-items: center; justify-content: space-between; }
+    .sent-score {
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: 22px; letter-spacing: -0.5px;
+    }
+    .sent-label {
+      font-size: 9px; font-weight: 500; letter-spacing: .1em;
+      text-transform: uppercase; padding: 2px 7px; border-radius: 4px;
+    }
+    .sent-bullish { color: var(--green); background: var(--green-dim); }
+    .sent-bearish { color: var(--red);   background: var(--red-dim); }
+    .sent-neutral { color: var(--muted); background: var(--surface); }
+    .sent-bar { height: 2px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .sent-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
+    .sent-src { font-size: 9px; color: var(--muted); }
+
+    /* ── Alerts feed ── */
+    .alerts-scroll { max-height: 300px; overflow-y: auto; }
+    .alerts-scroll::-webkit-scrollbar { width: 3px; }
+    .alerts-scroll::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+    .alert-row {
+      display: grid;
+      grid-template-columns: 8px 76px 1fr 52px 52px;
+      align-items: start; gap: 10px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      transition: background .1s;
+    }
+    .alert-row:last-child { border-bottom: none; }
+    .alert-row:hover { background: var(--surface); }
+    .a-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 3px; flex-shrink: 0; }
+    .a-dot.critical { background: var(--red); box-shadow: 0 0 5px var(--red); }
+    .a-dot.high     { background: var(--amber); }
+    .a-dot.medium   { background: var(--cyan); }
+    .a-dot.low      { background: var(--muted); }
+    .a-type {
+      font-size: 9px; font-weight: 500; letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .a-type.volatility { color: var(--amber); }
+    .a-type.arbitrage  { color: var(--green); }
+    .a-sym { font-size: 11px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+    .a-msg { font-size: 10px; color: var(--label); line-height: 1.5; }
+    .a-sev { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+    .a-age { font-size: 10px; color: var(--muted); text-align: right; }
+
+    .empty { padding: 40px 20px; text-align: center; color: var(--muted); font-size: 11px; }
+    .loading { padding: 20px; display: flex; gap: 12px; }
+    .skel {
+      background: linear-gradient(90deg,var(--border) 25%,var(--surface) 50%,var(--border) 75%);
+      background-size:200% 100%; animation: skel 1.4s infinite; border-radius: 4px;
+    }
+    @keyframes skel { 0%{background-position:200% 0}100%{background-position:-200% 0} }
+
+    /* Buttons */
+    .btn {
+      font-family: 'DM Mono', monospace; font-size: 11px;
+      letter-spacing: .06em; font-weight: 500;
+      padding: 7px 14px; border-radius: 7px;
+      cursor: pointer; border: none; display: inline-flex;
+      align-items: center; gap: 6px; transition: all .15s;
+    }
+    .btn-ghost { background: var(--surface); color: var(--label); border: 1px solid var(--border); }
+    .btn-ghost:hover { border-color: var(--border-hi); color: var(--text); }
+    .btn-cyan { background: var(--cyan); color: #08090d; box-shadow: 0 0 14px rgba(0,212,255,.2); }
+    .btn-cyan:hover { background: #00e5ff; }
+
+    @media (max-width: 1100px) {
+      .intel-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(3,1fr); }
+      .radar-grid, .sent-grid { grid-template-columns: repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <a href="/dashboard" class="logo">
+    <div class="logo-mark"></div>
+    <div class="logo-text">Agora<span>IQ</span></div>
+  </a>
+  <nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/signals">Signals</a>
+    <a href="/member">Portal</a>
+    <a href="/marketplace">Marketplace</a>
+    <a href="/scanner" class="active">Scanner</a>
+    <a href="/provider-alpha">Intel</a>
+  </nav>
+  <div class="header-right">
+    <div class="user-badge">
+      <div class="dot"></div>
+      <span id="username-badge">—</span>
+    </div>
+    <button class="btn-logout" onclick="logout()">LOGOUT</button>
+  </div>
+</header>
+
+<!-- ── Ticker tape ── -->
+<div class="ticker">
+  <div class="ticker-inner" id="ticker-inner">
+    <div class="ticker-item"><span class="t-sym" style="color:var(--muted)">Loading scanner…</span></div>
+  </div>
+</div>
+
+<!-- ── Main ── -->
+<main>
+
+  <!-- Page header -->
+  <div class="page-hdr">
+    <div class="page-title-block">
+      <div class="page-eyebrow">Market Intelligence</div>
+      <div class="page-title">Scanner</div>
+      <div class="page-sub">AI-scored opportunities, volatility regimes, arbitrage — no signal required.</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="live-pill"><div class="live-dot"></div>Live · <span id="clock">--:--</span></div>
+      <button class="btn btn-ghost" onclick="refreshAll()">↺ Refresh</button>
+    </div>
+  </div>
+
+  <!-- Stat pills -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Top Score</div>
+      <div class="stat-value cyan" id="s-top-score">—</div>
+      <div class="stat-sub" id="s-top-sym">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">High Confidence</div>
+      <div class="stat-value cyan" id="s-high-conf">—</div>
+      <div class="stat-sub">score ≥ 70%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Top Longs</div>
+      <div class="stat-value green" id="s-longs">—</div>
+      <div class="stat-sub">bullish setups</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Top Shorts</div>
+      <div class="stat-value red" id="s-shorts">—</div>
+      <div class="stat-sub">bearish setups</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Best Arbi Spread</div>
+      <div class="stat-value amber" id="s-arbi">—</div>
+      <div class="stat-sub" id="s-arbi-pair">best active</div>
+    </div>
+  </div>
+
+  <!-- 4-panel grid -->
+  <div class="intel-grid">
+
+    <!-- 1. AI Scoreboard -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title"><span class="icon">◆</span> AI Scoreboard</div>
+        <div class="filter-row">
+          <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+          <button class="filter-btn" onclick="setFilter('LONG',this)">Long</button>
+          <button class="filter-btn" onclick="setFilter('SHORT',this)">Short</button>
+          <button class="filter-btn" onclick="setFilter('HIGH',this)">High conf</button>
+        </div>
+      </div>
+      <div class="score-row hdr">
+        <div>#</div><div>Symbol</div><div>Probability</div>
+        <div>Side</div><div>Conf</div><div>E.R</div><div>Age</div>
+      </div>
+      <div id="scoreboard">
+        <div class="loading"><div class="skel" style="width:100%;height:14px"></div></div>
+      </div>
+    </div>
+
+    <!-- 2. Volatility Radar -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title"><span class="icon">◎</span> Volatility Radar</div>
+        <span class="card-badge badge-amber" id="radar-count">—</span>
+      </div>
+      <div class="radar-grid" id="radar-grid">
+        <div class="empty" style="grid-column:1/-1">Scanning…</div>
+      </div>
+    </div>
+
+    <!-- 3. Arbitrage Board -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title"><span class="icon">⇄</span> Arbitrage Board</div>
+        <span class="card-badge badge-green" id="arbi-count">—</span>
+      </div>
+      <div class="arbi-row hdr">
+        <div>Pair</div><div>Route</div><div>Spread</div><div>Net</div><div>Age</div>
+      </div>
+      <div id="arbi-board">
+        <div class="arbi-empty">Scanning exchanges…</div>
+      </div>
+    </div>
+
+    <!-- 4. Sentiment Heatmap -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title"><span class="icon">◈</span> Sentiment Heatmap</div>
+        <span class="card-badge badge-muted">Stub · upgradeable</span>
+      </div>
+      <div class="sent-grid" id="sent-grid">
+        <div class="empty" style="grid-column:1/-1">Loading…</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Alerts feed -->
+  <div class="card" style="animation-delay:.2s">
+    <div class="card-hdr">
+      <div class="card-title"><span class="icon">◉</span> Live Alerts Feed</div>
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="loadAlerts('all',this)">All</button>
+        <button class="filter-btn" onclick="loadAlerts('volatility',this)">⚡ Volatility</button>
+        <button class="filter-btn" onclick="loadAlerts('arbitrage',this)">⇄ Arbitrage</button>
+      </div>
+    </div>
+    <div class="alerts-scroll" id="alerts-feed">
+      <div class="empty">Loading alerts…</div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+
+// ── Auth (matches app.js pattern) ────────────────────────────
+function getToken() { return localStorage.getItem('iq_token') || ''; }
+async function apiFetch(path, opts = {}) {
+  const token = getToken();
+  const headers = { 'Content-Type': 'application/json', ...(token ? { 'Authorization': 'Bearer ' + token } : {}), ...(opts.headers || {}) };
+  const res = await fetch(path, { credentials: 'include', ...opts, headers });
+  if (res.status === 401) { window.location.href = '/login'; return null; }
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+const API = '/api/v1/market-intel';
+let scoresData = [], activeFilter = 'all';
+
+// Clock
+setInterval(() => {
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+}, 1000);
+
+// Auth — username from session
+fetch('/api/v1/auth/me',{credentials:'include',headers:{'Authorization':'Bearer '+getToken()}})
+  .then(r=>r.ok?r.json():null)
+  .then(u=>{ if(u) document.getElementById('username-badge').textContent = u.name||u.email?.split('@')[0]||'—'; })
+  .catch(()=>{});
+
+async function get(path) { return apiFetch(API + path); }
+
+// Ticker
+function renderTicker(scores) {
+  if (!scores.length) return;
+  const items = [...scores, ...scores].map(s => {
+    const cls = s.probabilityPct >= 70 ? 't-pct-up' : s.probabilityPct >= 55 ? 't-pct-mid' : 't-pct-low';
+    const sc  = s.side === 'LONG' ? 't-side-long' : 't-side-short';
+    return `<div class="ticker-item">
+      <span class="t-sym">${s.symbol}</span>
+      <span class="${cls}">${s.probabilityPct}%</span>
+      <span class="${sc}">${s.side}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('ticker-inner').innerHTML = items;
+}
+
+// Filter
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b =>
+    b.classList.remove('active','active-long','active-short'));
+  if (f==='LONG') el.classList.add('active-long');
+  else if (f==='SHORT') el.classList.add('active-short');
+  else el.classList.add('active');
+  renderScoreboard();
+}
+
+function renderScoreboard() {
+  const list = scoresData.filter(s =>
+    activeFilter==='LONG' ? s.side==='LONG' :
+    activeFilter==='SHORT'? s.side==='SHORT':
+    activeFilter==='HIGH' ? s.confidence==='HIGH' : true
+  );
+  if (!list.length) {
+    document.getElementById('scoreboard').innerHTML = `<div class="empty">No results</div>`;
+    return;
+  }
+  document.getElementById('scoreboard').innerHTML = list.map((s,i) => {
+    const pct   = s.probabilityPct;
+    const color = pct>=70?'var(--green)':pct>=55?'var(--amber)':'var(--muted)';
+    return `<div class="score-row" onclick="window.location='/market-intel-detail.html?symbol=${s.symbol}'">
+      <div class="rank${i===0?' r1':''}">${i+1}</div>
+      <div class="sym-block">
+        <div class="sym-name">${s.symbol}</div>
+        <div class="sym-base">${s.symbol.replace('USDT','')}/USDT</div>
+      </div>
+      <div class="prob-block">
+        <div class="prob-num" style="color:${color}">${pct}%</div>
+        <div class="prob-bar"><div class="prob-fill" style="width:${pct}%;background:${color}"></div></div>
+      </div>
+      <div><span class="side-tag side-${s.side.toLowerCase()}">${s.side}</span></div>
+      <div class="conf-${s.confidence}">${s.confidence}</div>
+      <div class="er-val">${Number(s.expectedR).toFixed(1)}R</div>
+      <div class="ts-ago">${ago(new Date(s.createdAt))}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateStats(scores) {
+  if (!scores.length) return;
+  const top = scores[0];
+  document.getElementById('s-top-score').textContent = `${top.probabilityPct}%`;
+  document.getElementById('s-top-sym').textContent   = top.symbol;
+  document.getElementById('s-high-conf').textContent = scores.filter(s=>s.confidence==='HIGH').length;
+  document.getElementById('s-longs').textContent     = scores.filter(s=>s.side==='LONG').length;
+  document.getElementById('s-shorts').textContent    = scores.filter(s=>s.side==='SHORT').length;
+}
+
+async function loadScores() {
+  try {
+    const d = await get('/top?limit=20');
+    scoresData = d.data || [];
+    renderScoreboard(); updateStats(scoresData); renderTicker(scoresData); renderSentiment(scoresData);
+  } catch { document.getElementById('scoreboard').innerHTML = `<div class="empty">Failed to load</div>`; }
+}
+
+async function loadRadar() {
+  try {
+    const d = await get('/radar');
+    const data = d.data || [];
+    if (!data.length) { document.getElementById('radar-grid').innerHTML=`<div class="empty" style="grid-column:1/-1">No data</div>`; return; }
+    document.getElementById('radar-count').textContent = `${data.filter(x=>x.regime!=='normal').length} elevated`;
+    document.getElementById('radar-grid').innerHTML = data.map(r=>`
+      <div class="radar-cell ${r.regime}" onclick="window.location='/market-intel-detail.html?symbol=${r.symbol}'">
+        <div class="r-sym">${r.symbol}</div>
+        <div class="r-heat-wrap">
+          <div class="r-heat-bar">
+            <div class="r-heat-fill r-heat-${r.regime}" style="width:${r.heat}%"></div>
+          </div>
+          <span class="r-vol" style="color:${r.regime==='extreme'?'var(--red)':r.regime==='breakout'?'var(--amber)':r.regime==='elevated'?'var(--cyan)':'var(--muted)'}">${r.maxVolRatio.toFixed(1)}x</span>
+        </div>
+        <div class="r-regime">${r.regime}</div>
+      </div>`).join('');
+  } catch { document.getElementById('radar-grid').innerHTML=`<div class="empty" style="grid-column:1/-1">Error</div>`; }
+}
+
+async function loadArbi() {
+  try {
+    const d = await get('/arbitrage-board');
+    const data = d.data || [];
+    document.getElementById('arbi-count').textContent = `${data.length} active`;
+    if (!data.length) { document.getElementById('arbi-board').innerHTML=`<div class="arbi-empty">No active spreads above threshold</div>`; return; }
+    if (data[0]) {
+      document.getElementById('s-arbi').textContent      = `+${(data[0].spreadPct*100).toFixed(2)}%`;
+      document.getElementById('s-arbi-pair').textContent = data[0].symbol;
+    }
+    document.getElementById('arbi-board').innerHTML = data.map(a=>`
+      <div class="arbi-row">
+        <div class="arbi-sym">${a.symbol}</div>
+        <div class="arbi-route">
+          <span class="arbi-ex">${(a.buyExchange||'?').toUpperCase()}</span>
+          <span class="arbi-arrow">→</span>
+          <span class="arbi-ex">${(a.sellExchange||'?').toUpperCase()}</span>
+        </div>
+        <div class="arbi-spread">+${(a.spreadPct*100).toFixed(3)}%</div>
+        <div class="arbi-net">~${(a.netProfitPct*100).toFixed(3)}%</div>
+        <div class="ts-ago">${ago(new Date(Date.now()-a.age))}</div>
+      </div>`).join('');
+  } catch {}
+}
+
+function renderSentiment(scores) {
+  document.getElementById('sent-grid').innerHTML = scores.map(s => {
+    // Use funding rate as sentiment proxy until real sentiment is wired
+    const funding = s.rawInputs?.funding_rate_signal ?? 0;
+    const momentum = s.rawInputs?.momentum_strength ?? 0.5;
+    const raw = Math.min(1, Math.max(0, 0.5 + (funding * 5) + (momentum - 0.5) * 0.3));
+    const pct = Math.round(raw*100);
+    const label = raw>=0.6?'bullish':raw<=0.4?'bearish':'neutral';
+    const color = raw>=0.6?'var(--green)':raw<=0.4?'var(--red)':'var(--muted)';
+    return `<div class="sent-cell">
+      <div class="sent-sym">${s.symbol}</div>
+      <div class="sent-row">
+        <div class="sent-score" style="color:${color}">${pct}</div>
+        <span class="sent-label sent-${label}">${label}</span>
+      </div>
+      <div class="sent-bar"><div class="sent-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div class="sent-src">stub data</div>
+    </div>`;
+  }).join('') || `<div class="empty" style="grid-column:1/-1">No data</div>`;
+}
+
+async function loadAlerts(type, el) {
+  document.querySelectorAll('[onclick*="loadAlerts"]').forEach(b=>b.classList.remove('active'));
+  el?.classList.add('active');
+  try {
+    const q = type==='all' ? '' : `&type=${type}`;
+    const d = await get(`/alerts?limit=30${q}`);
+    const alerts = d.data || [];
+    if (!alerts.length) { document.getElementById('alerts-feed').innerHTML=`<div class="empty">No alerts</div>`; return; }
+    document.getElementById('alerts-feed').innerHTML = alerts.map(a=>`
+      <div class="alert-row">
+        <div class="a-dot ${a.severity}"></div>
+        <div class="a-type ${a.type}">${a.type}</div>
+        <div>
+          <div class="a-sym">${a.symbol}${a.exchange?' · '+a.exchange:''}</div>
+          <div class="a-msg">${esc(a.message)}</div>
+        </div>
+        <div class="a-sev">${a.severity}</div>
+        <div class="a-age">${ago(new Date(a.createdAt))}</div>
+      </div>`).join('');
+  } catch { document.getElementById('alerts-feed').innerHTML=`<div class="empty">Error</div>`; }
+}
+
+function refreshAll() { loadScores(); loadRadar(); loadArbi(); loadAlerts('all',null); }
+
+function ago(d) {
+  const s = Math.floor((Date.now()-d)/1000);
+  return s<60?`${s}s`:s<3600?`${Math.floor(s/60)}m`:`${Math.floor(s/3600)}h`;
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+async function logout() {
+  await fetch('/api/v1/auth/logout',{method:'POST',credentials:'include'}).catch(()=>{});
+  window.location.href = '/login';
+}
+
+setInterval(refreshAll, 60_000);
+loadScores(); loadRadar(); loadArbi(); loadAlerts('all',null);
+</script>
+</body>
+</html>

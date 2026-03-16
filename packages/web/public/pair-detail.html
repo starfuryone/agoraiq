@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgoraIQ — Pair Detail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Albert+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+.pair-header { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:6px; }
+.pair-symbol { font-family:'Albert Sans',sans-serif; font-weight:800; font-size:28px; color:var(--text); }
+.pair-sub { font-size:12px; color:var(--muted); margin-bottom:20px; }
+.detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
+@media (max-width:768px) { .detail-grid { grid-template-columns:1fr; } }
+.detail-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:18px 20px; }
+.detail-card-title { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; margin-bottom:14px; border-bottom:1px solid var(--border); padding-bottom:6px; }
+.detail-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; font-size:12px; }
+.detail-row:not(:last-child) { border-bottom:1px solid rgba(30,32,48,.4); }
+.detail-label { color:var(--muted); }
+.detail-val { font-family:'DM Mono',monospace; color:var(--text); text-align:right; }
+.tv-embed { width:100%; height:400px; border:1px solid var(--border); border-radius:8px; overflow:hidden; margin-bottom:24px; }
+.timeline { margin-top:8px; }
+.timeline-item { display:flex; gap:12px; padding:8px 0; border-bottom:1px solid rgba(30,32,48,.4); font-size:11px; }
+.timeline-item:last-child { border-bottom:none; }
+.timeline-ts { color:var(--muted); min-width:100px; font-family:'DM Mono',monospace; font-size:10px; }
+.timeline-badge { font-size:9px; padding:2px 6px; border-radius:3px; white-space:nowrap; }
+.sync-row { display:grid; grid-template-columns:120px 70px 1fr 80px; gap:8px; padding:6px 0; font-size:11px; border-bottom:1px solid rgba(30,32,48,.4); align-items:center; }
+.sync-row:last-child { border-bottom:none; }
+.back-link { font-size:12px; color:var(--cyan); text-decoration:none; display:inline-flex; align-items:center; gap:4px; margin-bottom:16px; }
+.back-link:hover { text-decoration:underline; }
+</style>
+</head>
+<body>
+
+<div id="loading-screen">
+  <div class="loader-ring"></div>
+  <div class="loader-text">LOADING</div>
+</div>
+
+<header>
+  <a href="/dashboard" class="logo">
+    <div class="logo-mark"></div>
+    <div class="logo-text">Agora<span>IQ</span></div>
+  </a>
+    <nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/tracking" style="font-weight:700;color:var(--green)">Watchlist</a>
+    <a href="/marketplace">Marketplace</a>
+    <a href="/screener" class="active">Screener</a>
+    <a href="/signals">Signals</a>
+    <a href="/scanner">Scanner</a>
+    <a href="/proof">Proof</a>
+    <a href="/news">News</a>
+  </nav>
+  <div class="header-right">
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <div class="user-badge"><div class="dot"></div><span id="username-badge">—</span></div>
+    <button class="btn-logout" onclick="logout()">LOGOUT</button>
+  </div>
+</header>
+
+<div id="toast"></div>
+
+<main>
+  <a href="/screener" class="back-link">← Back to Screener</a>
+  <div id="pair-detail">
+    <div style="text-align:center;padding:60px;color:var(--muted)">
+      <div class="skeleton" style="height:20px;width:200px;margin:0 auto 12px"></div>
+      <div class="skeleton" style="height:14px;width:300px;margin:0 auto"></div>
+    </div>
+  </div>
+</main>
+
+<script src="/assets/app.js"></script>
+<script src="/assets/auth.js"></script>
+<script>
+async function pageInit(user) {
+  // Parse exchange/pairId from URL: /pair/KRAKEN/BONKUSD
+  var parts = window.location.pathname.split('/').filter(Boolean);
+  if (parts.length < 3 || parts[0] !== 'pair') {
+    document.getElementById('pair-detail').innerHTML = '<div style="text-align:center;padding:60px;color:var(--red)">Invalid URL. Expected /pair/:exchange/:pairId</div>';
+    return;
+  }
+  var exchange = decodeURIComponent(parts[1]).toUpperCase();
+  var pairId = decodeURIComponent(parts[2]);
+
+  try {
+    var data = await apiFetch('/api/v1/markets/' + encodeURIComponent(exchange) + '/' + encodeURIComponent(pairId));
+    renderDetail(data, exchange, pairId);
+  } catch (err) {
+    document.getElementById('pair-detail').innerHTML = '<div style="text-align:center;padding:60px;color:var(--red)">Failed to load pair: ' + escapeHTML(err.message) + '</div>';
+  }
+}
+
+function renderDetail(data, exchange, pairId) {
+  var p = data.pair || {};
+  var s = data.stat || {};
+  var cl = data.changelog || [];
+  var sh = data.syncHistory || [];
+  var hist = data.statHistory || [];
+
+  document.title = 'AgoraIQ — ' + (p.symbol || pairId);
+
+  var isOnline = p.status === 'ONLINE';
+  var price = s.last ? fmtPrice(Number(s.last), p.pairDecimals) : '—';
+  var spread = s.spreadBps ? parseFloat(s.spreadBps).toFixed(2) + ' bps' : '—';
+  var vol = s.volume24h ? fmtVol(parseFloat(s.volume24h)) : '—';
+  var volUsd = s.volume24hUsd ? '$' + fmtVol(parseFloat(s.volume24hUsd)) : '—';
+  var exName = p.displayName || exchange;
+
+  // TradingView widget
+  var tvWidget = '';
+  if (p.tvSymbol) {
+    tvWidget = '<div class="tv-embed"><iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tv_chart&symbol=' + encodeURIComponent(p.tvSymbol) + '&interval=60&hidesidetoolbar=1&symboledit=0&saveimage=0&toolbarbg=0a0b12&studies=[]&theme=dark&style=1&timezone=exchange&withdateranges=1&showpopupbutton=0&width=100%25&height=100%25" style="width:100%;height:100%;border:none" allowtransparency="true"></iframe></div>';
+  }
+
+  var html = '';
+
+  // Header
+  html += '<div class="pair-header">';
+  html += '<span class="pair-symbol">' + escapeHTML(p.symbol || pairId) + '</span>';
+  html += '<span class="badge badge-muted">' + escapeHTML(exName) + '</span>';
+  html += '<span class="badge ' + (isOnline ? 'badge-green' : 'badge-muted') + '" style="font-size:10px">' + (p.status || '—') + '</span>';
+  if (p.marginAvailable) html += '<span class="badge" style="font-size:9px;background:rgba(0,212,255,.08);color:var(--cyan);border:1px solid rgba(0,212,255,.15)">MARGIN</span>';
+  html += '</div>';
+  html += '<div class="pair-sub">' + escapeHTML(p.baseCanonical || '') + '/' + escapeHTML(p.quoteCanonical || '') + ' on ' + escapeHTML(exName) + (p.tier ? ' · Tier ' + p.tier : '') + '</div>';
+
+  // TradingView chart
+  html += tvWidget;
+
+  // Detail grid
+  html += '<div class="detail-grid">';
+
+  // Price card
+  html += '<div class="detail-card">';
+  html += '<div class="detail-card-title">Price & Spread</div>';
+  html += row('Last Price', price);
+  html += row('Bid', s.bid ? fmtPrice(Number(s.bid), p.pairDecimals) : '—');
+  html += row('Ask', s.ask ? fmtPrice(Number(s.ask), p.pairDecimals) : '—');
+  html += row('Spread', spread);
+  html += row('Spread (abs)', s.spreadAbs || '—');
+  html += row('Data Age', s.ts ? fmtRelative(s.ts) : '—');
+  html += '</div>';
+
+  // Volume & quality card
+  html += '<div class="detail-card">';
+  html += '<div class="detail-card-title">Volume & Quality</div>';
+  html += row('Volume (24h)', vol);
+  html += row('Volume USD (24h)', volUsd);
+  html += row('Liquidity Score', s.liquidityScore || '—');
+  html += row('Volatility Score', s.volatilityScore || '—');
+  html += row('Funding Rate', s.fundingRate ? parseFloat(s.fundingRate).toFixed(4) + '%' : '—');
+  html += '</div>';
+
+  // Pair info card
+  html += '<div class="detail-card">';
+  html += '<div class="detail-card-title">Pair Configuration</div>';
+  html += row('Pair ID', p.pairId || '—');
+  html += row('Tick Size', p.tickSize || '—');
+  html += row('Order Min', p.orderMin || '—');
+  html += row('Order Min Value', p.orderMinValue || '—');
+  html += row('Price Decimals', p.pairDecimals != null ? p.pairDecimals : '—');
+  html += row('Lot Decimals', p.lotDecimals != null ? p.lotDecimals : '—');
+  html += row('Margin', p.marginAvailable ? '✓ Yes' : '✗ No');
+  if (p.tvSymbol) html += row('TradingView', '<a href="https://www.tradingview.com/symbols/' + encodeURIComponent(p.tvSymbol) + '/" target="_blank" style="color:var(--cyan)">' + escapeHTML(p.tvSymbol) + ' ↗</a>');
+  html += row('Last Synced', p.lastSyncedAt ? fmtRelative(p.lastSyncedAt) : '—');
+  html += '</div>';
+
+  // Sync history card
+  html += '<div class="detail-card">';
+  html += '<div class="detail-card-title">Sync History (' + escapeHTML(exchange) + ')</div>';
+  if (sh.length === 0) {
+    html += '<div style="font-size:11px;color:var(--muted);padding:8px 0">No sync history available.</div>';
+  } else {
+    sh.forEach(function(s) {
+      var statusCls = s.status === 'SUCCESS' ? 'color:var(--green)' : 'color:var(--red)';
+      html += '<div class="sync-row">';
+      html += '<span style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted)">' + fmtDate(s.startedAt) + '</span>';
+      html += '<span style="font-size:10px;font-weight:600;' + statusCls + '">' + (s.status || '—') + '</span>';
+      html += '<span style="font-size:10px;color:var(--muted)">' + (s.totalFetched || 0) + ' fetched · ' + (s.totalUpserted || 0) + ' new · ' + (s.totalChanges || 0) + ' changes</span>';
+      html += '<span style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted)">' + (s.durationMs ? s.durationMs + 'ms' : '—') + '</span>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+
+  html += '</div>'; // close detail-grid
+
+  // Changelog
+  if (cl.length > 0) {
+    html += '<div class="detail-card" style="margin-bottom:24px">';
+    html += '<div class="detail-card-title">Changelog</div>';
+    html += '<div class="timeline">';
+    cl.forEach(function(c) {
+      var typeCls = c.changeType === 'NEW_LISTING' ? 'background:rgba(16,185,129,.1);color:var(--green);border:1px solid rgba(16,185,129,.2)' :
+                    c.changeType === 'DELISTED' ? 'background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2)' :
+                    'background:rgba(0,212,255,.06);color:var(--cyan);border:1px solid rgba(0,212,255,.15)';
+      html += '<div class="timeline-item">';
+      html += '<span class="timeline-ts">' + fmtDate(c.detectedAt) + '</span>';
+      html += '<span class="timeline-badge" style="' + typeCls + '">' + escapeHTML(c.changeType || '—') + '</span>';
+      html += '<span style="color:var(--text)">' + escapeHTML(c.fieldName || '') + '</span>';
+      if (c.oldValue) html += '<span style="color:var(--red);font-family:DM Mono,monospace;font-size:10px">' + escapeHTML(c.oldValue) + '</span>';
+      if (c.oldValue && c.newValue) html += '<span style="color:var(--muted)">→</span>';
+      if (c.newValue) html += '<span style="color:var(--green);font-family:DM Mono,monospace;font-size:10px">' + escapeHTML(c.newValue) + '</span>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  }
+
+  document.getElementById('pair-detail').innerHTML = html;
+}
+
+function row(label, value) {
+  return '<div class="detail-row"><span class="detail-label">' + label + '</span><span class="detail-val">' + value + '</span></div>';
+}
+
+function fmtPrice(n, dec) {
+  if (n == null) return '—';
+  if (n >= 1000) return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  if (n >= 1) return n.toLocaleString(undefined, { maximumFractionDigits: dec || 4 });
+  return n.toLocaleString(undefined, { maximumFractionDigits: dec || 8 });
+}
+
+function fmtVol(v) {
+  if (v >= 1e9) return (v/1e9).toFixed(2) + 'B';
+  if (v >= 1e6) return (v/1e6).toFixed(2) + 'M';
+  if (v >= 1e3) return (v/1e3).toFixed(1) + 'K';
+  return v.toFixed(0);
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  var d = new Date(iso);
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric' }) + ' ' + d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+}
+</script>
+<footer style="border-top:1px solid var(--border);padding:24px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:40px"><p style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">© 2025 ChatLogic Insights LTD · AgoraIQ</p><div style="display:flex;gap:18px;flex-wrap:wrap"><a href="/terms" style="font-size:10px;color:#8b90a8;text-decoration:none">Terms</a><a href="/privacy" style="font-size:10px;color:#8b90a8;text-decoration:none">Privacy</a><a href="/disclaimer" style="font-size:10px;color:#8b90a8;text-decoration:none">Disclaimer</a><a href="/no-financial-advice" style="font-size:10px;color:#8b90a8;text-decoration:none">No Financial Advice</a><a href="/cookies" style="font-size:10px;color:#8b90a8;text-decoration:none">Cookies</a></div></footer></body>
+</html>

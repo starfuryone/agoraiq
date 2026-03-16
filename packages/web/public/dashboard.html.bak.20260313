@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgoraIQ — Signal Intelligence Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/global.css">
+<style>
+  /* ══════════════════════════════════════
+     DASHBOARD — Signal Intelligence Hub
+     brand-* prefixed to avoid conflicts
+     ══════════════════════════════════════ */
+
+  @keyframes brand-fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes brand-shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .brand-fadeUp { animation: brand-fadeUp 0.45s ease-out both; }
+  .brand-fadeUp-1 { animation-delay: 0.04s; }
+  .brand-fadeUp-2 { animation-delay: 0.08s; }
+  .brand-fadeUp-3 { animation-delay: 0.12s; }
+  .brand-fadeUp-4 { animation-delay: 0.16s; }
+  .brand-fadeUp-5 { animation-delay: 0.20s; }
+
+  .brand-skeleton {
+    background: linear-gradient(90deg, var(--bg-card,#0e1017) 25%, #1a1d2e 50%, var(--bg-card,#0e1017) 75%);
+    background-size: 200% 100%;
+    animation: brand-shimmer 1.4s ease-in-out infinite;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  .brand-skel-text  { width: 80px; height: 14px; }
+  .brand-skel-value { width: 48px; height: 22px; }
+  .brand-skel-row   { width: 100%; height: 42px; margin-bottom: 1px; }
+
+  /* ── Brand Logo (matches landing page exactly) ── */
+  .dash-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    margin-bottom: 14px;
+  }
+  .dash-brand .brand-mark {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--cyan, #00d4ff), #0066ff);
+    clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+    flex: 0 0 auto;
+  }
+  .dash-brand .brand-text {
+    font-family: var(--font-display, 'Syne', sans-serif);
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+    color: var(--text, #e2e8f0);
+    white-space: nowrap;
+    line-height: 1;
+  }
+  .dash-brand .brand-iq {
+    color: var(--cyan, #00d4ff);
+    margin-left: 0;
+  }
+
+  /* ── Page Header ── */
+  .dash-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 22px;
+  }
+  .dash-header h1 {
+    font-family: var(--font-display, 'Syne', sans-serif);
+    font-size: 22px; font-weight: 700; letter-spacing: -0.5px;
+    color: var(--text, #e2e8f0);
+  }
+  .dash-subtitle {
+    color: var(--text-dim, #64748b); font-size: 12px; margin-top: 3px;
+    font-family: var(--font-mono, 'DM Mono', monospace);
+  }
+  .dash-plan-badge { display: flex; align-items: center; gap: 10px; }
+  .dash-plan-tag {
+    font-size: 10px; font-weight: 500; padding: 4px 10px; border-radius: 20px;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    font-family: var(--font-mono, 'DM Mono', monospace);
+  }
+  .dash-plan-tag[data-plan="free"]  { background: rgba(100,116,139,0.12); color: var(--text-dim); border: 1px solid var(--border); }
+  .dash-plan-tag[data-plan="pro"]   { background: rgba(0,212,255,0.1); color: var(--cyan); border: 1px solid rgba(0,212,255,0.2); }
+  .dash-plan-tag[data-plan="elite"] { background: rgba(167,139,250,0.1); color: #a78bfa; border: 1px solid rgba(167,139,250,0.2); }
+  .dash-upgrade-sm {
+    background: linear-gradient(135deg, var(--cyan,#00d4ff), #0099cc);
+    color: var(--bg,#08090d);
+    font-family: var(--font-display); font-weight: 600; font-size: 11px;
+    padding: 6px 14px; border-radius: 6px; border: none; cursor: pointer;
+    text-decoration: none; transition: all 0.2s;
+  }
+  .dash-upgrade-sm:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,212,255,0.25); }
+
+  /* ── Intel Strip ── */
+  .dash-intel-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 22px; }
+  .dash-intel-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; position: relative; overflow: hidden;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+  .dash-intel-card:hover { border-color: #2a2f45; transform: translateY(-1px); }
+  .dash-intel-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+  .dash-intel-card[data-type="regime"]::before   { background: var(--green); }
+  .dash-intel-card[data-type="signals"]::before   { background: var(--cyan); }
+  .dash-intel-card[data-type="provider"]::before  { background: #a78bfa; }
+  .dash-intel-card[data-type="breadth"]::before   { background: #f59e0b; }
+  .dash-intel-card[data-type="plan"]::before      { background: #2a2f45; }
+  .dash-intel-label {
+    font-size: 10px; color: var(--text-muted,#475569); text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 8px; font-family: var(--font-mono);
+  }
+  .dash-intel-value {
+    font-family: var(--font-display); font-size: 18px; font-weight: 700;
+    letter-spacing: -0.3px; margin-bottom: 4px;
+  }
+  .dash-intel-meta { font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); }
+  .dash-intel-meta .up   { color: var(--green); }
+  .dash-intel-meta .down { color: var(--red); }
+  .dash-regime-dot {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    margin-right: 6px; position: relative; top: -1px;
+  }
+  .dash-regime-dot.bullish { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .dash-regime-dot.bearish { background: var(--red); box-shadow: 0 0 6px var(--red); }
+  .dash-regime-dot.neutral { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
+  .dash-conf-bar { margin-top:8px; height:3px; background:var(--bg); border-radius:2px; overflow:hidden; }
+  .dash-conf-bar .fill { height:100%; border-radius:2px; transition:width 0.6s ease; }
+
+  /* ── Body ── */
+  .dash-body { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
+
+  /* ── Cards ── */
+  .dash-card { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  .dash-card-head {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 18px; border-bottom:1px solid var(--border);
+  }
+  .dash-card-title { font-family:var(--font-display); font-size:13.5px; font-weight:600; letter-spacing:-0.2px; }
+  .dash-view-all { color:var(--cyan); text-decoration:none; font-size:11px; font-family:var(--font-mono); opacity:0.8; transition:opacity 0.2s; }
+  .dash-view-all:hover { opacity:1; }
+  .dash-ts { font-size:10px; color:var(--text-muted); font-family:var(--font-mono); }
+  .dash-ts::before { content:'●'; color:var(--green); margin-right:4px; font-size:7px; position:relative; top:-1px; }
+
+  /* ── Filters ── */
+  .dash-filters { display:flex; gap:6px; padding:10px 18px; border-bottom:1px solid var(--border); overflow-x:auto; }
+  .dash-fpill {
+    background:var(--bg); color:var(--text-dim); border:1px solid var(--border);
+    border-radius:20px; padding:4px 12px; font-size:10.5px; font-family:var(--font-mono);
+    cursor:pointer; white-space:nowrap; transition:all 0.2s;
+  }
+  .dash-fpill:hover { border-color:#2a2f45; color:var(--text); }
+  .dash-fpill.active { background:rgba(0,212,255,0.1); color:var(--cyan); border-color:rgba(0,212,255,0.3); }
+
+  /* ── Signal Feed ── */
+  .dash-srow {
+    display:grid; grid-template-columns:100px 56px 90px 72px 100px 50px 100px 70px;
+    align-items:center; gap:8px; padding:11px 18px; border-bottom:1px solid var(--border);
+    font-size:12px; font-family:var(--font-mono); transition:background 0.15s;
+  }
+  .dash-srow:hover { background:#13151e; }
+  .dash-srow.hdr {
+    font-size:10px; color:var(--text-muted); text-transform:uppercase;
+    letter-spacing:0.8px; background:var(--bg); font-weight:500;
+  }
+  .dash-srow.hdr:hover { background:var(--bg); }
+  .dash-srow.locked { filter:blur(3px); pointer-events:none; user-select:none; opacity:0.5; }
+  .dash-spair { font-family:var(--font-display); font-weight:600; font-size:12.5px; }
+  .dash-sdir { font-size:10px; font-weight:500; padding:2px 8px; border-radius:3px; text-align:center; text-transform:uppercase; letter-spacing:0.5px; }
+  .dash-sdir.long  { background:rgba(16,185,129,0.1); color:var(--green); }
+  .dash-sdir.short { background:rgba(239,68,68,0.1);  color:var(--red); }
+  .dash-sentry { color:var(--text-dim); font-variant-numeric:tabular-nums; }
+  .dash-cdot { display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:5px; }
+  .dash-cdot.high { background:var(--green); }
+  .dash-cdot.med  { background:#f59e0b; }
+  .dash-cdot.low  { background:var(--red); }
+  .dash-sprov { color:var(--text-dim); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .dash-sage { color:var(--text-muted); font-size:11px; }
+  .dash-sstat {
+    font-size:10px; padding:2px 8px; border-radius:3px; text-align:center;
+    font-weight:500; letter-spacing:0.3px; text-transform:uppercase; display:inline-block;
+  }
+  .dash-sstat.new     { background:rgba(0,212,255,0.1);  color:var(--cyan); }
+  .dash-sstat.active  { background:rgba(16,185,129,0.1); color:var(--green); }
+  .dash-sstat.tp      { background:rgba(16,185,129,0.1); color:var(--green); }
+  .dash-sstat.stopped { background:rgba(239,68,68,0.1);  color:var(--red); }
+  .dash-sstat.expired { background:rgba(100,116,139,0.1);color:var(--text-muted); }
+  .dash-sact a { color:var(--cyan); text-decoration:none; font-size:11px; opacity:0.7; transition:opacity 0.2s; }
+  .dash-sact a:hover { opacity:1; }
+
+  .dash-sfooter { padding:14px 18px; text-align:center; border-top:1px solid var(--border); font-family:var(--font-mono); }
+  .dash-sfooter span { font-size:11.5px; color:var(--text-dim); }
+  .dash-sfooter a { color:var(--cyan); text-decoration:none; font-size:11.5px; margin-left:8px; font-weight:500; }
+
+  /* ── Next Actions ── */
+  .dash-nactions { display:flex; gap:10px; padding:14px 18px; border-top:1px solid var(--border); background:var(--bg); }
+  .dash-nbtn {
+    flex:1; background:var(--bg-card); border:1px solid var(--border); border-radius:6px;
+    padding:10px 12px; text-align:center; cursor:pointer; transition:all 0.2s; text-decoration:none; display:block;
+  }
+  .dash-nbtn:hover { border-color:var(--cyan); background:#13151e; }
+  .dash-nbtn .lb { font-family:var(--font-display); font-size:11px; font-weight:600; color:var(--text); margin-bottom:2px; }
+  .dash-nbtn .ht { font-size:10px; color:var(--text-muted); font-family:var(--font-mono); }
+
+  /* ── Right Rail ── */
+  .dash-rrail { display:flex; flex-direction:column; gap:16px; }
+
+  /* Providers */
+  .dash-prow {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:11px 18px; border-bottom:1px solid var(--border); transition:background 0.15s;
+  }
+  .dash-prow:hover { background:#13151e; }
+  .dash-prow.locked { filter:blur(4px); pointer-events:none; user-select:none; }
+  .dash-pinfo { display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
+  .dash-prank { font-family:var(--font-display); font-weight:700; font-size:13px; color:var(--text-muted); width:22px; text-align:center; }
+  .dash-prank.top { color:var(--cyan); }
+  .dash-pavatar {
+    width:28px; height:28px; border-radius:6px; background:rgba(0,212,255,0.06);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-weight:700; font-size:11px; color:var(--cyan); flex-shrink:0;
+  }
+  .dash-pname { font-size:12px; font-weight:500; font-family:var(--font-mono); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .dash-pstats { display:flex; gap:14px; align-items:center; font-size:11px; flex-shrink:0; font-family:var(--font-mono); }
+  .dash-psl { color:var(--text-muted); font-size:9px; text-transform:uppercase; letter-spacing:0.5px; }
+  .dash-psv { font-variant-numeric:tabular-nums; }
+  .dash-psv.pos { color:var(--green); }
+  .dash-fbtn {
+    background:rgba(100,116,139,0.08); border:1px solid var(--border); color:var(--text-dim);
+    font-size:10px; padding:4px 10px; border-radius:4px; cursor:pointer;
+    font-family:var(--font-mono); transition:all 0.2s; margin-left:10px; flex-shrink:0;
+  }
+  .dash-fbtn:hover { border-color:var(--cyan); color:var(--cyan); }
+
+  .dash-ttabs { display:flex; gap:2px; background:var(--bg); border-radius:6px; padding:2px; }
+  .dash-ttab {
+    font-size:10px; font-family:var(--font-mono); padding:4px 10px; border-radius:4px;
+    background:transparent; color:var(--text-muted); border:none; cursor:pointer; transition:all 0.2s;
+  }
+  .dash-ttab.active { background:var(--bg-card); color:var(--text); }
+
+  /* Upgrade card */
+  .dash-ucard {
+    background:linear-gradient(135deg,rgba(0,212,255,0.05),rgba(167,139,250,0.05));
+    border:1px solid rgba(0,212,255,0.12); border-radius:10px; padding:20px; text-align:center;
+  }
+  .dash-ucard h3 { font-family:var(--font-display); font-size:14px; font-weight:700; margin-bottom:6px; }
+  .dash-ucard p { color:var(--text-dim); font-size:11.5px; line-height:1.6; margin-bottom:14px; font-family:var(--font-mono); }
+  .dash-ubtn {
+    display:inline-block; background:linear-gradient(135deg,var(--cyan),#0099cc);
+    color:var(--bg); font-family:var(--font-display); font-weight:700; font-size:12px;
+    padding:10px 28px; border-radius:8px; border:none; cursor:pointer; text-decoration:none;
+    transition:all 0.25s;
+  }
+  .dash-ubtn:hover { transform:translateY(-2px); box-shadow:0 6px 24px rgba(0,212,255,0.25); }
+  .dash-ufeats { margin-top:12px; text-align:left; list-style:none; padding:0; }
+  .dash-ufeats li { font-size:11px; color:var(--text-dim); padding:3px 0; font-family:var(--font-mono); }
+  .dash-ufeats li::before { content:'→ '; color:var(--cyan); }
+
+  /* Explainer */
+  .dash-eblock { padding:16px 18px; }
+  .dash-eitem { padding:10px 0; border-bottom:1px solid var(--border); }
+  .dash-eitem:last-child { border-bottom:none; }
+  .dash-eq { font-family:var(--font-display); font-weight:600; font-size:12px; color:var(--cyan); margin-bottom:5px; }
+  .dash-ea { font-size:11.5px; color:var(--text-dim); line-height:1.6; font-family:var(--font-mono); }
+
+  /* Bottom row */
+  .dash-bottom { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:20px; }
+
+  /* ── SVG Charts ── */
+  .dash-chart-wrap {
+    padding: 16px 18px 12px;
+    position: relative;
+  }
+  .dash-chart-wrap svg {
+    width: 100%;
+    display: block;
+    overflow: visible;
+  }
+  .dash-chart-tooltip {
+    position: absolute;
+    background: #1a1d2e;
+    border: 1px solid #2a2f45;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 10;
+    white-space: nowrap;
+  }
+  .dash-chart-tooltip.show { opacity: 1; }
+  .dash-chart-tooltip .tt-label { color: var(--text-muted); }
+  .dash-chart-tooltip .tt-value { color: var(--cyan); font-weight: 500; }
+  .dash-chart-tooltip .tt-value.green { color: var(--green); }
+  .dash-chart-legend {
+    display: flex; gap: 14px; padding: 8px 18px 12px;
+    font-size: 10px; color: var(--text-muted); font-family: var(--font-mono);
+  }
+  .dash-chart-legend .leg-dot {
+    display: inline-block; width: 8px; height: 8px;
+    border-radius: 2px; margin-right: 5px; position: relative; top: 1px;
+  }
+
+  /* Market Pulse */
+  .dash-mrow {
+    display:grid; grid-template-columns:100px 68px 68px 78px 68px 56px;
+    align-items:center; gap:8px; padding:9px 18px; border-bottom:1px solid var(--border);
+    font-size:11.5px; font-family:var(--font-mono); transition:background 0.15s;
+  }
+  .dash-mrow:hover { background:#13151e; }
+  .dash-mrow.hdr { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px; background:var(--bg); font-weight:500; }
+  .dash-mpair { font-family:var(--font-display); font-weight:600; font-size:12px; }
+  .dash-mchg.pos { color:var(--green); }
+  .dash-mchg.neg { color:var(--red); }
+  .dash-mbadge {
+    font-size:9px; padding:2px 6px; border-radius:3px; text-transform:uppercase;
+    letter-spacing:0.3px; font-weight:500; display:inline-block;
+  }
+  .dash-mbadge.uptrend   { background:rgba(16,185,129,0.1);  color:var(--green); }
+  .dash-mbadge.downtrend { background:rgba(239,68,68,0.1);   color:var(--red); }
+  .dash-mbadge.ranging   { background:rgba(245,158,11,0.1);  color:#f59e0b; }
+  .dash-mbadge.spike     { background:rgba(167,139,250,0.1); color:#a78bfa; }
+  .dash-mbadge.normal    { background:rgba(100,116,139,0.08);color:var(--text-muted); }
+  .dash-mhighlights { padding:10px 18px; border-top:1px solid var(--border); display:flex; gap:8px; flex-wrap:wrap; }
+  .dash-mtag { font-size:9px; padding:2px 6px; border-radius:3px; font-weight:500; font-family:var(--font-mono); }
+  .dash-mtag.mover   { background:rgba(0,212,255,0.1);  color:var(--cyan); }
+  .dash-mtag.breakout { background:rgba(167,139,250,0.1);color:#a78bfa; }
+  .dash-mtag.fresh    { background:rgba(16,185,129,0.1); color:var(--green); }
+  .dash-mtag.overext  { background:rgba(239,68,68,0.1);  color:var(--red); }
+
+  @media (max-width:1200px) {
+    .dash-body { grid-template-columns:1fr; }
+    .dash-bottom { grid-template-columns:1fr; }
+    .dash-intel-strip { grid-template-columns:repeat(3,1fr); }
+  }
+  @media (max-width:768px) {
+    .dash-intel-strip { grid-template-columns:1fr 1fr; }
+    .dash-srow { font-size:11px; overflow-x:auto; }
+  }
+</style>
+</head>
+<body>
+<div id="dashboard-root">
+
+  <!-- Header -->
+  <div class="dash-header brand-fadeUp">
+    <div>
+      <a href="/" class="dash-brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-text">Agora<span class="brand-iq">IQ</span></span>
+      </a>
+      <h1>Signal Intelligence Hub</h1>
+      <div class="dash-subtitle">What matters in the market right now · <span class="dash-ts" id="dash-updated">Updated —</span></div>
+    </div>
+    <div class="dash-plan-badge">
+      <span class="dash-plan-tag" id="dash-plan" data-plan="free">FREE</span>
+      <a href="/pricing" class="dash-upgrade-sm" id="dash-upgrade-hdr" style="display:none;">Unlock full analytics →</a>
+    </div>
+  </div>
+
+  <!-- Intel Strip -->
+  <div class="dash-intel-strip" id="dash-intel"></div>
+
+  <!-- Body -->
+  <div class="dash-body">
+
+    <!-- Signal Feed -->
+    <div class="dash-card brand-fadeUp brand-fadeUp-2" style="display:flex;flex-direction:column;min-height:460px;">
+      <div class="dash-card-head">
+        <div><span class="dash-card-title">⚡ Signal Feed</span> <span class="dash-ts" style="margin-left:10px;">Live</span></div>
+        <a href="/signals" class="dash-view-all">View all signals →</a>
+      </div>
+      <div class="dash-filters" id="dash-filters">
+        <button class="dash-fpill active" data-f="all">All</button>
+        <button class="dash-fpill" data-f="high">High Confidence</button>
+        <button class="dash-fpill" data-f="new">New</button>
+        <button class="dash-fpill" data-f="active">Active</button>
+        <button class="dash-fpill" data-f="closed">Closed</button>
+      </div>
+      <div class="dash-srow hdr">
+        <div>Pair</div><div>Dir</div><div>Entry</div><div>Conf</div>
+        <div>Provider</div><div>Age</div><div>Status</div><div style="text-align:right;">Action</div>
+      </div>
+      <div id="dash-feed"><div class="brand-skeleton brand-skel-row"></div><div class="brand-skeleton brand-skel-row"></div><div class="brand-skeleton brand-skel-row"></div></div>
+      <div class="dash-sfooter" id="dash-sftr" style="margin-top:auto;"></div>
+      <div class="dash-nactions" id="dash-nact"></div>
+    </div>
+
+    <!-- Right Rail -->
+    <div class="dash-rrail">
+      <div class="dash-card brand-fadeUp brand-fadeUp-3">
+        <div class="dash-card-head">
+          <span class="dash-card-title">Top Providers</span>
+          <div class="dash-ttabs" id="dash-ptoggle">
+            <button class="dash-ttab active" data-r="7d">7d</button>
+            <button class="dash-ttab" data-r="30d">30d</button>
+          </div>
+        </div>
+        <div id="dash-plist"><div class="brand-skeleton brand-skel-row"></div><div class="brand-skeleton brand-skel-row"></div><div class="brand-skeleton brand-skel-row"></div></div>
+        <div style="padding:14px 18px;text-align:center;border-top:1px solid var(--border);" id="dash-pcta"></div>
+      </div>
+      <div class="dash-ucard brand-fadeUp brand-fadeUp-4" id="dash-ucard">
+        <h3>Unlock the providers actually making money</h3>
+        <p>Track win rate, R-multiple, and live performance across 100+ verified signal providers.</p>
+        <a href="/pricing" class="dash-ubtn">Get Pro Access</a>
+        <ul class="dash-ufeats">
+          <li>Full signal feed with real-time confidence scores</li>
+          <li>All provider rankings and analytics</li>
+          <li>Advanced market pulse and scanner</li>
+          <li>Custom watchlists and alerts</li>
+        </ul>
+      </div>
+      <div class="dash-card brand-fadeUp brand-fadeUp-5">
+        <div class="dash-card-head"><span class="dash-card-title">✦ Why This Matters</span></div>
+        <div class="dash-eblock" id="dash-expl"><div class="brand-skeleton brand-skel-row" style="height:60px;"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom -->
+  <div class="dash-bottom brand-fadeUp brand-fadeUp-4">
+    <div class="dash-card">
+      <div class="dash-card-head">
+        <span class="dash-card-title">📈 Signal Activity (30d)</span>
+        <span class="dash-ts" id="dash-today-ct">Today: —</span>
+      </div>
+      <div class="dash-chart-wrap" id="dash-activity-chart">
+        <div class="dash-chart-tooltip" id="dash-act-tt"></div>
+        <svg id="dash-act-svg" viewBox="0 0 560 160" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div class="dash-chart-legend">
+        <span><span class="leg-dot" style="background:var(--cyan);"></span>Signals per day</span>
+        <span style="margin-left:auto;" id="dash-act-avg"></span>
+      </div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-head">
+        <span class="dash-card-title">📊 Win Rate Trend (30d)</span>
+        <span class="dash-ts" id="dash-wr-ts">—</span>
+      </div>
+      <div class="dash-chart-wrap" id="dash-wr-chart">
+        <div class="dash-chart-tooltip" id="dash-wr-tt"></div>
+        <svg id="dash-wr-svg" viewBox="0 0 560 160" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div class="dash-chart-legend">
+        <span><span class="leg-dot" style="background:var(--green);"></span>Win rate %</span>
+        <span><span class="leg-dot" style="background:rgba(0,212,255,0.3);"></span>Resolved trades</span>
+        <span style="margin-left:auto;" id="dash-wr-avg"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Row 2: Market Pulse -->
+  <div style="margin-top:20px;" class="brand-fadeUp brand-fadeUp-5">
+    <div class="dash-card">
+      <div class="dash-card-head"><span class="dash-card-title">Market Pulse</span><span class="dash-ts">Live</span></div>
+      <div class="dash-mrow hdr"><div>Pair</div><div>24h %</div><div>Volume</div><div>Trend</div><div>Volatility</div><div>Signals</div></div>
+      <div id="dash-mpulse"><div class="brand-skeleton brand-skel-row"></div><div class="brand-skeleton brand-skel-row"></div></div>
+      <div class="dash-mhighlights" id="dash-mhl"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const API='/api/v1', TK=localStorage.getItem('iq_token');
+  if(!TK){window.location.href='/login';return;}
+
+  async function f(p,o={}){
+    try{
+      const r=await fetch(API+p,{headers:{'Authorization':'Bearer '+TK,'Content-Type':'application/json',...(o.headers||{})},...o});
+      if(r.status===401){window.location.href='/login';return null;}
+      if(!r.ok)return null;
+      return await r.json();
+    }catch(e){console.error('[Dash]',p,e);return null;}
+  }
+  function ago(d){if(!d)return'—';const m=Math.floor((Date.now()-new Date(d))/6e4);if(m<1)return'now';if(m<60)return m+'m';const h=Math.floor(m/60);if(h<24)return h+'h';return Math.floor(h/24)+'d';}
+  function cl(s){return s>=80?'high':s>=60?'med':'low';}
+  function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+  function stl(s){
+    const o=(s.outcome||s.status||'').toLowerCase();
+    if(/tp/.test(o))return{t:'TP Hit',c:'tp'};if(/sl|stop/.test(o))return{t:'Stopped',c:'stopped'};
+    if(/exp/.test(o))return{t:'Expired',c:'expired'};if(/open|active/.test(o))return{t:'Active',c:'active'};
+    if(s.createdAt&&Date.now()-new Date(s.createdAt)<36e5)return{t:'New',c:'new'};
+    return{t:'Active',c:'active'};
+  }
+
+  let plan='free',cf='all',pr='7d',allSigs=[];
+
+  // ── Auth ──
+  async function loadUser(){
+    const d=await f('/auth/me');if(!d)return;
+    const u=d.user||d;plan=(u.subscription?.plan||u.plan||'free').toLowerCase();
+    const t=document.getElementById('dash-plan');t.dataset.plan=plan;t.textContent=plan.toUpperCase();
+    document.getElementById('dash-upgrade-hdr').style.display=plan==='free'?'':'none';
+    if(plan!=='free')document.getElementById('dash-ucard').style.display='none';
+  }
+
+  // ── Intel Strip ──
+  function renderIntel(d){
+    const el=document.getElementById('dash-intel');
+    if(!d){el.innerHTML=Array(5).fill(0).map((_,i)=>`<div class="dash-intel-card brand-fadeUp brand-fadeUp-${i+1}" data-type="${['regime','signals','provider','breadth','plan'][i]}"><div class="dash-intel-label">${['Market Regime','Actionable Signals','Top Provider','Market Breadth','Your Plan'][i]}</div><div class="dash-intel-value"><span class="brand-skeleton brand-skel-value"></span></div><div class="dash-intel-meta"><span class="brand-skeleton brand-skel-text"></span></div></div>`).join('');return;}
+    const r=d.regime||{},rc=(r.label||'').toLowerCase().includes('risk-on')?'bullish':(r.label||'').toLowerCase().includes('risk-off')?'bearish':'neutral';
+    const plCopy=plan==='free'?`You're seeing 3 of ${d.totalProviders||'100+'} providers`:`${d.totalProviders||'—'} providers tracked`;
+    el.innerHTML=`
+      <div class="dash-intel-card brand-fadeUp brand-fadeUp-1" data-type="regime">
+        <div class="dash-intel-label">Market Regime</div>
+        <div class="dash-intel-value"><span class="dash-regime-dot ${rc}"></span>${esc(r.label||'—')}</div>
+        <div class="dash-intel-meta">Confidence ${r.confidence||'—'}%${r.changedAgo?` · <span class="${rc==='bullish'?'up':'down'}">Changed ${esc(r.changedAgo)}</span>`:''}</div>
+        <div class="dash-conf-bar"><div class="fill" style="width:${r.confidence||0}%;background:var(--${rc==='bullish'?'green':rc==='bearish'?'red':'amber'});"></div></div>
+      </div>
+      <div class="dash-intel-card brand-fadeUp brand-fadeUp-2" data-type="signals">
+        <div class="dash-intel-label">Actionable Signals</div>
+        <div class="dash-intel-value" style="color:var(--cyan);">${d.actionableCount??'—'}</div>
+        <div class="dash-intel-meta">High-confidence setups${d.actionableDelta!=null?` · <span class="${d.actionableDelta>=0?'up':'down'}">${d.actionableDelta>=0?'+':''}${d.actionableDelta} vs yesterday</span>`:''}</div>
+      </div>
+      <div class="dash-intel-card brand-fadeUp brand-fadeUp-3" data-type="provider">
+        <div class="dash-intel-label">Top Provider Today</div>
+        <div class="dash-intel-value" style="font-size:16px;">${esc(d.topProvider?.name||'—')}</div>
+        <div class="dash-intel-meta">${d.topProvider?`7d WR ${d.topProvider.winRate||'—'}% · Avg R <span class="up">${d.topProvider.avgR||'—'}</span>`:'—'}</div>
+      </div>
+      <div class="dash-intel-card brand-fadeUp brand-fadeUp-4" data-type="breadth">
+        <div class="dash-intel-label">Market Breadth</div>
+        <div class="dash-intel-value" style="color:#f59e0b;">${d.breadth??'—'}%</div>
+        <div class="dash-intel-meta">Pairs above short-term trend</div>
+        <div class="dash-conf-bar"><div class="fill" style="width:${d.breadth||0}%;background:#f59e0b;"></div></div>
+      </div>
+      <div class="dash-intel-card brand-fadeUp brand-fadeUp-5" data-type="plan">
+        <div class="dash-intel-label">Your Plan</div>
+        <div class="dash-intel-value" style="font-size:16px;">${plan.charAt(0).toUpperCase()+plan.slice(1)}</div>
+        <div class="dash-intel-meta">${plCopy}</div>
+      </div>`;
+    document.getElementById('dash-updated').textContent='Updated '+ago(d.updatedAt||new Date().toISOString());
+  }
+  async function loadIntel(){renderIntel(null);const d=await f('/dashboard/intelligence');if(d)renderIntel(d);}
+
+  // ── Signals ──
+  function renderSigs(sigs){
+    const feed=document.getElementById('dash-feed'),ftr=document.getElementById('dash-sftr'),act=document.getElementById('dash-nact');
+    const FL=6,paid=plan!=='free',vc=paid?sigs.length:Math.min(sigs.length,FL),lc=paid?0:Math.max(0,sigs.length-FL);
+    let h='';
+    sigs.forEach((s,i)=>{
+      const lk=!paid&&i>=FL,st=stl(s),c=cl(s.confidence||s.score||0),dir=(s.direction||'').toLowerCase();
+      h+=`<div class="dash-srow${lk?' locked':''}"><div class="dash-spair">${esc(s.pair)}</div><div><span class="dash-sdir ${dir}">${dir}</span></div><div class="dash-sentry">${s.entry?parseFloat(s.entry).toLocaleString(undefined,{maximumFractionDigits:6}):'—'}</div><div><span class="dash-cdot ${c}"></span>${s.confidence||s.score||'—'}%</div><div class="dash-sprov">${esc(s.providerName||s.provider)}</div><div class="dash-sage">${ago(s.createdAt)}</div><div><span class="dash-sstat ${st.c}">${st.t}</span></div><div class="dash-sact"><a href="/signals?id=${s.id||''}">View →</a></div></div>`;
+    });
+    if(!sigs.length)h='<div style="padding:32px 18px;text-align:center;color:var(--text-muted);">No signals match this filter</div>';
+    feed.innerHTML=h;
+    ftr.innerHTML=lc>0?`<span>${lc} more signal${lc>1?'s':''} available today</span><a href="/pricing">See which signals deserve attention →</a>`:`<a href="/signals" style="color:var(--cyan);text-decoration:none;font-size:11.5px;">Browse full signal history →</a>`;
+    const top=sigs[0];
+    act.innerHTML=`<a href="${top?'/signals?id='+(top.id||''):'/signals'}" class="dash-nbtn"><div class="lb">Review top signal</div><div class="ht">${top?esc(top.pair)+' '+(top.confidence||top.score||'')+'%':'—'}</div></a><a href="/marketplace" class="dash-nbtn"><div class="lb">Follow top provider</div><div class="ht" id="dash-nxtprov">—</div></a><a href="/scanner" class="dash-nbtn"><div class="lb">Open Scanner</div><div class="ht">Confirm with TA</div></a>`;
+  }
+  function filterSigs(flt){cf=flt;let s=allSigs;if(flt==='high')s=allSigs.filter(x=>(x.confidence||x.score||0)>=80);if(flt==='new')s=allSigs.filter(x=>stl(x).c==='new');if(flt==='active')s=allSigs.filter(x=>['active','new'].includes(stl(x).c));if(flt==='closed')s=allSigs.filter(x=>['tp','stopped','expired'].includes(stl(x).c));renderSigs(s);}
+  async function loadSigs(){const d=await f('/dashboard/signals?limit=20');if(!d)return;allSigs=d.signals||d||[];filterSigs(cf);}
+
+  // ── Providers ──
+  function renderProvs(ps){
+    const el=document.getElementById('dash-plist'),cta=document.getElementById('dash-pcta');
+    const paid=plan!=='free',FL=3;
+    let h='';
+    (ps||[]).forEach((p,i)=>{
+      const lk=!paid&&i>=FL,ini=(p.name||'??').split(/[\s_-]/).map(w=>w[0]).join('').substring(0,2).toUpperCase();
+      h+=`<div class="dash-prow${lk?' locked':''}"><div class="dash-pinfo"><div class="dash-prank${i<3?' top':''}">${i+1}</div><div class="dash-pavatar">${ini}</div><div class="dash-pname">${esc(p.name)}</div></div><div class="dash-pstats"><div><div class="dash-psl">WR</div><div class="dash-psv${(p.winRate||0)>=65?' pos':''}">${p.winRate||'—'}%</div></div><div><div class="dash-psl">Avg R</div><div class="dash-psv${(p.avgR||0)>=1.5?' pos':''}">${p.avgR||'—'}</div></div></div><button class="dash-fbtn">Follow</button></div>`;
+    });
+    el.innerHTML=h||'<div style="padding:20px 18px;text-align:center;color:var(--text-muted);">No provider data</div>';
+    if(ps&&ps[0]){const ht=document.getElementById('dash-nxtprov');if(ht)ht.textContent=ps[0].name+' · '+(ps[0].winRate||'—')+'% WR';}
+    cta.innerHTML=!paid&&ps.length>FL?`<a href="/pricing" style="color:var(--cyan);text-decoration:none;font-size:11.5px;font-weight:500;">Unlock all 100+ providers →</a>`:`<a href="/marketplace" style="color:var(--cyan);text-decoration:none;font-size:11.5px;">Full provider rankings →</a>`;
+  }
+  async function loadProvs(r){pr=r||pr;const d=await f('/dashboard/top-providers?range='+pr+'&limit=8');if(d)renderProvs(d.providers||d||[]);}
+
+  // ── Explainers ──
+  async function loadExpl(){
+    const d=await f('/dashboard/explainers'),el=document.getElementById('dash-expl');
+    if(!d||!d.items||!d.items.length){el.innerHTML='<div class="dash-eitem"><div class="dash-eq">Why this section exists</div><div class="dash-ea">AgoraIQ uses composite scoring to grade signals and providers. This section explains the reasoning behind today\'s top rankings and market read.</div></div>';return;}
+    el.innerHTML=d.items.map(i=>`<div class="dash-eitem"><div class="dash-eq">${esc(i.question)}</div><div class="dash-ea">${esc(i.answer)}</div></div>`).join('');
+  }
+
+  // ── Activity Bar Chart (SVG) ──
+  function renderActivityChart(days) {
+    const svg = document.getElementById('dash-act-svg');
+    const tt = document.getElementById('dash-act-tt');
+    const wrap = document.getElementById('dash-activity-chart');
+    const avgEl = document.getElementById('dash-act-avg');
+    const todayEl = document.getElementById('dash-today-ct');
+
+    const W = 560, H = 160, PAD_L = 32, PAD_R = 8, PAD_T = 12, PAD_B = 24;
+    const chartW = W - PAD_L - PAD_R;
+    const chartH = H - PAD_T - PAD_B;
+    const n = days.length;
+    const mx = Math.max(...days, 1);
+    const barW = Math.max(2, (chartW / n) - 2);
+    const gap = (chartW - barW * n) / n;
+    const avg = Math.round(days.reduce((a, b) => a + b, 0) / n);
+
+    // Y-axis ticks
+    const ticks = [0, Math.round(mx / 2), mx];
+    let markup = '';
+
+    // Grid lines + Y labels
+    ticks.forEach(t => {
+      const y = PAD_T + chartH - (t / mx) * chartH;
+      markup += `<line x1="${PAD_L}" x2="${W - PAD_R}" y1="${y}" y2="${y}" stroke="#1a1d2e" stroke-width="1"/>`;
+      markup += `<text x="${PAD_L - 6}" y="${y + 3}" fill="#475569" font-size="9" font-family="DM Mono,monospace" text-anchor="end">${t}</text>`;
+    });
+
+    // Average line
+    const avgY = PAD_T + chartH - (avg / mx) * chartH;
+    markup += `<line x1="${PAD_L}" x2="${W - PAD_R}" y1="${avgY}" y2="${avgY}" stroke="rgba(0,212,255,0.25)" stroke-width="1" stroke-dasharray="4,3"/>`;
+
+    // Bars
+    days.forEach((v, i) => {
+      const x = PAD_L + i * (barW + gap) + gap / 2;
+      const h = (v / mx) * chartH;
+      const y = PAD_T + chartH - h;
+      const opacity = v === 0 ? 0.08 : 0.6 + (v / mx) * 0.4;
+      const dayLabel = getDayLabel(i, n);
+
+      markup += `<rect x="${x}" y="${y}" width="${barW}" height="${Math.max(h, 1)}" rx="2" fill="var(--cyan)" opacity="${opacity}" class="dash-act-bar" data-idx="${i}" data-val="${v}" data-label="${dayLabel}"/>`;
+
+      // X-axis labels (every 5 days)
+      if (i % 5 === 0 || i === n - 1) {
+        markup += `<text x="${x + barW / 2}" y="${H - 4}" fill="#475569" font-size="8" font-family="DM Mono,monospace" text-anchor="middle">${dayLabel}</text>`;
+      }
+    });
+
+    svg.innerHTML = markup;
+
+    // Tooltip
+    svg.addEventListener('mousemove', e => {
+      const bar = e.target.closest('.dash-act-bar');
+      if (!bar) { tt.classList.remove('show'); return; }
+      const rect = wrap.getBoundingClientRect();
+      const ex = e.clientX - rect.left;
+      const ey = e.clientY - rect.top;
+      tt.innerHTML = `<span class="tt-label">${bar.dataset.label}</span><br><span class="tt-value">${bar.dataset.val} signals</span>`;
+      tt.style.left = (ex + 12) + 'px';
+      tt.style.top = (ey - 8) + 'px';
+      tt.classList.add('show');
+    });
+    svg.addEventListener('mouseleave', () => tt.classList.remove('show'));
+
+    avgEl.textContent = `Avg: ${avg}/day`;
+    todayEl.textContent = 'Today: ' + (days[days.length - 1] || 0) + ' signals';
+  }
+
+  function getDayLabel(idx, total) {
+    const d = new Date(Date.now() - (total - 1 - idx) * 864e5);
+    return (d.getMonth() + 1) + '/' + d.getDate();
+  }
+
+  async function loadActivity() {
+    const d = await f('/dashboard/activity?days=30');
+    const days = d && d.days ? d.days : Array(30).fill(0);
+    renderActivityChart(days);
+  }
+
+  // ── Win Rate Line Chart (SVG) ──
+  function renderWinRateChart(data) {
+    // data = [{ date, winRate (0-100), resolved (count) }, ...]
+    const svg = document.getElementById('dash-wr-svg');
+    const tt = document.getElementById('dash-wr-tt');
+    const wrap = document.getElementById('dash-wr-chart');
+    const avgEl = document.getElementById('dash-wr-avg');
+    const tsEl = document.getElementById('dash-wr-ts');
+
+    const W = 560, H = 160, PAD_L = 32, PAD_R = 8, PAD_T = 12, PAD_B = 24;
+    const chartW = W - PAD_L - PAD_R;
+    const chartH = H - PAD_T - PAD_B;
+    const n = data.length;
+    if (n === 0) { svg.innerHTML = '<text x="280" y="80" fill="#475569" font-size="11" text-anchor="middle" font-family="DM Mono,monospace">No data yet</text>'; return; }
+
+    const maxResolved = Math.max(...data.map(d => d.resolved), 1);
+    const avgWR = Math.round(data.reduce((a, d) => a + d.winRate, 0) / n);
+
+    let markup = '';
+
+    // Y-axis ticks (win rate 0-100%)
+    [0, 25, 50, 75, 100].forEach(t => {
+      const y = PAD_T + chartH - (t / 100) * chartH;
+      markup += `<line x1="${PAD_L}" x2="${W - PAD_R}" y1="${y}" y2="${y}" stroke="#1a1d2e" stroke-width="1"/>`;
+      markup += `<text x="${PAD_L - 6}" y="${y + 3}" fill="#475569" font-size="9" font-family="DM Mono,monospace" text-anchor="end">${t}%</text>`;
+    });
+
+    // Resolved trade volume bars (background)
+    const barW = Math.max(2, (chartW / n) - 3);
+    const barGap = (chartW - barW * n) / n;
+    data.forEach((d, i) => {
+      const x = PAD_L + i * (barW + barGap) + barGap / 2;
+      const h = (d.resolved / maxResolved) * chartH * 0.5; // scale to half height
+      const y = PAD_T + chartH - h;
+      markup += `<rect x="${x}" y="${y}" width="${barW}" height="${h}" rx="1.5" fill="rgba(0,212,255,0.12)" />`;
+    });
+
+    // Win rate line
+    const points = data.map((d, i) => {
+      const x = PAD_L + (i / Math.max(n - 1, 1)) * chartW;
+      const y = PAD_T + chartH - (d.winRate / 100) * chartH;
+      return { x, y, ...d };
+    });
+
+    // Area fill under line
+    const areaPath = `M${points[0].x},${PAD_T + chartH} ` +
+      points.map(p => `L${p.x},${p.y}`).join(' ') +
+      ` L${points[points.length - 1].x},${PAD_T + chartH} Z`;
+    markup += `<path d="${areaPath}" fill="url(#wr-gradient)" opacity="0.3"/>`;
+
+    // Gradient def
+    markup += `<defs><linearGradient id="wr-gradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="var(--green)" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="var(--green)" stop-opacity="0"/>
+    </linearGradient></defs>`;
+
+    // Line path
+    const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+    markup += `<path d="${linePath}" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+    // Average line
+    const avgY = PAD_T + chartH - (avgWR / 100) * chartH;
+    markup += `<line x1="${PAD_L}" x2="${W - PAD_R}" y1="${avgY}" y2="${avgY}" stroke="rgba(16,185,129,0.25)" stroke-width="1" stroke-dasharray="4,3"/>`;
+
+    // Data points (hover targets)
+    points.forEach((p, i) => {
+      const dayLabel = getDayLabel(i, n);
+      markup += `<circle cx="${p.x}" cy="${p.y}" r="12" fill="transparent" class="dash-wr-dot" data-idx="${i}" data-wr="${p.winRate}" data-res="${p.resolved}" data-label="${dayLabel}"/>`;
+      markup += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="var(--green)" opacity="0" class="dash-wr-vis" data-idx="${i}"/>`;
+    });
+
+    // X labels
+    points.forEach((p, i) => {
+      if (i % 5 === 0 || i === n - 1) {
+        const dayLabel = getDayLabel(i, n);
+        markup += `<text x="${p.x}" y="${H - 4}" fill="#475569" font-size="8" font-family="DM Mono,monospace" text-anchor="middle">${dayLabel}</text>`;
+      }
+    });
+
+    svg.innerHTML = markup;
+
+    // Tooltip + dot reveal
+    svg.addEventListener('mousemove', e => {
+      const dot = e.target.closest('.dash-wr-dot');
+      // Hide all visible dots first
+      svg.querySelectorAll('.dash-wr-vis').forEach(d => d.setAttribute('opacity', '0'));
+      if (!dot) { tt.classList.remove('show'); return; }
+      const idx = dot.dataset.idx;
+      const vis = svg.querySelector(`.dash-wr-vis[data-idx="${idx}"]`);
+      if (vis) vis.setAttribute('opacity', '1');
+      const rect = wrap.getBoundingClientRect();
+      const ex = e.clientX - rect.left;
+      const ey = e.clientY - rect.top;
+      tt.innerHTML = `<span class="tt-label">${dot.dataset.label}</span><br><span class="tt-value green">${dot.dataset.wr}% win rate</span><br><span class="tt-label">${dot.dataset.res} resolved</span>`;
+      tt.style.left = Math.min(ex + 12, wrap.offsetWidth - 120) + 'px';
+      tt.style.top = (ey - 8) + 'px';
+      tt.classList.add('show');
+    });
+    svg.addEventListener('mouseleave', () => {
+      tt.classList.remove('show');
+      svg.querySelectorAll('.dash-wr-vis').forEach(d => d.setAttribute('opacity', '0'));
+    });
+
+    avgEl.textContent = `Avg: ${avgWR}%`;
+    if (data.length > 0) {
+      const latest = data[data.length - 1];
+      const trend = latest.winRate >= avgWR ? '↑' : '↓';
+      tsEl.textContent = `Current: ${latest.winRate}% ${trend}`;
+    }
+  }
+
+  async function loadWinRate() {
+    const d = await f('/dashboard/win-rate-trend?days=30');
+    if (d && d.trend) {
+      renderWinRateChart(d.trend);
+    } else {
+      // Fallback: empty state
+      renderWinRateChart([]);
+    }
+  }
+
+  // ── Market Pulse ──
+  async function loadPulse(){
+    const el=document.getElementById('dash-mpulse'),hl=document.getElementById('dash-mhl');
+    const d=await f('/dashboard/market-pulse');
+    if(!d||!d.pairs){el.innerHTML='<div style="padding:20px 18px;text-align:center;color:var(--text-muted);">Market data loading…</div>';return;}
+    el.innerHTML=d.pairs.map(p=>{
+      const cc=p.change24h>=0?'pos':'neg',tc=(p.trend||'').toLowerCase().replace(/\s/g,''),vc=(p.volumeStatus||'normal').toLowerCase();
+      return`<div class="dash-mrow"><div class="dash-mpair">${esc(p.pair)}</div><div class="dash-mchg ${cc}">${p.change24h>=0?'+':''}${p.change24h}%</div><div><span class="dash-mbadge ${vc}">${esc(p.volumeStatus||'Normal')}</span></div><div><span class="dash-mbadge ${tc}">${esc(p.trend||'—')}</span></div><div style="color:var(--text-dim);">${esc(p.volatility||'—')}</div><div style="color:var(--cyan);">${p.signalCount??'—'}</div></div>`;
+    }).join('');
+    const tags=[];
+    if(d.movers)d.movers.forEach(m=>tags.push(`<span class="dash-mtag mover">⬆ ${esc(m)}</span>`));
+    if(d.breakouts)d.breakouts.forEach(b=>tags.push(`<span class="dash-mtag breakout">◈ Breakout: ${esc(b)}</span>`));
+    if(d.freshSignals)d.freshSignals.forEach(x=>tags.push(`<span class="dash-mtag fresh">⚡ Signal: ${esc(x)}</span>`));
+    if(d.overextended)d.overextended.forEach(x=>tags.push(`<span class="dash-mtag overext">⚠ Overextended: ${esc(x)}</span>`));
+    hl.innerHTML=tags.join('')||'<span style="color:var(--text-muted);font-size:10px;">No highlights currently</span>';
+  }
+
+  // ── Events ──
+  document.getElementById('dash-filters').addEventListener('click',e=>{
+    const p=e.target.closest('.dash-fpill');if(!p)return;
+    document.querySelectorAll('#dash-filters .dash-fpill').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active');filterSigs(p.dataset.f);
+  });
+  document.getElementById('dash-ptoggle').addEventListener('click',e=>{
+    const t=e.target.closest('.dash-ttab');if(!t)return;
+    document.querySelectorAll('#dash-ptoggle .dash-ttab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');loadProvs(t.dataset.r);
+  });
+
+  // ── Init ──
+  (async()=>{
+    await loadUser();
+    await Promise.all([loadIntel(),loadSigs(),loadProvs(),loadExpl(),loadActivity(),loadWinRate(),loadPulse()]);
+  })();
+
+  // Auto-refresh 60s
+  setInterval(()=>{loadIntel();loadSigs();loadPulse();},60000);
+})();
+</script>
+</body>
+</html>
