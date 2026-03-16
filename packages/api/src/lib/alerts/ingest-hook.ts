@@ -10,7 +10,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { Express }      from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@agoraiq/db';
 import { publishSignalEvent } from './producers';
 
 export async function dispatchAlerts(

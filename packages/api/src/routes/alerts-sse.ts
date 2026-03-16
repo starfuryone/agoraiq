@@ -10,7 +10,7 @@
 
 import { Router, Request, Response } from 'express';
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 // In-memory SSE registry: userId → Set<Response>
 const connections = new Map<string, Set<Response>>();

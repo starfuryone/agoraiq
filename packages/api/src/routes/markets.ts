@@ -1,4 +1,3 @@
-
 // ═══════════════════════════════════════════════════════════════
 // @agoraiq/api — Markets Routes
 //
@@ -16,8 +15,6 @@
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@agoraiq/db';
 import { createLogger } from '@agoraiq/db';
-import { SocksProxyAgent } from 'socks-proxy-agent';
-const cgAgent = new SocksProxyAgent('socks5://143.198.202.65:1080');
 
 const log = createLogger('markets-routes');
 
@@ -432,23 +429,6 @@ export function createMarketsRoutes(db: PrismaClient): Router {
     } catch (err: any) {
       log.error({ err }, 'GET /markets/:exchange/:pairId error');
       res.status(500).json({ error: 'INTERNAL_ERROR' });
-    }
-  });
-
-  // ── CoinGecko proxy (SOCKS5) ─────────────────────────────────
-  router.get('/coins', async (req: Request, res: Response) => {
-    try {
-      const page     = parseInt(req.query.page     as string || '1',  10);
-      const per_page = parseInt(req.query.per_page as string || '50', 10);
-      const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${Math.min(per_page,250)}&page=${page}&sparkline=true&price_change_percentage=24h&locale=en`;
-      const r = await fetch(url, { agent: cgAgent } as any);
-      if (!r.ok) return res.status(r.status).json({ error: 'CoinGecko error' });
-      const data = await r.json();
-      res.setHeader('Cache-Control', 'public, max-age=30');
-      res.json(data);
-    } catch (err: any) {
-      log.error({ err }, 'GET /markets/coins proxy error');
-      res.status(500).json({ error: err.message });
     }
   });
 

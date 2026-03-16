@@ -6,11 +6,11 @@
 
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { parseExpression, evaluateRule, legacyConditionsToAst } from '@agoraiq/db/alerts/dsl-engine';
-import { eventToContext } from '@agoraiq/db/alerts/event-types';
-import type { AlertEvent as AlertEventType } from '@agoraiq/db/alerts/event-types';
+import { parseExpression, evaluateRule, legacyConditionsToAst } from '@agoraiq/db';
+import { eventToContext } from '@agoraiq/db';
+import type { AlertEvent as AlertEventType } from '@agoraiq/db';
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -314,19 +314,19 @@ router.post('/preview', async (req: Request, res: Response) => {
   // Fetch grades
   const signalIds = signals.map((s: any) => s.id);
   const grades = signalIds.length > 0
-    ? await prisma.$queryRawUnsafe<any[]>(
+    ? await prisma.$queryRawUnsafe(
         `SELECT signal_id, iq_score, truth_pass_rate, cherry_pick_risk, min_r
          FROM signal_grades WHERE signal_id = ANY($1::text[])`,
         signalIds,
       ).catch(() => [])
     : [];
-  const gradeMap = new Map(grades.map((g: any) => [g.signal_id, g]));
+  const gradeMap = new Map((grades as any[]).map((g: any) => [g.signal_id, g]));
 
   let wouldFire = 0;
   const examples: object[] = [];
 
   for (const s of signals) {
-    const g = gradeMap.get(s.id) ?? {};
+    const g: any = gradeMap.get(s.id) ?? {};
     const ctx: Record<string, any> = {
       category:         'SIGNAL',
       asset:            s.pair?.split('/')[0] ?? '',

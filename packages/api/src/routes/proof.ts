@@ -59,7 +59,7 @@ export function createProofRoutes(
   const router = Router();
 
   // Apply rate limiting to ALL proof endpoints
-  router.use(proofRateLimiter as any);
+  router.use(proofRateLimiter);
 
   // ── GET /stats ──────────────────────────────────────────────
   router.get('/stats', async (req: Request, res: Response) => {

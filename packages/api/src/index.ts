@@ -21,18 +21,11 @@ import { createIngestionRoutes } from './routes/ingestion';
 import { createDashboardRoutes } from './routes/dashboard';
 import { createBillingRoutes } from './routes/billing';
 import { createSignalPublishRoutes } from './routes/signal-publish';
-import { createSignalFormatRoutes } from './routes/signal-format';
 import { createParserRoutes } from './routes/parser';
 import { createMarketsRoutes } from './routes/markets';
 import { createMarketplaceRoutes } from './routes/marketplace';
 import { createSSEFeedRoutes } from './routes/sse-feed';
 import { createTelegramRoutes, createTelegramWorkerRoutes } from './routes/telegram';
-import { marketIntelRouter } from './modules/market-intel/marketIntelRoutes';
-import providerIqRouter from "./routes/provider-iq";
-import aiRouter from "./routes/ai";
-import { marketIntelExtendedRouter } from './modules/market-intel/marketIntelExtendedRoutes';
-import { startMarketIntelScheduler } from './modules/market-intel/marketIntelScheduler';
-import { createEngineIngestRoutes } from './routes/engine-ingest';
 
 const log = createLogger('server');
 
@@ -59,24 +52,17 @@ app.set('trust proxy', 1);
 // ── Routes ────────────────────────────────────────────────────
 app.use('/api/v1',            createHealthRoutes(db));
 app.use('/api/v1/auth',       createAuthRoutes(db));
-app.use("/api/v1/providers/iq", providerIqRouter);
-app.use("/api/v1/ai", aiRouter);
 app.use('/api/v1/proof',      createProofRoutes(db, PROOF_WORKSPACE_ID));
 app.use('/api/v1/providers',  createIngestionRoutes(db));
 app.use('/api/v1/dashboard',  createDashboardRoutes(db));
 app.use('/api/v1/billing',    createBillingRoutes(db));
 app.use('/api/v1/signal-publish', createSignalPublishRoutes(db));
-app.use('/api/v1/signals', createSignalFormatRoutes(db));
 app.use('/api/v1/parser',       createParserRoutes());
 app.use('/api/v1/markets',     createMarketsRoutes(db));
 app.use('/api/v1/marketplace', createMarketplaceRoutes(db));
 app.use('/api/v1/feed', createSSEFeedRoutes());
 app.use('/api/v1/telegram', createTelegramRoutes(db));
-app.use('/api/v1/engine',  createEngineIngestRoutes(db));
 app.use('/internal/telegram', createTelegramWorkerRoutes(db));
-app.use('/api/v1/market-intel', marketIntelRouter);
-app.use('/api/v1/market-intel', marketIntelExtendedRouter);
-startMarketIntelScheduler();
 
 // ── 404 Handler ───────────────────────────────────────────────
 app.use((_req, res) => {

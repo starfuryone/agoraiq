@@ -18,8 +18,6 @@ import { providerAuth } from '../middleware/provider-auth';
 import { webhookRateLimiter } from '../middleware/rate-limit';
 
 const log = createLogger('signal-ingest');
-import { gradeSignalAtEntry } from '../modules/market-intel/signalGrading';
-import { hydrateSignalCard } from '../hooks/hydrateSignalCard';
 
 // ── Payload Schema (Zod) ──────────────────────────────────────
 
@@ -69,7 +67,7 @@ export function createIngestionRoutes(db: PrismaClient): Router {
   // POST /api/v1/providers/:providerSlug/signals
   router.post(
     '/:providerSlug/signals',
-    webhookRateLimiter as any,
+    webhookRateLimiter,
     providerAuth(db),
     async (req: Request, res: Response) => {
       const provider = (req as any).provider;
@@ -224,16 +222,6 @@ export function createIngestionRoutes(db: PrismaClient): Router {
 
           return { signal, trade };
         });
-
-        // ── 6a. Grade signal at entry (non-blocking) ─────────
-        void gradeSignalAtEntry({ signalId: result.signal.id, providerId: provider.id, symbol: payload.symbol, side: direction });
-
-        // ── 6b. Render signal card HTML (non-blocking) ───────
-        if (result.trade) {
-          hydrateSignalCard(result.trade.id, db).catch((err) =>
-            log.warn({ err, tradeId: result.trade!.id }, 'Signal card hydration failed (non-fatal)')
-          );
-        }
 
         // ── 6. Audit log (non-blocking) ─────────────────────
         db.auditLog.create({

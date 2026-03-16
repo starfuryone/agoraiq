@@ -10,7 +10,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { v4 as uuid } from 'uuid';
-import { publishEvent } from '@agoraiq/db/alerts/event-bus';
+import { publishEvent } from '@agoraiq/db';
 import type {
   SignalEvent,
   MarketEvent,
@@ -20,7 +20,7 @@ import type {
   MarketEventType,
   WhaleEventType,
   LiquidationEventType,
-} from '@agoraiq/db/alerts/event-types';
+} from '@agoraiq/db';
 
 // ── Signal producer ───────────────────────────────────────────
 // Call from: signal ingest pipeline (webhook, Telegram, Discord listener)

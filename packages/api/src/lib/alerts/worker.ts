@@ -16,12 +16,12 @@
 //   Evaluate rules → Dedup → Score → Deliver
 // ─────────────────────────────────────────────────────────────
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@agoraiq/db';
 import { Redis }        from 'ioredis';
 import type { Worker }  from 'bullmq';
-import { createAlertWorker, shutdownEventBus, getRedis } from '@agoraiq/db/alerts/event-bus';
-import { AlertDispatcher, type AlertDeliveryAdapters }     from '@agoraiq/db/alerts/dispatcher';
-import { createWebPushAdapter, initWebPush }               from '@agoraiq/db/alerts/webpush-adapter';
+import { createAlertWorker, shutdownEventBus, getRedis } from '@agoraiq/db';
+import { AlertDispatcher, type AlertDeliveryAdapters }     from '@agoraiq/db';
+import { createWebPushAdapter, initWebPush }               from '@agoraiq/db';
 import { pushAlertToUser }                                  from '../../routes/alerts-sse';
 
 let _worker: Worker | null = null;

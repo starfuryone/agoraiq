@@ -8,7 +8,7 @@
 
 import { Router, Request, Response } from 'express';
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 // ── GET /vapid-public-key ─────────────────────────────────────
 

@@ -1,13 +1,12 @@
 /**
  * ══════════════════════════════════════════════════════
- * AgoraIQ — Dashboard API Routes (PATCHED)
+ * AgoraIQ — Dashboard API Routes (Refactored)
  * ══════════════════════════════════════════════════════
  *
- * FIXES:
- * - /signals: pair→symbol, direction→action, entryPrice→price, outcome from trades
- * - /top-providers: uses trades.status for win rate (not signals.action)
- * - /win-rate-trend: uses trades table for outcomes
- * - /intelligence: unchanged (helpers fixed separately)
+ * File: packages/api/src/routes/dashboard.ts
+ *
+ * Uses dashboard-helpers.ts for data fetching + caching.
+ * All routes require auth via Bearer token.
  */
 
 import { Router, Request, Response } from 'express';
@@ -22,7 +21,7 @@ import {
   flushDashboardCache,
 } from '../lib/dashboard-helpers';
 
-const router: Router = Router();
+const router = Router();
 router.use(requireAuth);
 
 // ─────────────────────────────
@@ -72,41 +71,30 @@ router.get('/intelligence', async (req: Request, res: Response) => {
 
 // ─────────────────────────────
 // GET /signals?limit=20
-// FIXED: uses actual column names (symbol, action, price) + joins trades for outcome
 // ─────────────────────────────
 router.get('/signals', async (req: Request, res: Response) => {
   try {
     const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
 
-    const rows: any[] = await prisma.$queryRaw`
-      SELECT
-        s.id, s.symbol, s.action, s.price,
-        s.confidence, s.score, s."createdAt", s.meta,
-        p.name  AS "providerName",
-        p.id    AS "providerId",
-        t.status    AS "tradeStatus",
-        t."rMultiple"
-      FROM signals s
-      LEFT JOIN providers p ON p.id = s."providerId"
-      LEFT JOIN trades   t ON t."signalId" = s.id
-      WHERE COALESCE(s.was_deleted, false) = false
-      ORDER BY s."createdAt" DESC
-      LIMIT ${limit}
-    `;
+    const signals = await prisma.signal.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      include: { provider: { select: { id: true, name: true } } },
+    });
 
     res.json({
-      signals: rows.map((s: any) => ({
+      signals: signals.map((s: any) => ({
         id: s.id,
-        pair: s.symbol,
-        direction: s.action,                       // LONG / SHORT / BUY / SELL
-        entry: s.price,
-        confidence: s.confidence,
-        score: s.score,
-        provider: s.providerName || '—',
-        providerName: s.providerName || '—',
-        providerId: s.providerId,
-        outcome: s.tradeStatus || null,             // TP_HIT / SL_HIT / ACTIVE / null
-        status: s.tradeStatus || 'active',
+        pair: s.pair,
+        direction: s.direction,
+        entry: s.entryPrice || s.entry,
+        confidence: s.confidence || s.score || null,
+        score: s.score || null,
+        provider: s.provider?.name || s.providerName || '—',
+        providerName: s.provider?.name || s.providerName || '—',
+        providerId: s.provider?.id || s.providerId,
+        outcome: s.action,
+        status: 'active',
         createdAt: s.createdAt,
         rMultiple: s.rMultiple || null,
       })),
@@ -119,7 +107,6 @@ router.get('/signals', async (req: Request, res: Response) => {
 
 // ─────────────────────────────
 // GET /top-providers?range=7d&limit=8
-// FIXED: queries trades table for win rate (signals.action = direction, not outcome)
 // ─────────────────────────────
 router.get('/top-providers', async (req: Request, res: Response) => {
   try {
@@ -130,19 +117,15 @@ router.get('/top-providers', async (req: Request, res: Response) => {
     const providers: any[] = await prisma.$queryRaw`
       SELECT
         p.id, p.name,
-        COUNT(t.id)::int AS "signalCount",
-        ROUND(100.0 * COUNT(CASE WHEN t.status = 'HIT_TP' THEN 1 END) /
-          NULLIF(COUNT(CASE WHEN t.status IN ('HIT_TP','HIT_SL') THEN 1 END), 0), 1)::float AS "winRate",
-        ROUND(AVG(
-          CASE WHEN t.status IN ('HIT_TP','HIT_SL') THEN t."rMultiple" END
-        )::numeric, 2)::float AS "avgR"
+        COUNT(s.id)::int AS "signalCount",
+        ROUND(100.0 * COUNT(CASE WHEN s.action = 'HIT_TP' THEN 1 END) /
+          NULLIF(COUNT(CASE WHEN s.action IN ('HIT_TP','HIT_SL') THEN 1 END), 0), 1)::float AS "winRate",
+        0::float AS "avgR"
       FROM providers p
-      JOIN trades t ON t."providerId" = p.id
-      WHERE COALESCE(t."exitedAt", t."updatedAt") >= ${since}
-        AND p."isActive" = true
-        AND t.status IN ('HIT_TP','HIT_SL')
+      JOIN signals s ON s."providerId" = p.id
+      WHERE s."createdAt" >= ${since} AND p."isActive" = true
       GROUP BY p.id, p.name
-      HAVING COUNT(CASE WHEN t.status IN ('HIT_TP','HIT_SL') THEN 1 END) >= 3
+      HAVING COUNT(CASE WHEN s.action IN ('HIT_TP','HIT_SL') THEN 1 END) >= 3
       ORDER BY "winRate" DESC NULLS LAST
       LIMIT ${limit}
     `;
@@ -178,7 +161,7 @@ router.get('/explainers', async (_req: Request, res: Response) => {
 
 // ─────────────────────────────
 // GET /activity?days=30
-// Bar chart: signal count per day (uses signals table — this was correct)
+// Bar chart: signal count per day
 // ─────────────────────────────
 router.get('/activity', async (req: Request, res: Response) => {
   try {
@@ -207,7 +190,7 @@ router.get('/activity', async (req: Request, res: Response) => {
 
 // ─────────────────────────────
 // GET /win-rate-trend?days=30
-// FIXED: queries trades table (outcomes), not signals.action
+// Line chart: daily win rate + resolved count
 // ─────────────────────────────
 router.get('/win-rate-trend', async (req: Request, res: Response) => {
   try {
@@ -216,17 +199,14 @@ router.get('/win-rate-trend', async (req: Request, res: Response) => {
 
     const rows: any[] = await prisma.$queryRaw`
       SELECT
-        DATE(COALESCE(t."exitedAt", t."updatedAt")) AS day,
-        COUNT(CASE WHEN t.status IN ('HIT_TP','HIT_SL') THEN 1 END)::int AS resolved,
+        DATE("createdAt") AS day,
+        COUNT(CASE WHEN action IN ('HIT_TP','HIT_SL') THEN 1 END)::int AS resolved,
         ROUND(
-          100.0 * COUNT(CASE WHEN t.status = 'HIT_TP' THEN 1 END) /
-          NULLIF(COUNT(CASE WHEN t.status IN ('HIT_TP','HIT_SL') THEN 1 END), 0), 1
+          100.0 * COUNT(CASE WHEN action = 'HIT_TP' THEN 1 END) /
+          NULLIF(COUNT(CASE WHEN action IN ('HIT_TP','HIT_SL') THEN 1 END), 0), 1
         )::float AS "winRate"
-      FROM trades t
-      WHERE COALESCE(t."exitedAt", t."updatedAt") >= ${since}
-        AND t.status IN ('HIT_TP','HIT_SL')
-      GROUP BY DATE(COALESCE(t."exitedAt", t."updatedAt"))
-      ORDER BY day ASC
+      FROM signals WHERE "createdAt" >= ${since}
+      GROUP BY DATE("createdAt") ORDER BY day ASC
     `;
 
     const rowMap = new Map(
@@ -297,6 +277,7 @@ router.get('/market-pulse', async (_req: Request, res: Response) => {
 // ─────────────────────────────
 router.post('/flush-cache', async (req: Request, res: Response) => {
   const userId = (req as any).user?.id;
+  // Replace with your actual admin user ID
   if (userId !== 'cmm3nh44400012xfntoh7dzqm') {
     return res.status(403).json({ error: 'Forbidden' });
   }
@@ -306,4 +287,4 @@ router.post('/flush-cache', async (req: Request, res: Response) => {
 
 export default router;
 
-export function createDashboardRoutes(db?: any): Router { return router; }
+export function createDashboardRoutes(db?: any) { return router; }
